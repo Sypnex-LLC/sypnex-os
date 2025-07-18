@@ -1,0 +1,50 @@
+<div class="app-container">
+    <div class="app-header">
+        <h2><i class="fas fa-volume-up"></i> Text to Speech</h2>
+        <p>Convert text to speech with AI voicesxxx</p>
+    </div>
+    
+    <div class="app-content">
+        <div class="app-form">
+            <div class="app-form-group">
+                <label for="tts-text">Text to Speak</label>
+                <textarea id="tts-text" class="app-input" rows="4" placeholder="Enter text to convert to speech..."></textarea>
+            </div>
+            
+            <div class="app-form-group">
+                <label for="tts-voice">Voice</label>
+                <select id="tts-voice" class="app-select">
+                    <option value="af_heart">Heart (Female)</option>
+                    <option value="af_nicole">Nicole (Female)</option>
+                    <option value="af_bella">Bella (Female)</option>
+                </select>
+            </div>
+            
+            <div class="app-btn-group">
+                <button id="tts-preview" class="app-btn primary">
+                    <i class="fas fa-play"></i> Preview
+                </button>
+                <button id="tts-clear" class="app-btn secondary">
+                    <i class="fas fa-eraser"></i> Clear
+                </button>
+            </div>
+        </div>
+        
+        <div id="tts-status" class="app-status info" style="display: none;">
+            <i class="fas fa-spinner fa-spin"></i> Generating speech...
+        </div>
+        
+        <div id="tts-error" class="app-status error" style="display: none;">
+            <i class="fas fa-exclamation-triangle"></i> <span id="error-message"></span>
+        </div>
+        
+        <div id="tts-audio" style="display: none;">
+            <div class="app-status success">
+                <i class="fas fa-check-circle"></i> Speech generated successfully!
+            </div>
+            <audio id="audio-player" style="display: none;">
+                Your browser does not support the audio element.
+            </audio>
+        </div>
+    </div>
+</div>

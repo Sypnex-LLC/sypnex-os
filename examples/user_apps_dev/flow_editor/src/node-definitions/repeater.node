@@ -1,0 +1,35 @@
+{
+  "id": "repeater",
+  "name": "Repeater",
+  "description": "Repeat connected workflow at intervals",
+  "icon": "fas fa-redo",
+  "color": "warning",
+  "category": "trigger",
+  "execution_mode": "both",
+  "inputs": [
+    {"id": "trigger", "name": "Trigger", "type": "data"}
+  ],
+  "outputs": [
+    {"id": "trigger", "name": "Trigger", "type": "data"},
+    {"id": "count", "name": "Count", "type": "number"}
+  ],
+  "config": {
+    "interval": {
+      "type": "number",
+      "label": "Interval (ms)",
+      "value": 1000,
+      "min": 100,
+      "max": 300000,
+      "step": 100
+    },
+    "count": {
+      "type": "number",
+      "label": "Count (0 = infinite)",
+      "value": 0,
+      "min": 0,
+      "step": 1
+    }
+  },
+  "executor": "repeater_executor",
+  "template": "standard"
+} 

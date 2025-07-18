@@ -1,0 +1,105 @@
+<link href="{{ url_for('static', filename='css/os-user-app-manager.css') }}" rel="stylesheet">
+
+<div class="app-container">
+    <div class="app-header">
+        <h2><i class="fas fa-user-cog"></i> User App Manager</h2>
+        <p>Manage and discover user-created applications</p>
+        <div class="header-actions">
+            <button class="app-btn secondary install-app-btn">
+                <i class="fas fa-download"></i> Install App
+            </button>
+            <button class="app-btn primary refresh-user-apps">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+        </div>
+    </div>
+    
+    <div class="app-content">
+        <div class="app-section">
+            <h3>Status Summary</h3>
+            <div class="status-summary">
+                <!-- Status summary will be populated by JavaScript -->
+            </div>
+        </div>
+        
+        <div class="app-section">
+            <h3>User Applications</h3>
+            <div class="user-app-list">
+                <!-- User app list will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Install App Modal -->
+<div class="modal" id="installAppModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-download"></i> Install App Package</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="install-instructions">
+                <p><strong>How to install an app:</strong></p>
+                <ol>
+                    <li>Select a packaged app file (.app extension)</li>
+                    <li>The app will be installed to your VFS and appear in the app launcher</li>
+                    <li>Installed apps persist across system restarts</li>
+                </ol>
+            </div>
+            <form id="installAppForm">
+                <div class="form-group">
+                    <label for="appPackage">App Package File:</label>
+                    <input type="file" id="appPackage" name="appPackage" accept=".app" required>
+                    <small>Select a .app package file to install</small>
+                </div>
+            </form>
+            <div id="installProgress" style="display: none;">
+                <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                </div>
+                <p class="progress-text">Installing app...</p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="app-btn secondary modal-cancel">Cancel</button>
+            <button class="app-btn primary install-app-submit">Install App</button>
+        </div>
+    </div>
+</div>
+
+<!-- Create Terminal App Modal -->
+<div class="modal" id="createTerminalModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-terminal"></i> Create Terminal App</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="createTerminalForm">
+                <div class="form-group">
+                    <label for="appId">App ID (unique identifier):</label>
+                    <input type="text" id="appId" name="appId" required placeholder="e.g., my_terminal_app">
+                </div>
+                <div class="form-group">
+                    <label for="appName">App Name:</label>
+                    <input type="text" id="appName" name="appName" required placeholder="e.g., My Terminal App">
+                </div>
+                <div class="form-group">
+                    <label for="appDescription">Description:</label>
+                    <textarea id="appDescription" name="appDescription" required placeholder="Describe what your terminal app does"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="appAuthor">Author:</label>
+                    <input type="text" id="appAuthor" name="appAuthor" value="User" placeholder="Your name">
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="app-btn secondary modal-cancel">Cancel</button>
+            <button class="app-btn primary create-app-submit">Create App</button>
+        </div>
+    </div>
+</div>
+
+ 

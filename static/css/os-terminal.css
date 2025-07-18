@@ -1,0 +1,199 @@
+/* Terminal App Styles */
+.app-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+}
+
+.terminal-output {
+    background-color: #1e1e1e;
+    color: #ffffff;
+    font-family: 'Courier New', monospace;
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 10px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    border-radius: 8px;
+    padding: 10px;
+    /* Enable text selection */
+    user-select: text;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    /* Enable copy/paste */
+    -webkit-user-modify: read-write-plaintext-only;
+    cursor: text;
+    /* Remove any default indentation */
+    text-indent: 0;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.terminal-input-line {
+    display: flex;
+    align-items: center;
+    background-color: transparent;
+    border: none;
+    color: #ffffff;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    outline: none;
+    width: 100%;
+}
+
+.terminal-prompt {
+    color: #00ff00;
+    margin-right: 8px;
+    user-select: none;
+}
+
+.terminal-input {
+    background-color: transparent;
+    border: none;
+    color: #ffffff;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    outline: none;
+    flex: 1;
+}
+
+.terminal-line {
+    margin: 2px 0;
+    line-height: 1.4;
+    /* Enable text selection on individual lines */
+    user-select: text;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    /* Preserve whitespace and line breaks */
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.terminal-error {
+    color: #ff6b6b;
+}
+
+.terminal-success {
+    color: #51cf66;
+}
+
+.terminal-info {
+    color: #74c0fc;
+}
+
+.terminal-ascii {
+    color: #00d4ff;
+    font-size: 10px;
+    line-height: 1.2;
+    margin-bottom: 8px;
+}
+
+.terminal-executable {
+    color: #51cf66;  /* Green for executable files */
+}
+
+.terminal-directory {
+    color: #74c0fc;  /* Blue for directories */
+}
+
+.command-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: #2d2d2d;
+    border: 1px solid #444;
+    border-top: none;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+}
+
+.suggestion-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #444;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.suggestion-item:hover {
+    background-color: #3d3d3d;
+}
+
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.suggestion-name {
+    color: #ffffff;
+    font-weight: bold;
+}
+
+.suggestion-help {
+    color: #888;
+    font-size: 0.9em;
+}
+
+.command-history {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: #2d2d2d;
+    border: 1px solid #444;
+    border-top: none;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+}
+
+.history-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #444;
+}
+
+.history-item:hover {
+    background-color: #3d3d3d;
+}
+
+.history-item:last-child {
+    border-bottom: none;
+}
+
+.input-container {
+    position: relative;
+}
+
+/* Selection styling */
+.terminal-output::selection {
+    background-color: #0066cc;
+    color: #ffffff;
+}
+
+.terminal-output::-moz-selection {
+    background-color: #0066cc;
+    color: #ffffff;
+}
+
+.terminal-line::selection {
+    background-color: #0066cc;
+    color: #ffffff;
+}
+
+.terminal-line::-moz-selection {
+    background-color: #0066cc;
+    color: #ffffff;
+}
+
+/* Context menu for copy/paste */
+.terminal-output {
+    position: relative;
+}

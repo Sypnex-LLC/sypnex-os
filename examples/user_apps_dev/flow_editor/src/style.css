@@ -1,0 +1,1304 @@
+/* Flow Editor App Styles */
+
+/* Flow Editor Layout */
+.flow-editor {
+    display: flex;
+    height: 70vh;
+    gap: 0;
+    background: var(--surface-color);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+}
+
+/* Left Toolbox */
+.flow-toolbox {
+    width: 250px;
+    background: var(--surface-color);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+}
+
+.toolbox-header {
+    padding: 15px;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--surface-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.toolbox-header h4 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#toggle-toolbox {
+    padding: 4px 8px;
+    border: 1px solid var(--border-color);
+    background: var(--surface-color);
+    color: var(--text-color);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+#toggle-toolbox:hover {
+    background: var(--border-color);
+}
+
+/* Collapsed state */
+.flow-toolbox.collapsed {
+    width: 50px;
+}
+
+.flow-toolbox.collapsed .toolbox-content {
+    display: none;
+}
+
+.flow-toolbox.collapsed .toolbox-header h4 {
+    display: none;
+}
+
+/* Removed the transform rule that was conflicting with JavaScript icon changes */
+
+.toolbox-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+.node-category {
+    margin-bottom: 20px;
+}
+
+.node-category h5 {
+    margin: 0 0 10px 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 0 5px;
+}
+
+.toolbox-node-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 15px;
+    margin-bottom: 5px;
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    cursor: grab;
+    transition: all 0.2s ease;
+    text-align: left;
+    font-size: 14px;
+    color: var(--text-color);
+}
+
+.toolbox-node-btn:hover {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.toolbox-node-btn:active {
+    cursor: grabbing;
+    transform: translateY(0);
+}
+
+.toolbox-node-btn i {
+    font-size: 16px;
+    width: 20px;
+    text-align: center;
+}
+
+.toolbox-node-btn span {
+    flex: 1;
+    font-weight: 500;
+}
+
+/* Main Workspace */
+.flow-workspace {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+/* Toolbar */
+.flow-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    background: var(--surface-color);
+    border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
+}
+
+.toolbar-left {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.current-file-info {
+    margin-left: 15px;
+    padding: 4px 8px;
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.current-filename {
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+.toolbar-right {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.flow-toolbar .btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.flow-toolbar .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.flow-toolbar .btn-outline-danger {
+    background: transparent;
+    border: 1px solid var(--error-color);
+    color: var(--error-color);
+}
+
+.flow-toolbar .btn-outline-danger:hover {
+    background: var(--error-color);
+    color: white;
+}
+
+.flow-toolbar .btn-outline-secondary {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+}
+
+.flow-toolbar .btn-outline-secondary:hover {
+    background: var(--border-color);
+    color: var(--text-color);
+}
+
+/* Canvas Container */
+.flow-canvas-container {
+    flex: 1;
+    position: relative;
+    background: var(--surface-color);
+    overflow: hidden;
+}
+
+.flow-canvas {
+    width: 10000px;
+    height: 10000px;
+    position: relative;
+    background: 
+        radial-gradient(circle at 20px 20px, var(--border-color) 1px, transparent 1px),
+        radial-gradient(circle at 40px 40px, var(--border-color) 1px, transparent 1px);
+    background-size: 40px 40px;
+    cursor: grab;
+    transform-origin: 0 0;
+    will-change: transform;
+}
+
+.flow-canvas:active {
+    cursor: grabbing;
+}
+
+.flow-canvas.panning {
+    cursor: grabbing;
+}
+
+/* Configuration Panel */
+.flow-config-panel {
+    width: 300px;
+    background: var(--surface-color);
+    border-left: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+}
+
+/* Tag Panel */
+#tag-panel {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+#tag-panel h5 {
+    margin: 0 0 15px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tag-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tag-item:hover {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.tag-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.tag-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.tag-name {
+    font-weight: 500;
+    font-size: 13px;
+    margin-bottom: 2px;
+}
+
+.tag-description {
+    font-size: 11px;
+    opacity: 0.7;
+}
+
+.tag-delete {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+}
+
+.tag-delete:hover {
+    opacity: 1;
+    background: rgba(255,255,255,0.1);
+}
+
+.config-header {
+    padding: 15px;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--surface-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.config-header h4 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#toggle-config {
+    padding: 4px 8px;
+    border: 1px solid var(--border-color);
+    background: var(--surface-color);
+    color: var(--text-color);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+#toggle-config:hover {
+    background: var(--border-color);
+}
+
+/* Collapsed state */
+.flow-config-panel.collapsed {
+    width: 50px;
+}
+
+.flow-config-panel.collapsed .config-content {
+    display: none;
+}
+
+.flow-config-panel.collapsed .config-header h4 {
+    display: none;
+}
+
+/* Removed the transform rule that was conflicting with JavaScript icon changes */
+
+.config-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px;
+}
+
+/* Output Panel */
+.flow-output-panel {
+    margin-top: 10px;
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.output-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    background: var(--surface-color);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.output-header h4 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.output-content {
+    padding: 15px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+/* Node Styles */
+.flow-node {
+    position: absolute;
+    min-width: 150px;
+    background: var(--surface-color);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px;
+    cursor: grab;
+    user-select: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: box-shadow 0.2s ease, transform 0.1s ease;
+    will-change: transform;
+}
+
+.flow-node:active {
+    cursor: grabbing;
+    transition: none;
+}
+
+.flow-node:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transform: translateY(-1px);
+}
+
+.flow-node.selected {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.2);
+}
+
+.flow-node-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-weight: bold;
+    font-size: 14px;
+    position: relative;
+}
+
+.node-delete-btn {
+    position: absolute;
+    right: -5px;
+    top: -5px;
+    width: 20px;
+    height: 20px;
+    border: none;
+    border-radius: 50%;
+    background: var(--error-color);
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    z-index: 10;
+}
+
+.flow-node:hover .node-delete-btn {
+    opacity: 1;
+}
+
+.node-delete-btn:hover {
+    background: #d32f2f;
+    transform: scale(1.1);
+}
+
+.flow-node-type {
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: normal;
+    background: #6c757d;
+    color: white;
+}
+
+.flow-node-content {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.flow-node-ports {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.flow-node-port {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: var(--surface-color);
+    border: 2px solid var(--border-color);
+    border-radius: 50%;
+    cursor: pointer;
+    pointer-events: all;
+    transition: all 0.2s ease;
+}
+
+.flow-node-port:hover {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    transform: scale(1.2);
+}
+
+.flow-node-port.input {
+    left: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.flow-node-port.output {
+    right: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+/* Connection Lines */
+.flow-connection {
+    position: absolute;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.flow-connection-line {
+    stroke: var(--border-color);
+    stroke-width: 8;
+    fill: none;
+    transition: all 0.2s ease;
+    opacity: 0.6; /* Slightly transparent by default */
+}
+
+.flow-connection-line:hover {
+    stroke: var(--primary-color);
+    opacity: 1;
+    stroke-width: 10;
+}
+
+.flow-connection-line.connected {
+    stroke: var(--primary-color);
+    opacity: 0.8;
+}
+
+/* Configuration Styles */
+.config-group {
+    margin-bottom: 15px;
+}
+
+.config-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--text-color);
+}
+
+.config-group input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 14px;
+    background: var(--surface-color);
+    color: var(--text-color);
+    transition: border-color 0.2s ease;
+}
+
+.config-group select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--glass-border);
+    border-radius: 4px;
+    font-size: 14px;
+    background: var(--glass-bg);
+    color: var(--text-color);
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.config-group input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.1);
+}
+
+.config-group select:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    background: rgba(0, 212, 255, 0.05);
+}
+
+.config-group select option {
+    background: var(--primary-bg);
+    color: var(--text-color);
+    padding: 8px 12px;
+}
+
+.config-group select option:hover {
+    background: var(--glass-bg);
+}
+
+.config-group textarea {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 14px;
+    background: var(--surface-color);
+    color: var(--text-color);
+    resize: vertical;
+    min-height: 80px;
+    font-family: monospace;
+}
+
+/* Output Styles */
+.execution-output {
+    font-family: monospace;
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--text-color);
+}
+
+.execution-output .log-entry {
+    margin-bottom: 5px;
+    padding: 4px 0;
+}
+
+.execution-output .log-entry.info {
+    color: var(--info-color);
+}
+
+.execution-output .log-entry.success {
+    color: var(--success-color);
+}
+
+.execution-output .log-entry.error {
+    color: var(--error-color);
+}
+
+.execution-output .log-entry.warning {
+    color: var(--warning-color);
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .flow-editor {
+        flex-direction: column;
+        height: auto;
+    }
+    
+    .flow-toolbox {
+        width: 100%;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .toolbox-content {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 15px;
+    }
+    
+    .node-category {
+        margin-bottom: 0;
+        flex: 1;
+        min-width: 200px;
+    }
+    
+    .flow-config-panel {
+        width: 100%;
+        border-left: none;
+        border-top: 1px solid var(--border-color);
+    }
+}
+
+@media (max-width: 768px) {
+    .flow-toolbar {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .toolbar-left,
+    .toolbar-right {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .flow-toolbar .btn {
+        font-size: 12px;
+        padding: 6px 10px;
+    }
+}
+
+/* Node Type Colors - Removed per-node styling for universal appearance */
+
+/* Display Node Content */
+.display-content {
+    padding: 8px;
+}
+
+.display-text {
+    min-height: 40px;
+    max-height: 200px;
+    width: 220px;
+    overflow-y: auto;
+    background: rgba(0,0,0,0.05);
+    border-radius: 4px;
+    padding: 8px;
+    margin-bottom: 8px;
+    resize: none;
+    box-sizing: border-box;
+}
+
+.display-text pre {
+    margin: 0;
+    font-family: monospace;
+    white-space: pre-wrap;
+    word-break: break-word;
+    user-select: text;
+}
+
+.display-format {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+/* Audio Player Styles */
+.audio-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+    padding: 8px;
+    background: rgba(0,0,0,0.05);
+    border-radius: 4px;
+}
+
+.audio-play-btn,
+.audio-stop-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.audio-play-btn {
+    background: var(--success-color);
+    color: white;
+}
+
+.audio-stop-btn {
+    background: var(--error-color);
+    color: white;
+}
+
+.audio-play-btn:hover,
+.audio-stop-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.audio-status {
+    flex: 1;
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+/* JSON Extract Display */
+.json-extract-display {
+    margin-top: 10px;
+    padding: 8px;
+    background: rgba(0,0,0,0.05);
+    border-radius: 4px;
+}
+
+.extract-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    font-weight: 500;
+}
+
+.extract-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-color);
+    word-break: break-all;
+    padding: 4px 8px;
+    background: var(--surface-color);
+    border-radius: 3px;
+    border: 1px solid var(--border-color);
+}
+
+.extract-value.success {
+    color: var(--success-color);
+    border-color: var(--success-color);
+}
+
+.extract-value.error {
+    color: var(--error-color);
+    border-color: var(--error-color);
+}
+
+/* Running State */
+.flow-node.running {
+    border-color: var(--success-color);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(var(--success-color-rgb), 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(var(--success-color-rgb), 0); }
+    100% { box-shadow: 0 0 0 0 rgba(var(--success-color-rgb), 0); }
+}
+
+/* Repeater Node Styles */
+
+.repeater-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+}
+
+.repeater-status {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 4px;
+    text-align: center;
+    min-width: 80px;
+}
+
+.repeater-status.stopped {
+    background: rgba(0,0,0,0.1);
+    color: var(--text-muted);
+}
+
+.repeater-status.running {
+    background: var(--success-color);
+    color: white;
+    animation: pulse 2s infinite;
+}
+
+.repeater-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.repeater-start-btn,
+.repeater-stop-btn {
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    transition: all 0.2s ease;
+}
+
+.repeater-start-btn {
+    background: var(--success-color);
+    color: white;
+}
+
+.repeater-stop-btn {
+    background: var(--error-color);
+    color: white;
+}
+
+.repeater-start-btn:hover,
+.repeater-stop-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+/* Image Node Styles */
+.image-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    min-height: 120px;
+    justify-content: center;
+}
+
+.image-thumbnail {
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    object-fit: contain;
+    transition: transform 0.2s ease;
+}
+
+.image-thumbnail:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.image-info {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-muted);
+    background: rgba(0,0,0,0.05);
+    padding: 4px 8px;
+    border-radius: 3px;
+    width: 100%;
+}
+
+.image-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: var(--error-color);
+    text-align: center;
+}
+
+.image-error i {
+    font-size: 16px;
+}
+
+/* Image Modal Styles */
+.image-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.image-modal-content {
+    background: var(--surface-color);
+    border-radius: 8px;
+    max-width: 90%;
+    max-height: 90%;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.image-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--surface-color);
+}
+
+.image-modal-header span {
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.image-modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.image-modal-close:hover {
+    background: rgba(0,0,0,0.1);
+    color: var(--text-color);
+}
+
+.image-modal-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    max-height: calc(90vh - 100px);
+    overflow-y: auto;
+}
+
+.image-modal-image {
+    max-width: 100%;
+    max-height: 70vh;
+    object-fit: contain;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.image-modal-info {
+    text-align: center;
+    padding: 10px;
+    background: rgba(0,0,0,0.05);
+    border-radius: 4px;
+    width: 100%;
+}
+
+/* Random Quote Node Styles */
+.quote-content {
+    padding: 10px;
+    text-align: center;
+}
+
+.quote-text {
+    margin-bottom: 8px;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.quote-display {
+    margin: 0;
+    font-style: italic;
+    color: var(--text-color);
+    font-size: 13px;
+    line-height: 1.4;
+    max-width: 100%;
+    word-wrap: break-word;
+}
+
+.quote-info {
+    font-size: 11px;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border-color);
+    padding-top: 8px;
+}
+
+/* LLM Chat Node Styles */
+
+.llm-response {
+    padding: 8px;
+    background: rgba(23, 162, 184, 0.1);
+    border-radius: 4px;
+    margin: 4px 0;
+}
+
+.response-preview {
+    font-size: 12px;
+    line-height: 1.3;
+    color: var(--text-color);
+    word-wrap: break-word;
+    margin-bottom: 4px;
+}
+
+.usage-info {
+    font-size: 10px;
+    color: var(--text-muted);
+    border-top: 1px solid rgba(0,0,0,0.1);
+    padding-top: 4px;
+}
+
+.llm-error {
+    padding: 8px;
+    background: rgba(220, 53, 69, 0.1);
+    border-radius: 4px;
+    margin: 4px 0;
+    color: var(--error-color);
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.llm-error i {
+    font-size: 14px;
+}
+
+/* Text Node Styles */
+
+.text-content {
+    padding: 8px;
+    background: rgba(108, 117, 125, 0.1);
+    border-radius: 4px;
+    margin: 4px 0;
+}
+
+.text-preview {
+    font-size: 12px;
+    line-height: 1.3;
+    color: var(--text-color);
+    word-wrap: break-word;
+    margin-bottom: 4px;
+}
+
+.text-info {
+    font-size: 10px;
+    color: var(--text-muted);
+    border-top: 1px solid rgba(0,0,0,0.1);
+    padding-top: 4px;
+}
+
+/* Node Status Display */
+.node-status {
+    padding: 8px;
+    background: rgba(0,0,0,0.05);
+    border-radius: 4px;
+    margin: 4px 0;
+    text-align: center;
+}
+
+.status-text {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-color);
+    margin-bottom: 4px;
+}
+
+.status-info {
+    font-size: 10px;
+    color: var(--text-muted);
+}
+
+/* Content Display in Config Panel */
+.content-display {
+    background: rgba(0,0,0,0.05);
+    border-radius: 4px;
+    padding: 12px;
+    margin-top: 8px;
+}
+
+.content-text {
+    margin: 0;
+    font-family: monospace;
+    font-size: 12px;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 300px;
+    overflow-y: auto;
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+    padding: 8px;
+    user-select: text;
+}
+
+.content-info {
+    margin-top: 8px;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+/* Terminal Node Styles */
+.terminal-error {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    background: rgba(220, 53, 69, 0.1);
+    border: 1px solid var(--error-color);
+    border-radius: 4px;
+    color: var(--error-color);
+    font-size: 12px;
+    margin-top: 8px;
+}
+
+.terminal-error i {
+    margin-right: 8px;
+    color: var(--error-color);
+}
+
+.flow-output-panel.collapsed .output-content {
+    display: none !important;
+}
+.flow-output-panel .output-header {
+    cursor: pointer;
+}
+.flow-output-panel .output-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+/* Input/Output Mappings Configuration Styles */
+.input-mappings-config,
+.output-mappings-config {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 8px;
+    margin-top: 4px;
+}
+
+.input-mapping-config,
+.output-mapping-config {
+    margin-bottom: 8px;
+    padding: 8px;
+    background: rgba(0,0,0,0.02);
+    border-radius: 3px;
+    border-left: 3px solid var(--primary-color);
+}
+
+.input-mapping-config:last-child,
+.output-mapping-config:last-child {
+    margin-bottom: 0;
+}
+
+.input-mapping-config label,
+.output-mapping-config label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 4px;
+}
+
+.input-mapping-select,
+.output-mapping-select {
+    width: 100%;
+    padding: 4px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+    font-size: 11px;
+    background: var(--surface-color);
+    color: var(--text-color);
+}
+
+.input-mapping-select:focus,
+.output-mapping-select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+}
+
+/* Legacy styles for backward compatibility */
+.input-mappings {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 8px;
+    margin-top: 4px;
+}
+
+.input-mapping {
+    padding: 4px 8px;
+    margin-bottom: 4px;
+    background: var(--primary-color);
+    color: white;
+    border-radius: 3px;
+    font-size: 11px;
+    line-height: 1.2;
+}
+
+.input-mapping:last-child {
+    margin-bottom: 0;
+}
+
+.input-mapping .source-node {
+    font-weight: 600;
+}
+
+.input-mapping .source-port {
+    opacity: 0.8;
+    font-style: italic;
+}

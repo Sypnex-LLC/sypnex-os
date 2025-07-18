@@ -1,0 +1,43 @@
+{
+  "id": "vfs_save",
+  "name": "VFS Save",
+  "description": "Save data to the Virtual File System",
+  "icon": "fas fa-save",
+  "color": "primary",
+  "category": "storage",
+  "execution_mode": "both",
+  "inputs": [
+    {"id": "data", "name": "Data", "type": "data"}
+  ],
+  "outputs": [
+    {"id": "success", "name": "Success", "type": "boolean"}
+  ],
+  "config": {
+    "file_path": {
+      "type": "text",
+      "label": "File Path",
+      "value": "/my_data.json",
+      "placeholder": "/absolute/path/in/vfs"
+    },
+    "format": {
+      "type": "select",
+      "label": "Format",
+      "value": "json",
+      "options": ["json", "text", "binary"]
+    },
+    "overwrite": {
+      "type": "select",
+      "label": "Overwrite",
+      "value": "true",
+      "options": ["true", "false"]
+    },
+    "append": {
+      "type": "select",
+      "label": "Append Mode",
+      "value": "false",
+      "options": ["true", "false"]
+    }
+  },
+  "executor": "vfs_save_executor",
+  "template": "standard"
+} 

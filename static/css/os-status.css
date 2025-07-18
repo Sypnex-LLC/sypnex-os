@@ -1,0 +1,113 @@
+/* Sypnex OS - Status Bar Styles */
+/* Contains status bar and system indicators */
+
+/* Status Bar */
+#status-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 40px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid var(--glass-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    z-index: 100;
+}
+
+.status-left, .status-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.status-center {
+    display: flex;
+    align-items: center;
+}
+
+.status-indicators {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    height: 100%;
+}
+
+.status-icon {
+    color: var(--text-secondary);
+    font-size: 14px;
+    transition: color 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    line-height: 1;
+}
+
+/* Network status indicators */
+.network-excellent {
+    color: #00ff88 !important;
+}
+
+.network-good {
+    color: #00d4ff !important;
+}
+
+.network-fair {
+    color: #ffaa00 !important;
+}
+
+.network-poor {
+    color: #ff4757 !important;
+}
+
+.network-error {
+    color: #ff4757 !important;
+    animation: pulse-error 2s infinite;
+}
+
+/* WebSocket status indicators */
+.websocket-online {
+    color: #00ff88 !important;
+}
+
+.websocket-error {
+    color: #ff4757 !important;
+    animation: pulse-error 2s infinite;
+}
+
+.websocket-unknown {
+    color: #ffaa00 !important;
+}
+
+#current-time {
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--accent-color);
+}
+
+#current-date {
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.status-button {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 16px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.status-button:hover {
+    background: rgba(0, 212, 255, 0.1);
+    color: var(--accent-color);
+} 

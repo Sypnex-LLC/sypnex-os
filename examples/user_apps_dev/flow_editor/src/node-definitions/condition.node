@@ -1,0 +1,50 @@
+{
+  "id": "condition",
+  "name": "Condition",
+  "description": "Compare input value to a condition and output true/false",
+  "icon": "fas fa-question-circle",
+  "color": "warning",
+  "category": "logic",
+  "execution_mode": "both",
+  "inputs": [
+    {"id": "value", "name": "Value", "type": "data"}
+  ],
+  "outputs": [
+    {"id": "result", "name": "Result", "type": "boolean"}
+  ],
+  "config": {
+    "operator": {
+      "type": "select",
+      "label": "Operator",
+      "value": "equals",
+      "options": [
+        "equals",
+        "not_equals", 
+        "greater_than",
+        "less_than",
+        "greater_than_or_equal",
+        "less_than_or_equal",
+        "contains",
+        "not_contains",
+        "starts_with",
+        "ends_with",
+        "is_empty",
+        "is_not_empty"
+      ]
+    },
+    "compare_value": {
+      "type": "text",
+      "label": "Compare To",
+      "value": "",
+      "placeholder": "Value to compare against"
+    },
+    "case_sensitive": {
+      "type": "select",
+      "label": "Case Sensitive",
+      "value": "true",
+      "options": ["true", "false"]
+    }
+  },
+  "executor": "condition_executor",
+  "template": "standard"
+} 

@@ -1,0 +1,115 @@
+/* Sypnex OS - Taskbar Styles */
+/* Contains taskbar functionality for minimized apps */
+
+/* Taskbar Styles */
+.taskbar-hidden {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(100%);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.taskbar-visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+#taskbar {
+    position: fixed;
+    bottom: 60px; /* Above the status bar */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 300;
+    pointer-events: none;
+}
+
+.taskbar-container {
+    background: rgba(20, 20, 20, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 8px 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    pointer-events: all;
+}
+
+.taskbar-apps {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.taskbar-app {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 500;
+    min-width: 120px;
+    max-width: 200px;
+}
+
+.taskbar-app:hover {
+    background: rgba(0, 212, 255, 0.2);
+    border-color: var(--accent-color);
+    transform: translateY(-2px);
+}
+
+.taskbar-app.active {
+    background: rgba(0, 212, 255, 0.3);
+    border-color: var(--accent-color);
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+}
+
+.taskbar-app i {
+    color: var(--accent-color);
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.taskbar-app span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.taskbar-app .app-close {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 2px;
+    border-radius: 4px;
+    margin-left: auto;
+    font-size: 12px;
+    transition: all 0.2s ease;
+}
+
+.taskbar-app .app-close:hover {
+    background: rgba(255, 71, 87, 0.2);
+    color: #ff4757;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .taskbar-container {
+        padding: 4px 8px;
+    }
+    
+    .taskbar-apps {
+        flex-wrap: wrap;
+    }
+    
+    .taskbar-app {
+        min-width: 100px;
+        max-width: 100%;
+    }
+} 

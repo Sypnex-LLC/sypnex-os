@@ -1,0 +1,114 @@
+<div class="app-container">
+    <div class="app-header">
+        <h2><i class="fas fa-project-diagram"></i> Flow Editor</h2>
+        <p>Create and execute node-based workflows</p>
+    </div>
+
+    <div class="app-content">
+        <div class="flow-editor">
+            <!-- Left Toolbox -->
+            <div class="flow-toolbox" id="flow-toolbox">
+                <div class="toolbox-header">
+                    <h4><i class="fas fa-tools"></i> Nodes</h4>
+                    <button id="toggle-toolbox" class="btn btn-sm btn-outline-secondary" title="Collapse Toolbox">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                </div>
+                <div class="toolbox-content" id="toolbox-content">
+                    <!-- Nodes will be loaded dynamically from VFS -->
+                    <div class="loading-nodes">
+                        <p class="text-muted">Loading nodes...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main workspace -->
+            <div class="flow-workspace">
+                <!-- Toolbar -->
+                <div class="flow-toolbar">
+                    <div class="toolbar-left">
+                        <button id="run-workflow" class="btn btn-success">
+                            <i class="fas fa-play"></i> Run Workflow
+                        </button>
+                        <button id="stop-workflow" class="btn btn-danger" style="display: none;">
+                            <i class="fas fa-stop"></i> Stop
+                        </button>
+                        <div class="current-file-info">
+                            <span id="current-filename" class="current-filename">untitled.flow</span>
+                        </div>
+                    </div>
+                    
+                    <div class="toolbar-right">
+                        <button id="add-tag" class="btn btn-outline-success" title="Add Area Tag">
+                            <i class="fas fa-tag"></i> Tag
+                        </button>
+                        <button id="reset-pan" class="btn btn-outline-secondary" title="Reset Canvas View">
+                            <i class="fas fa-crosshairs"></i> Reset View
+                        </button>
+                        <button id="save-flow" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save
+                        </button>
+                        <button id="save-flow-as" class="btn btn-outline-primary">
+                            <i class="fas fa-save"></i> Save As
+                        </button>
+                        <button id="load-flow" class="btn btn-secondary">
+                            <i class="fas fa-folder-open"></i> Load
+                        </button>
+                        <button id="delete-selected" class="btn btn-outline-danger">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                        <button id="clear-canvas" class="btn btn-outline-secondary">
+                            <i class="fas fa-trash-alt"></i> Clear All
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Main canvas area -->
+                <div class="flow-canvas-container">
+                    <div id="flow-canvas" class="flow-canvas">
+                        <!-- Nodes will be added here dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configuration panel -->
+            <div class="flow-config-panel" id="flow-config-panel">
+                <div class="config-header">
+                    <h4><i class="fas fa-cog"></i> Configuration</h4>
+                    <button id="toggle-config" class="btn btn-sm btn-outline-secondary" title="Collapse Configuration Panel">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                <div class="config-content" id="config-content">
+                    <div id="node-config">
+                        <p class="text-muted">Select a node to configure it</p>
+                    </div>
+                    <div id="tag-panel">
+                        <h5><i class="fas fa-tags"></i> Area Tags</h5>
+                        <p class="text-muted">No tags yet</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Output panel -->
+        <div class="flow-output-panel collapsed" id="flow-output-panel">
+            <div class="output-header">
+                <h4><i class="fas fa-terminal"></i> Execution Output</h4>
+                <div class="output-controls">
+                    <button id="toggle-output" class="btn btn-sm btn-outline-secondary" title="Show/Hide Output">
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <button id="clear-output" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-trash"></i> Clear
+                    </button>
+                </div>
+            </div>
+            <div class="output-content" id="output-content" style="display: none;">
+                <div id="execution-output" class="execution-output">
+                    <p class="text-muted">Workflow output will appear here</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

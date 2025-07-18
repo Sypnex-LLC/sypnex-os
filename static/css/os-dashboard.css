@@ -1,0 +1,187 @@
+/* Sypnex OS - Dashboard Styles */
+/* Contains dashboard overlay and app grid */
+
+/* Dashboard Overlay */
+.dashboard-hidden {
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.95);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dashboard-visible {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1);
+}
+
+#dashboard-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(20px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.dashboard-container {
+    background: rgba(20, 20, 20, 0.95);
+    border-radius: 20px;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    width: 100%;
+    max-width: 1200px;
+    max-height: 90vh;
+    overflow: hidden;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+}
+
+.dashboard-header {
+    padding: 30px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.dashboard-header h2 {
+    color: #00d4ff;
+    margin: 0;
+    font-size: 2em;
+    font-weight: 300;
+}
+
+.dashboard-header p {
+    color: #888;
+    margin: 10px 0 0 0;
+    font-size: 1.1em;
+}
+
+.dashboard-content {
+    display: flex;
+    flex-direction: column;
+    height: calc(90vh - 140px);
+}
+
+.dashboard-categories {
+    display: flex;
+    gap: 10px;
+    padding: 20px 30px;
+    background: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.category-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #888;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.category-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+}
+
+.category-btn.active {
+    background: rgba(0, 212, 255, 0.2);
+    color: #00d4ff;
+    border: 1px solid rgba(0, 212, 255, 0.3);
+}
+
+.dashboard-apps {
+    flex: 1;
+    overflow-y: auto;
+    padding: 30px;
+}
+
+.dashboard-app-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 20px;
+    max-width: 100%;
+}
+
+.dashboard-app-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 15px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    min-height: 100px;
+}
+
+.dashboard-app-tile:hover {
+    background: rgba(0, 0, 0, 0.4);
+    border-color: rgba(0, 212, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+.dashboard-app-tile i {
+    font-size: 2em;
+    color: #00d4ff;
+    margin-bottom: 10px;
+}
+
+.dashboard-app-tile span {
+    color: #e0e0e0;
+    font-size: 0.9em;
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+.dashboard-app-tile .app-type {
+    font-size: 0.7em;
+    color: #666;
+    margin-top: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .dashboard-container {
+        margin: 10px;
+        max-height: calc(100vh - 20px);
+    }
+    
+    .dashboard-content {
+        height: calc(100vh - 200px);
+    }
+    
+    .dashboard-app-grid {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 15px;
+    }
+    
+    .dashboard-app-tile {
+        padding: 15px 10px;
+        min-height: 80px;
+    }
+    
+    .dashboard-app-tile i {
+        font-size: 1.5em;
+    }
+    
+    .dashboard-app-tile span {
+        font-size: 0.8em;
+    }
+} 

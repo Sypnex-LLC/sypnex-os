@@ -1,0 +1,50 @@
+<div class="app-container">
+    <div class="app-header">
+        <h2><i class="fas fa-comments"></i> LLM Chat</h2>
+        <p>Chat with <span id="current-persona-name">SarcasmBot</span> - your AI assistant</p>
+        <div class="persona-selector">
+            <label for="persona-select">Choose Persona:</label>
+            <select id="persona-select" class="app-select">
+                <option value="sarcasm">🤖 SarcasmBot - Witty & Sarcastic</option>
+                <option value="pirate">🏴‍☠️ Captain Hook - Pirate Talk</option>
+                <option value="jesus">🙏 Divine Helper - Wise & Compassionate</option>
+                <option value="amy">💕 Amy - Loving Wife</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="app-content">
+        <div class="chat-container">
+            <div id="chat-messages" class="chat-messages">
+                <div class="message system">
+                    <div class="message-content">
+                        <i class="fas fa-robot"></i>
+                        <span>Hello! I'm SarcasmBot, your witty AI assistant. I love making clever jokes and using
+                            sarcasm. What can I help you with today?</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-input-container">
+                <div class="chat-input-group">
+                    <textarea id="chat-input" class="app-input" placeholder="Type your message here..."
+                        rows="2"></textarea>
+                    <button id="send-button" class="app-btn primary">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+                <div class="chat-controls">
+                    <button id="clear-chat" class="app-btn secondary">
+                        <i class="fas fa-eraser"></i> Clear Chat
+                    </button>
+                    <button id="tts-toggle" class="app-btn secondary tts-btn">
+                        <i class="fas fa-volume-mute"></i> TTS Off
+                    </button>
+                    <button id="stop-tts" class="app-btn secondary stop-btn" style="display: none;">
+                        <i class="fas fa-stop"></i> Stop Speaking
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

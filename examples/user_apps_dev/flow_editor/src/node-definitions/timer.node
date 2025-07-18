@@ -1,0 +1,39 @@
+{
+  "id": "timer",
+  "name": "Timer",
+  "description": "Delay execution for specified milliseconds",
+  "icon": "fas fa-clock",
+  "color": "warning",
+  "category": "trigger",
+  "execution_mode": "both",
+  "inputs": [
+    {"id": "data", "name": "Data", "type": "data"},
+    {"id": "trigger", "name": "Trigger", "type": "data"}
+  ],
+  "outputs": [
+    {"id": "data", "name": "Data", "type": "data"},
+    {"id": "trigger", "name": "Trigger", "type": "data"},
+    {"id": "timestamp", "name": "Timestamp", "type": "number"},
+    {"id": "elapsed", "name": "Elapsed", "type": "number"}
+  ],
+  "config": {
+    "interval": {
+      "type": "number",
+      "label": "Interval (ms)",
+      "value": 1000,
+      "min": 100,
+      "max": 60000,
+      "step": 100
+    },
+    "count": {
+      "type": "number",
+      "label": "Count",
+      "value": 1,
+      "min": 1,
+      "max": 100,
+      "step": 1
+    }
+  },
+  "executor": "timer_executor",
+  "template": "standard"
+} 

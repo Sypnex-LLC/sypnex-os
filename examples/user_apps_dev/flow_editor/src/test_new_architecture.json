@@ -1,0 +1,156 @@
+{
+  "nodes": [
+    {
+      "id": "timer_1",
+      "type": "timer",
+      "x": 100,
+      "y": 100,
+      "config": {
+        "interval": {
+          "type": "number",
+          "label": "Interval (ms)",
+          "value": 2000,
+          "min": 100,
+          "max": 300000,
+          "step": 100
+        },
+        "count": {
+          "type": "number",
+          "label": "Count (0 = infinite)",
+          "value": 1,
+          "min": 0,
+          "step": 1
+        }
+      }
+    },
+    {
+      "id": "http_1",
+      "type": "http",
+      "x": 400,
+      "y": 100,
+      "config": {
+        "url": {
+          "type": "text",
+          "label": "URL",
+          "value": "https://jsonplaceholder.typicode.com/posts/1"
+        },
+        "method": {
+          "type": "select",
+          "label": "Method",
+          "value": "GET",
+          "options": [
+            "GET",
+            "POST",
+            "PUT",
+            "DELETE"
+          ]
+        },
+        "headers": {
+          "type": "textarea",
+          "label": "Headers (JSON)",
+          "value": "{\"Content-Type\": \"application/json\"}"
+        },
+        "body": {
+          "type": "textarea",
+          "label": "Body (JSON)",
+          "value": ""
+        },
+        "use_template": {
+          "type": "select",
+          "label": "Use Template Data",
+          "value": "false",
+          "options": [
+            "true",
+            "false"
+          ]
+        }
+      }
+    },
+    {
+      "id": "json_extract_1",
+      "type": "json_extract",
+      "x": 700,
+      "y": 100,
+      "config": {
+        "path": {
+          "type": "text",
+          "label": "JSON Path",
+          "value": "title"
+        },
+        "default_value": {
+          "type": "text",
+          "label": "Default Value",
+          "value": "No title found"
+        }
+      }
+    },
+    {
+      "id": "display_1",
+      "type": "display",
+      "x": 1000,
+      "y": 100,
+      "config": {
+        "format": {
+          "type": "select",
+          "label": "Format",
+          "value": "text",
+          "options": [
+            "text",
+            "json",
+            "html"
+          ]
+        },
+        "maxLength": {
+          "type": "number",
+          "label": "Max Length",
+          "value": 1000,
+          "min": 1,
+          "max": 10000,
+          "step": 100
+        }
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn_timer_1_trigger_http_1_trigger",
+      "from": {
+        "nodeId": "timer_1",
+        "portName": "trigger"
+      },
+      "to": {
+        "nodeId": "http_1",
+        "portName": "trigger"
+      }
+    },
+    {
+      "id": "conn_http_1_processed_data_json_extract_1_data",
+      "from": {
+        "nodeId": "http_1",
+        "portName": "processed_data"
+      },
+      "to": {
+        "nodeId": "json_extract_1",
+        "portName": "data"
+      }
+    },
+    {
+      "id": "conn_json_extract_1_extracted_value_display_1_text",
+      "from": {
+        "nodeId": "json_extract_1",
+        "portName": "extracted_value"
+      },
+      "to": {
+        "nodeId": "display_1",
+        "portName": "text"
+      }
+    }
+  ],
+  "tags": [],
+  "metadata": {
+    "savedAt": "2025-01-27T12:00:00.000Z",
+    "nodeCount": 4,
+    "connectionCount": 3,
+    "tagCount": 0
+  }
+} 

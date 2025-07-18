@@ -1,0 +1,148 @@
+/* Sypnex OS - Desktop Background Styles */
+/* Contains desktop background and wallpaper functionality */
+
+/* Desktop Background */
+#desktop-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+    z-index: 1;
+    /* Wallpaper will be set as background-image via JavaScript */
+}
+
+/* System Settings Wallpaper Controls */
+.wallpaper-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.wallpaper-sizing-controls {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.wallpaper-sizing-controls .setting-label {
+    font-size: 14px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+.wallpaper-sizing-controls .app-select {
+    flex: 1;
+    max-width: 250px;
+}
+
+.wallpaper-preview {
+    margin-top: 10px;
+    padding: 10px;
+    background: var(--secondary-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.wallpaper-preview img {
+    width: 60px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+}
+
+.wallpaper-preview span {
+    font-size: 14px;
+    color: var(--text-secondary);
+    flex: 1;
+}
+
+/* File Explorer Modal for Wallpaper Selection */
+.file-explorer-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+}
+
+.file-explorer-modal {
+    background: var(--primary-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    width: 90%;
+    max-width: 800px;
+    height: 80%;
+    max-height: 600px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+}
+
+.file-explorer-header {
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.file-explorer-header h3 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 18px;
+}
+
+.file-explorer-header .close-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.file-explorer-header .close-btn:hover {
+    background: var(--secondary-bg);
+    color: var(--text-primary);
+}
+
+.file-explorer-content {
+    flex: 1;
+    padding: 20px;
+    overflow: auto;
+}
+
+.file-explorer-footer {
+    padding: 20px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.vfs-browser {
+    height: 100%;
+    background: var(--secondary-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 15px;
+}

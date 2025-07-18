@@ -1,0 +1,187 @@
+/* Resource Manager App Styles */
+.system-overview {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.overview-item {
+    text-align: center;
+    padding: 15px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+}
+
+.overview-label {
+    display: block;
+    font-size: 0.9em;
+    color: var(--text-secondary);
+    margin-bottom: 5px;
+}
+
+.overview-value {
+    display: block;
+    font-size: 1.5em;
+    font-weight: bold;
+    color: var(--accent-color);
+}
+
+.overview-unit {
+    font-size: 0.8em;
+    color: var(--text-secondary);
+}
+
+.resource-table-container {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.resource-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9em;
+}
+
+.resource-table th {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 12px 15px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.resource-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-secondary);
+}
+
+.resource-table tr:hover {
+    background: rgba(0, 212, 255, 0.05);
+}
+
+.resource-table tr:last-child td {
+    border-bottom: none;
+}
+
+.app-name-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.app-icon {
+    color: var(--accent-color);
+    font-size: 14px;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.status-running {
+    background: rgba(0, 255, 0, 0.2);
+    color: #00ff00;
+}
+
+.status-minimized {
+    background: rgba(255, 165, 2, 0.2);
+    color: #ffa502;
+}
+
+.status-error {
+    background: rgba(255, 71, 87, 0.2);
+    color: #ff4757;
+}
+
+.metric-value {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.metric-bar {
+    width: 60px;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 4px;
+}
+
+.metric-fill {
+    height: 100%;
+    background: var(--accent-color);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+.metric-fill.high {
+    background: #ff4757;
+}
+
+.metric-fill.medium {
+    background: #ffa502;
+}
+
+.metric-fill.low {
+    background: #00ff00;
+}
+
+.app-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.action-btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    background: rgba(0, 212, 255, 0.2);
+    color: var(--accent-color);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.8em;
+}
+
+.action-btn:hover {
+    background: rgba(0, 212, 255, 0.3);
+    transform: translateY(-1px);
+}
+
+.action-btn.danger {
+    background: rgba(255, 71, 87, 0.2);
+    color: #ff4757;
+}
+
+.action-btn.danger:hover {
+    background: rgba(255, 71, 87, 0.3);
+}
+
+.no-apps-message {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 40px;
+    font-style: italic;
+}
+
+.refresh-resources {
+    margin-left: auto;
+}
+
+.error-message {
+    text-align: center;
+    color: #ff4757;
+    padding: 20px;
+}

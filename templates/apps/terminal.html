@@ -1,0 +1,20 @@
+<link href="{{ url_for('static', filename='css/os-terminal.css') }}" rel="stylesheet">
+
+<div class="app-container">
+    <div class="app-header">
+        <h2><i class="fas fa-terminal"></i> Terminal</h2>
+        <p>Extensible command line interface. Type <code>help</code> for available commands.</p>
+    </div>
+    <div class="app-content">
+        <div class="terminal-output" id="terminalOutput">
+        </div>
+        <div class="input-container">
+            <div class="terminal-input-line">
+                <span class="terminal-prompt">$</span>
+                <input type="text" class="terminal-input" id="terminalInput" placeholder="Enter command..." autocomplete="off">
+            </div>
+            <div class="command-suggestions" id="commandSuggestions"></div>
+            <div class="command-history" id="commandHistory"></div>
+        </div>
+    </div>
+</div> 

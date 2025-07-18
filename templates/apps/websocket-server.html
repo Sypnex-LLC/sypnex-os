@@ -1,0 +1,105 @@
+<link href="{{ url_for('static', filename='css/os-websocket-server.css') }}" rel="stylesheet">
+
+<div class="app-container">
+    <div class="app-header">
+        <h2><i class="fas fa-network-wired"></i> WebSocket Server</h2>
+        <p>Monitor WebSocket server status and manage connections</p>
+        <button class="app-btn primary refresh-websocket-stats">
+            <i class="fas fa-sync-alt"></i> Refresh
+        </button>
+    </div>
+    
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">👥</div>
+            <div class="stat-content">
+                <div class="stat-value" id="connected-clients">-</div>
+                <div class="stat-label">Connected Clients</div>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">🏠</div>
+            <div class="stat-content">
+                <div class="stat-value" id="active-rooms">-</div>
+                <div class="stat-label">Active Rooms</div>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">💬</div>
+            <div class="stat-content">
+                <div class="stat-value" id="total-messages">-</div>
+                <div class="stat-label">Total Messages</div>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">⏱️</div>
+            <div class="stat-content">
+                <div class="stat-value" id="uptime">-</div>
+                <div class="stat-label">Server Uptime</div>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">🧹</div>
+            <div class="stat-content">
+                <div class="stat-value" id="cleanup-status">-</div>
+                <div class="stat-label">Cleanup Status</div>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">⚡</div>
+            <div class="stat-content">
+                <div class="stat-value" id="timeout-setting">-</div>
+                <div class="stat-label">Timeout (seconds)</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Actions Section -->
+    <div class="actions-section">
+        <button class="app-btn trigger-cleanup">
+            <i class="fas fa-broom"></i> Trigger Cleanup
+        </button>
+        <button class="app-btn show-clients">
+            <i class="fas fa-users"></i> Show Clients
+        </button>
+        <button class="app-btn show-rooms">
+            <i class="fas fa-home"></i> Show Rooms
+        </button>
+        <button class="app-btn clear-log">
+            <i class="fas fa-trash"></i> Clear Log
+        </button>
+    </div>
+    
+    <!-- Details Section -->
+    <div class="details-section">
+        <div class="details-header">
+            <h3>Server Details</h3>
+            <span class="last-updated" id="last-updated">Never updated</span>
+        </div>
+        <div class="details-content" id="details-content">
+            <div class="detail-item">
+                <span class="detail-label">Status:</span>
+                <span class="detail-value" id="server-status">Loading...</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Log Section -->
+    <div class="log-section">
+        <div class="log-header">
+            <h3>Activity Log</h3>
+        </div>
+        <div class="log-content" id="activity-log">
+            <div class="log-entry">
+                <span class="log-time">[<span id="initial-time"></span>]</span>
+                <span class="log-message">WebSocket Server Dashboard loaded</span>
+            </div>
+        </div>
+    </div>
+</div>

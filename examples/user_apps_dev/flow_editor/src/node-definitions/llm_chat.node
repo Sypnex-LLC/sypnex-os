@@ -1,0 +1,64 @@
+{
+  "id": "llm_chat",
+  "name": "LLM Chat",
+  "description": "Chat with Large Language Models using Ollama",
+  "icon": "fas fa-robot",
+  "color": "info",
+  "category": "ai",
+  "execution_mode": "both",
+  "inputs": [
+    {"id": "prompt", "name": "Prompt", "type": "text"},
+    {"id": "system_message", "name": "System Message", "type": "text"},
+    {"id": "context", "name": "Context", "type": "data"}
+  ],
+  "outputs": [
+    {"id": "response", "name": "Response", "type": "text"},
+    {"id": "tokens_used", "name": "Tokens Used", "type": "number"},
+    {"id": "model_used", "name": "Model Used", "type": "text"},
+    {"id": "full_response", "name": "Full Response", "type": "json"}
+  ],
+  "config": {
+    "endpoint": {
+      "type": "text",
+      "label": "Ollama Endpoint",
+      "value": "http://127.0.0.1:11434/v1",
+      "placeholder": "http://127.0.0.1:11434/v1"
+    },
+    "model": {
+      "type": "text",
+      "label": "Model Name",
+      "value": "HammerAI/mn-mag-mell-r1:latest",
+      "placeholder": "llama2, codellama, etc."
+    },
+    "temperature": {
+      "type": "number",
+      "label": "Temperature",
+      "value": 0.7,
+      "min": 0,
+      "max": 2,
+      "step": 0.1
+    },
+    "max_tokens": {
+      "type": "number",
+      "label": "Max Tokens",
+      "value": 2048,
+      "min": 1,
+      "max": 8192,
+      "step": 1
+    },
+    "system_prompt": {
+      "type": "textarea",
+      "label": "System Prompt",
+      "value": "You are a helpful AI assistant.",
+      "placeholder": "Define the AI's role and behavior"
+    },
+    "include_context": {
+      "type": "select",
+      "label": "Include Context",
+      "value": "true",
+      "options": ["true", "false"]
+    }
+  },
+  "executor": "llm_chat_executor",
+  "template": "standard"
+} 

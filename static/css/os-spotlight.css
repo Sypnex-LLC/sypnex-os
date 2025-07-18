@@ -1,0 +1,144 @@
+/* Sypnex OS - Spotlight Styles */
+/* Contains spotlight search overlay and functionality */
+
+/* Spotlight Overlay */
+#spotlight-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(20px);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.95);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.spotlight-hidden {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: scale(0.95) !important;
+}
+
+.spotlight-visible {
+    opacity: 1 !important;
+    pointer-events: all !important;
+    transform: scale(1) !important;
+}
+
+.spotlight-container {
+    width: 600px;
+    max-width: 90vw;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+}
+
+.spotlight-search {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color);
+    position: relative;
+}
+
+.spotlight-icon {
+    color: var(--accent-color);
+    font-size: 18px;
+    margin-right: 15px;
+}
+
+#spotlight-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-size: 18px;
+    outline: none;
+    font-family: inherit;
+}
+
+#spotlight-input::placeholder {
+    color: var(--text-muted);
+}
+
+.spotlight-shortcuts {
+    margin-left: 15px;
+}
+
+.shortcut {
+    background: var(--secondary-bg);
+    color: var(--text-secondary);
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+}
+
+.spotlight-results {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.spotlight-result {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.spotlight-result:hover {
+    background: rgba(0, 212, 255, 0.1);
+}
+
+.spotlight-result:last-child {
+    border-bottom: none;
+}
+
+.spotlight-result-icon {
+    color: var(--accent-color);
+    font-size: 20px;
+    margin-right: 15px;
+    width: 24px;
+    text-align: center;
+}
+
+.spotlight-result-content {
+    flex: 1;
+}
+
+.spotlight-result-name {
+    font-weight: 500;
+    margin-bottom: 2px;
+}
+
+.spotlight-result-description {
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+.spotlight-loading, .spotlight-no-results, .spotlight-error {
+    padding: 20px;
+    text-align: center;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.spotlight-error {
+    color: #ff4757;
+}
+
+.spotlight-loading {
+    color: var(--accent-color);
+    animation: pulse 1.5s infinite;
+} 

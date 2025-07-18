@@ -1,0 +1,44 @@
+<link href="{{ url_for('static', filename='css/os-resource-manager.css') }}" rel="stylesheet">
+
+<div class="app-container">
+    <div class="app-header">
+        <h2><i class="fas fa-tachometer-alt"></i> Resource Manager</h2>
+        <p>Monitor system resources and running applications in real-time</p>
+        <div class="header-actions">
+            <button class="app-btn secondary refresh-resources">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+        </div>
+    </div>
+    
+    <div class="app-content">
+        <div class="app-section">
+            <h3>System Overview</h3>
+            <div class="system-overview">
+                <!-- System overview will be populated by JavaScript -->
+            </div>
+        </div>
+        
+        <div class="app-section">
+            <h3>Running Applications</h3>
+            <div class="resource-table-container">
+                <table class="resource-table">
+                    <thead>
+                        <tr>
+                            <th>Application</th>
+                            <th>Status</th>
+                            <th>Memory</th>
+                            <th>CPU</th>
+                            <th>Network</th>
+                            <th>Event Listeners</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="resource-table-body">
+                        <!-- Resource table will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div> 

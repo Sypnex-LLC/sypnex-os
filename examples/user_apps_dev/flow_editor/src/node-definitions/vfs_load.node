@@ -1,0 +1,38 @@
+{
+  "id": "vfs_load",
+  "name": "VFS Load",
+  "description": "Load data from the Virtual File System",
+  "icon": "fas fa-folder-open",
+  "color": "primary",
+  "category": "storage",
+  "execution_mode": "both",
+  "inputs": [
+    {"id": "trigger", "name": "Trigger", "type": "data"}
+  ],
+  "outputs": [
+    {"id": "data", "name": "Data", "type": "data"},
+    {"id": "file_path", "name": "File Path", "type": "text"}
+  ],
+  "config": {
+    "file_path": {
+      "type": "text",
+      "label": "File Path",
+      "value": "/my_data.json",
+      "placeholder": "/absolute/path/in/vfs"
+    },
+    "format": {
+      "type": "select",
+      "label": "Format",
+      "value": "json",
+      "options": ["json", "text", "binary"]
+    },
+    "auto_reload": {
+      "type": "select",
+      "label": "Auto Reload on Change",
+      "value": "false",
+      "options": ["true", "false"]
+    }
+  },
+  "executor": "vfs_load_executor",
+  "template": "standard"
+} 

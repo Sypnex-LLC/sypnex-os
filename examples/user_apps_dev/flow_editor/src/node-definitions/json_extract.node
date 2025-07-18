@@ -1,0 +1,38 @@
+{
+  "id": "json_extract",
+  "name": "JSON Extract",
+  "description": "Extract values from JSON data using dot notation",
+  "icon": "fas fa-code-branch",
+  "color": "info",
+  "category": "data",
+  "execution_mode": "both",
+  "inputs": [
+    {"id": "data", "name": "Data", "type": "data"},
+    {"id": "json", "name": "JSON", "type": "json"},
+    {"id": "text", "name": "Text", "type": "text"}
+  ],
+  "outputs": [
+    {"id": "data", "name": "Data", "type": "data"},
+    {"id": "text", "name": "Text", "type": "text"},
+    {"id": "json", "name": "JSON", "type": "json"},
+    {"id": "extracted_value", "name": "Extracted Value", "type": "data"},
+    {"id": "field_path", "name": "Field Path", "type": "text"},
+    {"id": "original", "name": "Original", "type": "json"}
+  ],
+  "config": {
+    "field_path": {
+      "type": "text",
+      "label": "Field Path",
+      "value": "data.items",
+      "placeholder": "Use dot notation (e.g., data.items.0.name)"
+    },
+    "display_format": {
+      "type": "select",
+      "label": "Display Format",
+      "value": "text",
+      "options": ["text", "json"]
+    }
+  },
+  "executor": "json_extract_executor",
+  "template": "standard"
+} 
