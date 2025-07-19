@@ -79,6 +79,9 @@ This project showcases how modern AI tools can amplify human creativity to build
 
 This represents an approach where human insight combines with AI capabilities to create software development outcomes.
 
+## Demo
+(https://www.youtube.com/watch?v=xaooKK8Qop8)
+
 ## 🎯 Key Features
 
 ### Core Interface
