@@ -1,0 +1,159 @@
+/* Flow Editor Nodes & Connections */
+
+/* Node Styles */
+.flow-node {
+    position: absolute;
+    min-width: 150px;
+    background: var(--surface-color);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px;
+    cursor: grab;
+    user-select: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: box-shadow 0.2s ease, transform 0.1s ease;
+    will-change: transform;
+}
+
+.flow-node:active {
+    cursor: grabbing;
+    transition: none;
+}
+
+.flow-node:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transform: translateY(-1px);
+}
+
+.flow-node.selected {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.2);
+}
+
+.flow-node-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-weight: bold;
+    font-size: 14px;
+    position: relative;
+}
+
+.node-delete-btn {
+    position: absolute;
+    right: -5px;
+    top: -5px;
+    width: 20px;
+    height: 20px;
+    border: none;
+    border-radius: 50%;
+    background: var(--error-color);
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    z-index: 10;
+}
+
+.flow-node:hover .node-delete-btn {
+    opacity: 1;
+}
+
+.node-delete-btn:hover {
+    background: #d32f2f;
+    transform: scale(1.1);
+}
+
+.flow-node-type {
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: normal;
+    background: #6c757d;
+    color: white;
+}
+
+.flow-node-content {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.flow-node-ports {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.flow-node-port {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: var(--surface-color);
+    border: 2px solid var(--border-color);
+    border-radius: 50%;
+    cursor: pointer;
+    pointer-events: all;
+    transition: all 0.2s ease;
+}
+
+.flow-node-port:hover {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    transform: scale(1.2);
+}
+
+.flow-node-port.input {
+    left: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.flow-node-port.output {
+    right: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+/* Connection Lines */
+.flow-connection {
+    position: absolute;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.flow-connection-line {
+    stroke: var(--border-color);
+    stroke-width: 8;
+    fill: none;
+    transition: all 0.2s ease;
+    opacity: 0.6; /* Slightly transparent by default */
+}
+
+.flow-connection-line:hover {
+    stroke: var(--primary-color);
+    opacity: 1;
+    stroke-width: 10;
+}
+
+.flow-connection-line.connected {
+    stroke: var(--primary-color);
+    opacity: 0.8;
+}
+
+/* Running State */
+.flow-node.running {
+    border-color: var(--success-color);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(var(--success-color-rgb), 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(var(--success-color-rgb), 0); }
+    100% { box-shadow: 0 0 0 0 rgba(var(--success-color-rgb), 0); }
+}

@@ -27,7 +27,11 @@
     "js/main.js"
   ],
   "styles": [
-    "css/main.css"
+    "css/layout.css",
+    "css/nodes.css",
+    "css/components.css",
+    "css/node-types.css",
+    "css/responsive.css"
   ],
   "settings": [
     {

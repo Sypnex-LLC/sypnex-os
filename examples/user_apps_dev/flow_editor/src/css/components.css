@@ -1,0 +1,357 @@
+/* Flow Editor UI Components */
+
+/* Node Category Toolbox */
+.node-category {
+    margin-bottom: 20px;
+}
+
+.node-category h5 {
+    margin: 0 0 10px 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 0 5px;
+}
+
+.toolbox-node-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 15px;
+    margin-bottom: 5px;
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    cursor: grab;
+    transition: all 0.2s ease;
+    text-align: left;
+    font-size: 14px;
+    color: var(--text-color);
+}
+
+.toolbox-node-btn:hover {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.toolbox-node-btn:active {
+    cursor: grabbing;
+    transform: translateY(0);
+}
+
+.toolbox-node-btn i {
+    font-size: 16px;
+    width: 20px;
+    text-align: center;
+}
+
+.toolbox-node-btn span {
+    flex: 1;
+    font-weight: 500;
+}
+
+/* Buttons */
+.flow-toolbar .btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.flow-toolbar .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.flow-toolbar .btn-outline-danger {
+    background: transparent;
+    border: 1px solid var(--error-color);
+    color: var(--error-color);
+}
+
+.flow-toolbar .btn-outline-danger:hover {
+    background: var(--error-color);
+    color: white;
+}
+
+.flow-toolbar .btn-outline-secondary {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+}
+
+.flow-toolbar .btn-outline-secondary:hover {
+    background: var(--border-color);
+    color: var(--text-color);
+}
+
+/* Configuration Styles */
+.config-group {
+    margin-bottom: 15px;
+}
+
+.config-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--text-color);
+}
+
+.config-group input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 14px;
+    background: var(--surface-color);
+    color: var(--text-color);
+    transition: border-color 0.2s ease;
+}
+
+.config-group select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--glass-border);
+    border-radius: 4px;
+    font-size: 14px;
+    background: var(--glass-bg);
+    color: var(--text-color);
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.config-group input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.1);
+}
+
+.config-group select:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    background: rgba(0, 212, 255, 0.05);
+}
+
+.config-group select option {
+    background: var(--primary-bg);
+    color: var(--text-color);
+    padding: 8px 12px;
+}
+
+.config-group select option:hover {
+    background: var(--glass-bg);
+}
+
+.config-group textarea {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 14px;
+    background: var(--surface-color);
+    color: var(--text-color);
+    resize: vertical;
+    min-height: 80px;
+    font-family: monospace;
+}
+
+/* Tag Panel */
+#tag-panel {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+#tag-panel h5 {
+    margin: 0 0 15px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tag-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tag-item:hover {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.tag-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.tag-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.tag-name {
+    font-weight: 500;
+    font-size: 13px;
+    margin-bottom: 2px;
+}
+
+.tag-description {
+    font-size: 11px;
+    opacity: 0.7;
+}
+
+.tag-delete {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+}
+
+.tag-delete:hover {
+    opacity: 1;
+    background: rgba(255,255,255,0.1);
+}
+
+/* Output Styles */
+.execution-output {
+    font-family: monospace;
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--text-color);
+}
+
+.execution-output .log-entry {
+    margin-bottom: 5px;
+    padding: 4px 0;
+}
+
+.execution-output .log-entry.info {
+    color: var(--info-color);
+}
+
+.execution-output .log-entry.success {
+    color: var(--success-color);
+}
+
+.execution-output .log-entry.error {
+    color: var(--error-color);
+}
+
+.execution-output .log-entry.warning {
+    color: var(--warning-color);
+}
+
+/* Input/Output Mappings Configuration Styles */
+.input-mappings-config,
+.output-mappings-config {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 8px;
+    margin-top: 4px;
+}
+
+.input-mapping-config,
+.output-mapping-config {
+    margin-bottom: 8px;
+    padding: 8px;
+    background: rgba(0,0,0,0.02);
+    border-radius: 3px;
+    border-left: 3px solid var(--primary-color);
+}
+
+.input-mapping-config:last-child,
+.output-mapping-config:last-child {
+    margin-bottom: 0;
+}
+
+.input-mapping-config label,
+.output-mapping-config label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 4px;
+}
+
+.input-mapping-select,
+.output-mapping-select {
+    width: 100%;
+    padding: 4px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+    font-size: 11px;
+    background: var(--surface-color);
+    color: var(--text-color);
+}
+
+.input-mapping-select:focus,
+.output-mapping-select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+}
+
+/* Legacy styles for backward compatibility */
+.input-mappings {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 8px;
+    margin-top: 4px;
+}
+
+.input-mapping {
+    padding: 4px 8px;
+    margin-bottom: 4px;
+    background: var(--primary-color);
+    color: white;
+    border-radius: 3px;
+    font-size: 11px;
+    line-height: 1.2;
+}
+
+.input-mapping:last-child {
+    margin-bottom: 0;
+}
+
+.input-mapping .source-node {
+    font-weight: 600;
+}
+
+.input-mapping .source-port {
+    opacity: 0.8;
+    font-style: italic;
+}

@@ -1,0 +1,475 @@
+/* Flow Editor Node Type Specific Styles */
+
+/* Display Node Content */
+.display-content {
+    padding: 8px;
+}
+
+.display-text {
+    min-height: 40px;
+    max-height: 200px;
+    width: 220px;
+    overflow-y: auto;
+    background: rgba(0,0,0,0.05);
+    border-radius: 4px;
+    padding: 8px;
+    margin-bottom: 8px;
+    resize: none;
+    box-sizing: border-box;
+}
+
+.display-text pre {
+    margin: 0;
+    font-family: monospace;
+    white-space: pre-wrap;
+    word-break: break-word;
+    user-select: text;
+}
+
+.display-format {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+/* Audio Player Styles */
+.audio-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+    padding: 8px;
+    background: rgba(0,0,0,0.05);
+    border-radius: 4px;
+}
+
+.audio-play-btn,
+.audio-stop-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.audio-play-btn {
+    background: var(--success-color);
+    color: white;
+}
+
+.audio-stop-btn {
+    background: var(--error-color);
+    color: white;
+}
+
+.audio-play-btn:hover,
+.audio-stop-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.audio-status {
+    flex: 1;
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+/* JSON Extract Display */
+.json-extract-display {
+    margin-top: 10px;
+    padding: 8px;
+    background: rgba(0,0,0,0.05);
+    border-radius: 4px;
+}
+
+.extract-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    font-weight: 500;
+}
+
+.extract-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-color);
+    word-break: break-all;
+    padding: 4px 8px;
+    background: var(--surface-color);
+    border-radius: 3px;
+    border: 1px solid var(--border-color);
+}
+
+.extract-value.success {
+    color: var(--success-color);
+    border-color: var(--success-color);
+}
+
+.extract-value.error {
+    color: var(--error-color);
+    border-color: var(--error-color);
+}
+
+/* Repeater Node Styles */
+.repeater-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+}
+
+.repeater-status {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 4px;
+    text-align: center;
+    min-width: 80px;
+}
+
+.repeater-status.stopped {
+    background: rgba(0,0,0,0.1);
+    color: var(--text-muted);
+}
+
+.repeater-status.running {
+    background: var(--success-color);
+    color: white;
+    animation: pulse 2s infinite;
+}
+
+.repeater-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.repeater-start-btn,
+.repeater-stop-btn {
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    transition: all 0.2s ease;
+}
+
+.repeater-start-btn {
+    background: var(--success-color);
+    color: white;
+}
+
+.repeater-stop-btn {
+    background: var(--error-color);
+    color: white;
+}
+
+.repeater-start-btn:hover,
+.repeater-stop-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+/* Image Node Styles */
+.image-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    min-height: 120px;
+    justify-content: center;
+}
+
+.image-thumbnail {
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    object-fit: contain;
+    transition: transform 0.2s ease;
+}
+
+.image-thumbnail:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.image-info {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-muted);
+    background: rgba(0,0,0,0.05);
+    padding: 4px 8px;
+    border-radius: 3px;
+    width: 100%;
+}
+
+.image-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: var(--error-color);
+    text-align: center;
+}
+
+.image-error i {
+    font-size: 16px;
+}
+
+/* Image Modal Styles */
+.image-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.image-modal-content {
+    background: var(--surface-color);
+    border-radius: 8px;
+    max-width: 90%;
+    max-height: 90%;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.image-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--surface-color);
+}
+
+.image-modal-header span {
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.image-modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.image-modal-close:hover {
+    background: rgba(0,0,0,0.1);
+    color: var(--text-color);
+}
+
+.image-modal-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    max-height: calc(90vh - 100px);
+    overflow-y: auto;
+}
+
+.image-modal-image {
+    max-width: 100%;
+    max-height: 70vh;
+    object-fit: contain;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.image-modal-info {
+    text-align: center;
+    padding: 10px;
+    background: rgba(0,0,0,0.05);
+    border-radius: 4px;
+    width: 100%;
+}
+
+/* Random Quote Node Styles */
+.quote-content {
+    padding: 10px;
+    text-align: center;
+}
+
+.quote-text {
+    margin-bottom: 8px;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.quote-display {
+    margin: 0;
+    font-style: italic;
+    color: var(--text-color);
+    font-size: 13px;
+    line-height: 1.4;
+    max-width: 100%;
+    word-wrap: break-word;
+}
+
+.quote-info {
+    font-size: 11px;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border-color);
+    padding-top: 8px;
+}
+
+/* LLM Chat Node Styles */
+.llm-response {
+    padding: 8px;
+    background: rgba(23, 162, 184, 0.1);
+    border-radius: 4px;
+    margin: 4px 0;
+}
+
+.response-preview {
+    font-size: 12px;
+    line-height: 1.3;
+    color: var(--text-color);
+    word-wrap: break-word;
+    margin-bottom: 4px;
+}
+
+.usage-info {
+    font-size: 10px;
+    color: var(--text-muted);
+    border-top: 1px solid rgba(0,0,0,0.1);
+    padding-top: 4px;
+}
+
+.llm-error {
+    padding: 8px;
+    background: rgba(220, 53, 69, 0.1);
+    border-radius: 4px;
+    margin: 4px 0;
+    color: var(--error-color);
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.llm-error i {
+    font-size: 14px;
+}
+
+/* Text Node Styles */
+.text-content {
+    padding: 8px;
+    background: rgba(108, 117, 125, 0.1);
+    border-radius: 4px;
+    margin: 4px 0;
+}
+
+.text-preview {
+    font-size: 12px;
+    line-height: 1.3;
+    color: var(--text-color);
+    word-wrap: break-word;
+    margin-bottom: 4px;
+}
+
+.text-info {
+    font-size: 10px;
+    color: var(--text-muted);
+    border-top: 1px solid rgba(0,0,0,0.1);
+    padding-top: 4px;
+}
+
+/* Node Status Display */
+.node-status {
+    padding: 8px;
+    background: rgba(0,0,0,0.05);
+    border-radius: 4px;
+    margin: 4px 0;
+    text-align: center;
+}
+
+.status-text {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-color);
+    margin-bottom: 4px;
+}
+
+.status-info {
+    font-size: 10px;
+    color: var(--text-muted);
+}
+
+/* Content Display in Config Panel */
+.content-display {
+    background: rgba(0,0,0,0.05);
+    border-radius: 4px;
+    padding: 12px;
+    margin-top: 8px;
+}
+
+.content-text {
+    margin: 0;
+    font-family: monospace;
+    font-size: 12px;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 300px;
+    overflow-y: auto;
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+    padding: 8px;
+    user-select: text;
+}
+
+.content-info {
+    margin-top: 8px;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+/* Terminal Node Styles */
+.terminal-error {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    background: rgba(220, 53, 69, 0.1);
+    border: 1px solid var(--error-color);
+    border-radius: 4px;
+    color: var(--error-color);
+    font-size: 12px;
+    margin-top: 8px;
+}
+
+.terminal-error i {
+    margin-right: 8px;
+    color: var(--error-color);
+}
