@@ -134,6 +134,8 @@ python run_dev.py
 
 ## 🤝 Community & Contributing
 
+[![Discord](https://img.shields.io/badge/Join_our_Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/5eJ65MF7Ty)
+
 We're building a community around Sypnex OS and welcome contributions of all kinds.
 
 ### Getting Help & Discussions
