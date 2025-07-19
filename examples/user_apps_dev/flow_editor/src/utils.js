@@ -12,21 +12,21 @@ function detectAppScale() {
             // console.log('No app window found, assuming 100% scale');
             return 1.0;
         }
-        
+
         // Check for scale classes
-        const scaleClasses = ['scale-75', 'scale-80', 'scale-85', 'scale-90', 'scale-95', 
-                             'scale-100', 'scale-105', 'scale-110', 'scale-115', 'scale-120',
-                             'scale-125', 'scale-130', 'scale-135', 'scale-140', 'scale-145', 'scale-150'];
-        
-                    for (const scaleClass of scaleClasses) {
-                if (appWindow.classList.contains(scaleClass)) {
-                    const scaleValue = parseInt(scaleClass.replace('scale-', ''));
-                    appScale = scaleValue / 100;
-                    // console.log(`Detected app scale: ${scaleValue}% (${appScale})`);
-                    return appScale;
-                }
+        const scaleClasses = ['scale-75', 'scale-80', 'scale-85', 'scale-90', 'scale-95',
+            'scale-100', 'scale-105', 'scale-110', 'scale-115', 'scale-120',
+            'scale-125', 'scale-130', 'scale-135', 'scale-140', 'scale-145', 'scale-150'];
+
+        for (const scaleClass of scaleClasses) {
+            if (appWindow.classList.contains(scaleClass)) {
+                const scaleValue = parseInt(scaleClass.replace('scale-', ''));
+                appScale = scaleValue / 100;
+                // console.log(`Detected app scale: ${scaleValue}% (${appScale})`);
+                return appScale;
             }
-        
+        }
+
         // Fallback: check computed transform
         const computedStyle = window.getComputedStyle(appWindow);
         const transform = computedStyle.transform;
@@ -45,7 +45,7 @@ function detectAppScale() {
                 }
             }
         }
-        
+
         // console.log('No scale detected, using 100%');
         return 1.0;
     } catch (error) {
@@ -76,7 +76,7 @@ function appToScreenCoords(appX, appY) {
 function getScaledBoundingClientRect(element) {
     const rect = element.getBoundingClientRect();
     const scale = detectAppScale();
-    
+
     return {
         left: rect.left / scale,
         top: rect.top / scale,
@@ -98,7 +98,7 @@ function getScaledMouseCoords(e) {
 function initScaleDetection() {
     // Detect scale on initialization
     detectAppScale();
-    
+
     // Listen for scale changes (if the app scale changes dynamically)
     const observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
@@ -115,7 +115,7 @@ function initScaleDetection() {
             }
         });
     });
-    
+
     // Observe the app window for class changes
     const appWindow = document.querySelector('.app-window');
     if (appWindow) {
@@ -124,7 +124,7 @@ function initScaleDetection() {
             attributeFilter: ['class']
         });
     }
-    
+
     return observer;
 }
 
@@ -157,6 +157,77 @@ function debounce(func, wait) {
     };
 }
 
+
+// Helper method for template processing
+function processTemplates(template, data) {
+    // Simple template processing - can be enhanced
+    let result = template;
+    if (typeof data === 'object') {
+        for (const [key, value] of Object.entries(data)) {
+            result = result.replace(new RegExp(`{{${key}}}`, 'g'), value);
+        }
+    }
+    return result;
+}
+
+// Helper method for extracting nested JSON values
+function extractNestedValue(obj, path) {
+    const keys = path.split('.');
+    let current = obj;
+
+    for (const key of keys) {
+        if (current === null || current === undefined) {
+            return null;
+        }
+
+        // Handle array access like "items[0].name"
+        const arrayMatch = key.match(/^(.+)\[(\d+)\]$/);
+        if (arrayMatch) {
+            const arrayKey = arrayMatch[1];
+            const arrayIndex = parseInt(arrayMatch[2]);
+
+            if (current[arrayKey] && Array.isArray(current[arrayKey])) {
+                current = current[arrayKey][arrayIndex];
+            } else {
+                return null;
+            }
+        } else {
+            current = current[key];
+        }
+    }
+
+    return current;
+}
+
+// Helper method to detect image type from base64 data
+function detectImageTypeFromBase64(base64Data) {
+    // Check the first few bytes to determine image type
+    try {
+        const binaryString = atob(base64Data);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+        }
+
+        // Check file signatures
+        if (bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF) {
+            return 'image/jpeg';
+        } else if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47) {
+            return 'image/png';
+        } else if (bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46) {
+            return 'image/gif';
+        } else if (bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46) {
+            return 'image/webp';
+        } else {
+            // Default to PNG if we can't determine
+            return 'image/png';
+        }
+    } catch (e) {
+        // Default to PNG if there's an error
+        return 'image/png';
+    }
+}
+
 // Export utilities for use in other modules
 window.flowEditorUtils = {
     detectAppScale,
@@ -167,22 +238,25 @@ window.flowEditorUtils = {
     initScaleDetection,
     escapeHtml,
     formatFileSize,
-    debounce
+    debounce,
+    processTemplates,
+    extractNestedValue,
+    detectImageTypeFromBase64
 };
 
 // Replace template placeholders in JSON body
 function replaceTemplatePlaceholders(body, templateData) {
     console.log('replaceTemplatePlaceholders called with:', { body, templateData, bodyType: typeof body, templateDataType: typeof templateData });
-    
+
     if (!body) {
         console.log('Body is empty, returning as-is');
         return body;
     }
-    
+
     // Handle both string and object inputs
     let bodyString;
     let isJsonString = false;
-    
+
     if (typeof body === 'string') {
         bodyString = body;
         // Check if it's already a JSON string
@@ -199,29 +273,29 @@ function replaceTemplatePlaceholders(body, templateData) {
         console.log('Body is neither string nor object, returning as-is');
         return body;
     }
-    
+
     console.log('Body string before replacement:', bodyString, 'isJsonString:', isJsonString);
-    
+
     // Replace placeholders with template data
     if (templateData !== undefined && templateData !== null) {
         const beforeReplace = bodyString;
-        
+
         console.log('Starting template replacement with templateData:', templateData);
-        
+
         // Simple JSON field replacement - just {{field}} or {{nested.field}}
         if (typeof templateData === 'object') {
             console.log('Processing simple field replacements for object templateData');
             console.log('Template data keys:', Object.keys(templateData));
             console.log('Looking for patterns like {{field}} in body string:', bodyString);
-            
+
             // Use a simpler, more explicit regex
             const placeholderRegex = /\{\{([^}]+)\}\}/g;
             console.log('Using regex:', placeholderRegex);
-            
+
             // Test if the regex finds anything
             const matches = bodyString.match(placeholderRegex);
             console.log('Regex matches found:', matches);
-            
+
             bodyString = bodyString.replace(placeholderRegex, (match, fieldPath) => {
                 console.log('Found pattern {{' + fieldPath + '}}, extracting value...');
                 const value = getNestedValue(templateData, fieldPath);
@@ -232,10 +306,10 @@ function replaceTemplatePlaceholders(body, templateData) {
                     if (typeof value === 'string') {
                         // Always escape the string properly for JSON context
                         replacement = value.replace(/\\/g, '\\\\')
-                                         .replace(/"/g, '\\"')
-                                         .replace(/\n/g, '\\n')
-                                         .replace(/\r/g, '\\r')
-                                         .replace(/\t/g, '\\t');
+                            .replace(/"/g, '\\"')
+                            .replace(/\n/g, '\\n')
+                            .replace(/\r/g, '\\r')
+                            .replace(/\t/g, '\\t');
                     } else {
                         // For non-strings, convert to JSON string
                         replacement = JSON.stringify(value);
@@ -252,7 +326,7 @@ function replaceTemplatePlaceholders(body, templateData) {
             console.log('Processing string templateData, replacing {{VALUE}}');
             bodyString = bodyString.replace(/{{VALUE}}/g, JSON.stringify(templateData));
         }
-        
+
         console.log('Template replacement result:', {
             before: beforeReplace,
             after: bodyString,
@@ -262,7 +336,7 @@ function replaceTemplatePlaceholders(body, templateData) {
     } else {
         console.log('No template data provided, skipping replacement');
     }
-    
+
     if (typeof body === 'object') {
         try {
             return JSON.parse(bodyString);
@@ -297,11 +371,11 @@ function updateJsonExtractDisplay(nodeId, label, value, status = 'normal') {
         const contentElement = nodeElement.querySelector('.flow-node-content');
         if (contentElement) {
             const statusClass = status === 'error' ? 'text-danger' : status === 'success' ? 'text-success' : 'text-muted';
-            
+
             // Show just a status on the node, full content will be in config panel
-            const truncatedValue = typeof value === 'string' && value.length > 50 ? 
+            const truncatedValue = typeof value === 'string' && value.length > 50 ?
                 value.substring(0, 50) + '...' : value;
-            
+
             contentElement.innerHTML = `
                 <div class="node-status">
                     <div class="status-text">Value extracted</div>
@@ -342,17 +416,17 @@ function playAudio(nodeId) {
         console.error('No audio data available for node:', nodeId);
         return;
     }
-    
+
     // Create or reuse audio element
     if (!node.audioElement) {
         node.audioElement = new Audio(node.lastAudioUrl);
         node.audioElement.volume = parseFloat(node.config.volume.value);
     }
-    
+
     node.audioElement.play().catch(error => {
         console.error('Failed to play audio:', error);
     });
-    
+
     console.log('Playing audio for node:', nodeId);
 }
 
@@ -362,10 +436,10 @@ function stopAudio(nodeId) {
         console.error('No audio element found for node:', nodeId);
         return;
     }
-    
+
     node.audioElement.pause();
     node.audioElement.currentTime = 0;
-    
+
     console.log('Stopped audio for node:', nodeId);
 }
 
@@ -376,7 +450,7 @@ function showFullImage(nodeId) {
         console.error('No image data available for node:', nodeId);
         return;
     }
-    
+
     // Create a modal to show the full image
     const modal = document.createElement('div');
     modal.className = 'image-modal';
@@ -393,7 +467,7 @@ function showFullImage(nodeId) {
         z-index: 10000;
         cursor: pointer;
     `;
-    
+
     const img = document.createElement('img');
     img.src = node.lastImageUrl;
     img.style.cssText = `
@@ -403,15 +477,15 @@ function showFullImage(nodeId) {
         border-radius: 8px;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
     `;
-    
+
     modal.appendChild(img);
     document.body.appendChild(modal);
-    
+
     // Close modal on click
     modal.addEventListener('click', () => {
         document.body.removeChild(modal);
     });
-    
+
     console.log('Showing full image for node:', nodeId);
 }
 
@@ -422,7 +496,7 @@ function startRepeater(nodeId) {
         console.error('Invalid repeater node:', nodeId);
         return;
     }
-    
+
     // Execute the repeater node to start it
     executionEngine.executeNode(node, {}, new Set()).then(() => {
         console.log('Repeater started:', nodeId);
@@ -439,11 +513,11 @@ function stopRepeater(nodeId) {
         console.error('Invalid repeater node:', nodeId);
         return;
     }
-    
+
     // Stop the repeater using the execution engine method
     executionEngine.stopRepeater(node);
     console.log('Repeater stopped:', nodeId);
-    
+
     // Refresh the config panel to update the UI
     showNodeConfig(nodeId);
 }
@@ -454,7 +528,7 @@ function stopRepeater(nodeId) {
 function updateInputMapping(nodeId, inputPort, selectedOutputPort) {
     console.log(`Updating input mapping: ${nodeId}.${inputPort} ← ${selectedOutputPort}`);
     // Find the connection that goes to this input port (ignore from.portName)
-    const connection = Array.from(flowEditor.connections.values()).find(conn => 
+    const connection = Array.from(flowEditor.connections.values()).find(conn =>
         conn.to.nodeId === nodeId && conn.to.portName === inputPort
     );
     if (connection) {
@@ -509,4 +583,4 @@ function updateOutputMapping(nodeId, outputPort, targetNodeId, selectedOutputPor
     }
     // Auto-save
     if (window.saveFlow) window.saveFlow();
-} 
+}

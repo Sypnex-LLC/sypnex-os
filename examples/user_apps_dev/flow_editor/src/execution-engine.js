@@ -61,7 +61,7 @@ class ExecutionEngine {
         }
         
         if (useTemplate && inputData.template_data) {
-            processedBody = this.processTemplates(processedBody, inputData.template_data);
+            processedBody = window.flowEditorUtils.processTemplates(processedBody, inputData.template_data);
         }
         
         // Use OS proxy to bypass CORS
@@ -336,7 +336,7 @@ class ExecutionEngine {
             } else if (imageData.match(/^[A-Za-z0-9+/]*={0,2}$/)) {
                 // Looks like base64 data, convert to data URL
                 // Try to detect image type from the data
-                const imageType = this.detectImageTypeFromBase64(imageData);
+                const imageType = window.flowEditorUtils.detectImageTypeFromBase64(imageData);
                 imageUrl = `data:${imageType};base64,${imageData}`;
             } else {
                 // Assume it's a regular URL
@@ -515,7 +515,7 @@ class ExecutionEngine {
             }
             
             // Extract value using dot notation
-            extractedValue = this.extractNestedValue(jsonData, fieldPath);
+            extractedValue = window.flowEditorUtils.extractNestedValue(jsonData, fieldPath);
             
             // Use default value if extraction failed
             if (extractedValue === null || extractedValue === undefined) {
@@ -959,76 +959,6 @@ class ExecutionEngine {
         } else {
             // Return special object to indicate execution should stop
             return { __stop_execution: true };
-        }
-    }
-    
-    // Helper method for template processing
-    processTemplates(template, data) {
-        // Simple template processing - can be enhanced
-        let result = template;
-        if (typeof data === 'object') {
-            for (const [key, value] of Object.entries(data)) {
-                result = result.replace(new RegExp(`{{${key}}}`, 'g'), value);
-            }
-        }
-        return result;
-    }
-    
-    // Helper method for extracting nested JSON values
-    extractNestedValue(obj, path) {
-        const keys = path.split('.');
-        let current = obj;
-        
-        for (const key of keys) {
-            if (current === null || current === undefined) {
-                return null;
-            }
-            
-            // Handle array access like "items[0].name"
-            const arrayMatch = key.match(/^(.+)\[(\d+)\]$/);
-            if (arrayMatch) {
-                const arrayKey = arrayMatch[1];
-                const arrayIndex = parseInt(arrayMatch[2]);
-                
-                if (current[arrayKey] && Array.isArray(current[arrayKey])) {
-                    current = current[arrayKey][arrayIndex];
-                } else {
-                    return null;
-                }
-            } else {
-                current = current[key];
-            }
-        }
-        
-        return current;
-    }
-    
-    // Helper method to detect image type from base64 data
-    detectImageTypeFromBase64(base64Data) {
-        // Check the first few bytes to determine image type
-        try {
-            const binaryString = atob(base64Data);
-            const bytes = new Uint8Array(binaryString.length);
-            for (let i = 0; i < binaryString.length; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
-            }
-            
-            // Check file signatures
-            if (bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF) {
-                return 'image/jpeg';
-            } else if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47) {
-                return 'image/png';
-            } else if (bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46) {
-                return 'image/gif';
-            } else if (bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46) {
-                return 'image/webp';
-            } else {
-                // Default to PNG if we can't determine
-                return 'image/png';
-            }
-        } catch (e) {
-            // Default to PNG if there's an error
-            return 'image/png';
         }
     }
 }
