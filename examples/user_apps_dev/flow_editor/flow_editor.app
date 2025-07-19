@@ -11,6 +11,7 @@
     "utils.js",
     "node-registry.js",
     "canvas.js",
+    "node-config.js",
     "node-renderer.js",
     "execution-engine.js",
     "workflow.js",
