@@ -63,7 +63,7 @@ async function initFlowEditor() {
     }
     
     // Initialize canvas transform for panning
-    updateCanvasTransform();
+    window.canvasManager.updateCanvasTransform();
     
     // Load nodes from VFS
     console.log('About to load nodes from VFS...');
@@ -134,94 +134,7 @@ function cleanupFlowEditor() {
     console.log('Flow Editor cleanup completed');
 }
 
-// Update canvas transform for panning
-function updateCanvasTransform() {
-    if (flowEditor.canvas) {
-        flowEditor.canvas.style.transform = `translate(${flowEditor.panOffset.x}px, ${flowEditor.panOffset.y}px)`;
-    }
-}
 
-// Start canvas panning
-function startCanvasPan(e) {
-    // Only start panning if clicking directly on canvas (not on nodes or other elements)
-    // and not already dragging a node
-    if (e.target === flowEditor.canvas && !flowEditor.draggingNode) {
-        flowEditor.isPanning = true;
-        const mouseCoords = window.flowEditorUtils ? 
-            window.flowEditorUtils.getScaledMouseCoords(e) : 
-            { x: e.clientX, y: e.clientY };
-        flowEditor.panStart = { x: mouseCoords.x, y: mouseCoords.y };
-        flowEditor.lastPanOffset = { ...flowEditor.panOffset };
-        flowEditor.canvas.style.cursor = 'grabbing';
-        flowEditor.canvas.classList.add('panning');
-        e.preventDefault();
-        e.stopPropagation();
-    }
-}
-
-// Update canvas panning
-function updateCanvasPan(e) {
-    if (flowEditor.isPanning) {
-        const mouseCoords = window.flowEditorUtils ? 
-            window.flowEditorUtils.getScaledMouseCoords(e) : 
-            { x: e.clientX, y: e.clientY };
-        const deltaX = mouseCoords.x - flowEditor.panStart.x;
-        const deltaY = mouseCoords.y - flowEditor.panStart.y;
-        
-        flowEditor.panOffset.x = flowEditor.lastPanOffset.x + deltaX;
-        flowEditor.panOffset.y = flowEditor.lastPanOffset.y + deltaY;
-        
-        updateCanvasTransform();
-        e.preventDefault();
-    }
-}
-
-// Stop canvas panning
-function stopCanvasPan() {
-    if (flowEditor.isPanning) {
-        flowEditor.isPanning = false;
-        flowEditor.canvas.style.cursor = 'grab';
-        flowEditor.canvas.classList.remove('panning');
-    }
-}
-
-// Reset canvas pan to center
-function resetCanvasPan() {
-    // Add smooth transition for reset
-    flowEditor.canvas.style.transition = 'transform 0.3s ease-out';
-    
-    // Calculate center of all nodes if any exist
-    if (flowEditor.nodes.size > 0) {
-        const nodes = Array.from(flowEditor.nodes.values());
-        const minX = Math.min(...nodes.map(n => n.x));
-        const maxX = Math.max(...nodes.map(n => n.x));
-        const minY = Math.min(...nodes.map(n => n.y));
-        const maxY = Math.max(...nodes.map(n => n.y));
-        
-        const centerX = (minX + maxX) / 2;
-        const centerY = (minY + maxY) / 2;
-        
-        // Get canvas container dimensions (scaled)
-        const container = flowEditor.canvas.parentElement;
-        const containerRect = window.flowEditorUtils ? 
-            window.flowEditorUtils.getScaledBoundingClientRect(container) : 
-            container.getBoundingClientRect();
-        
-        // Calculate pan offset to center the nodes in the viewport
-        flowEditor.panOffset.x = -centerX + containerRect.width / 2;
-        flowEditor.panOffset.y = -centerY + containerRect.height / 2;
-    } else {
-        // If no nodes, reset to center of the large canvas
-        flowEditor.panOffset = { x: -5000, y: -5000 };
-    }
-    
-    updateCanvasTransform();
-    
-    // Remove transition after animation completes
-    setTimeout(() => {
-        flowEditor.canvas.style.transition = '';
-    }, 300);
-}
 
 // Add a new tag at current viewport center
 function addTag() {
@@ -353,7 +266,7 @@ function jumpToTag(tagId) {
     flowEditor.panOffset.x = -tag.x + containerRect.width / 2;
     flowEditor.panOffset.y = -tag.y + containerRect.height / 2;
     
-    updateCanvasTransform();
+    window.canvasManager.updateCanvasTransform();
     
     // Remove transition after animation completes
     setTimeout(() => {
@@ -505,7 +418,7 @@ function setupEventHandlers() {
     document.getElementById('delete-selected')?.addEventListener('click', deleteSelectedNode);
     document.getElementById('clear-canvas')?.addEventListener('click', clearCanvas);
     document.getElementById('add-tag')?.addEventListener('click', addTag);
-    document.getElementById('reset-pan')?.addEventListener('click', resetCanvasPan);
+    document.getElementById('reset-pan')?.addEventListener('click', window.canvasManager.resetCanvasPan);
     document.getElementById('save-flow')?.addEventListener('click', saveFlow);
     document.getElementById('save-flow-as')?.addEventListener('click', saveFlowAs);
     document.getElementById('load-flow')?.addEventListener('click', loadFlow);
@@ -562,13 +475,13 @@ function setupEventHandlers() {
     }
     
     // Canvas events
-    flowEditor.canvas.addEventListener('click', handleCanvasClick);
-    flowEditor.canvas.addEventListener('mousedown', startCanvasPan);
+    flowEditor.canvas.addEventListener('click', window.canvasManager.handleCanvasClick);
+    flowEditor.canvas.addEventListener('mousedown', window.canvasManager.startCanvasPan);
     
     // Document-level mouse events for smooth dragging and panning
-    document.addEventListener('mousedown', handleDocumentMouseDown);
-    document.addEventListener('mousemove', handleDocumentMouseMove);
-    document.addEventListener('mouseup', handleDocumentMouseUp);
+    document.addEventListener('mousedown', window.canvasManager.handleDocumentMouseDown);
+    document.addEventListener('mousemove', window.canvasManager.handleDocumentMouseMove);
+    document.addEventListener('mouseup', window.canvasManager.handleDocumentMouseUp);
     
     // Keyboard shortcuts
     document.addEventListener('keydown', handleKeyDown);
@@ -859,7 +772,7 @@ async function loadFlow() {
             
             // Reset pan offset to center of large canvas for new workflow
             flowEditor.panOffset = { x: -5000, y: -5000 };
-            updateCanvasTransform();
+            window.canvasManager.updateCanvasTransform();
             
             // Reset node counter to avoid ID conflicts
             flowEditor.nodeCounter = 0;
@@ -940,7 +853,7 @@ async function loadFlow() {
                 flowEditor.panOffset.x = -centerX + containerRect.width / 2;
                 flowEditor.panOffset.y = -centerY + containerRect.height / 2;
                 
-                updateCanvasTransform();
+                window.canvasManager.updateCanvasTransform();
             }
             
             // Redraw all connections after a small delay to ensure nodes are positioned

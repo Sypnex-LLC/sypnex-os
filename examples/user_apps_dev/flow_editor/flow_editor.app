@@ -20,6 +20,7 @@
     "ai-executors.js",
     "execution-engine.js",
     "workflow.js",
+    "canvas-manager.js",
     "main.js"
   ],
   "settings": [
