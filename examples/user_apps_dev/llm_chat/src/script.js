@@ -12,7 +12,7 @@ let currentAudio = null;
 // Configuration - these would typically be user-configurable
 const OLLAMA_ENDPOINT = "{{OLLAMA_ENDPOINT}}"; //http://127.0.0.1:11434/v1";
 const TTS_ENDPOINT = "{{TTS_ENDPOINT}}";//http://192.168.0.77:5568/read"; // Example TTS endpoint
-const MODEL_NAME = "HammerAI/mn-mag-mell-r1:latest";
+const MODEL_NAME = "{{OLLAMA_MODEL}}"; // HammerAI/mn-mag-mell-r1:latest
 
 // Conversation history
 let conversationHistory = [];
