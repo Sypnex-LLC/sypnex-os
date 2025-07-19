@@ -26,6 +26,9 @@
     "js/ui-manager.js",
     "js/main.js"
   ],
+  "styles": [
+    "css/main.css"
+  ],
   "settings": [
     {
       "key": "DEFAULT_HTTP_TIMEOUT",

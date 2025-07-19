@@ -79,10 +79,16 @@ def pack_app(app_name, source_dir="user_apps_dev"):
         else:
             # User app - add HTML file (packed or original)
             html_file = os.path.join(app_dir, f"{app_name}.html")
+            intermediate_html_created = False
+            
             if os.path.exists(html_file):
                 with open(html_file, 'rb') as f:
                     package['files'][f"{app_name}.html"] = base64.b64encode(f.read()).decode('utf-8')
                 print(f"✅ Added {app_name}.html")
+                
+                # Check if this was an intermediate file created by auto-packing
+                if packed_html_file and packed_html_file == html_file:
+                    intermediate_html_created = True
             else:
                 print(f"⚠️  Warning: HTML file {app_name}.html not found")
         
@@ -90,6 +96,14 @@ def pack_app(app_name, source_dir="user_apps_dev"):
         output_file = f"{app_name}_packaged.app"
         with open(output_file, 'w', encoding='utf-8') as f:
             json.dump(package, f, indent=2)
+        
+        # Clean up intermediate HTML file if it was auto-created
+        if packed_html_file and intermediate_html_created:
+            try:
+                os.remove(packed_html_file)
+                print(f"🧹 Cleaned up intermediate file: {os.path.basename(packed_html_file)}")
+            except Exception as e:
+                print(f"⚠️  Warning: Could not clean up intermediate file: {e}")
         
         # Calculate package size
         package_size = os.path.getsize(output_file)
@@ -134,23 +148,26 @@ def auto_pack_app(app_id, app_path):
         if src_files and html_mtime > max(src_files):
             return html_file  # Already up to date
     
-    # Read app metadata to get script order
+    # Read app metadata to get script and style order
     app_file = os.path.join(app_path, f"{app_id}.app")
     script_order = ['script.js']  # Default fallback
+    style_order = ['style.css']   # Default fallback
     
     if os.path.exists(app_file):
         try:
             with open(app_file, 'r', encoding='utf-8') as f:
                 app_metadata = json.load(f)
             script_order = app_metadata.get('scripts', ['script.js'])
+            style_order = app_metadata.get('styles', ['style.css'])
             print(f"📋 Script order from .app file: {script_order}")
+            print(f"📋 Style order from .app file: {style_order}")
         except Exception as e:
-            print(f"⚠️  Warning: Could not read .app file for script order: {e}")
+            print(f"⚠️  Warning: Could not read .app file for script/style order: {e}")
             print(f"   Using default script order: {script_order}")
+            print(f"   Using default style order: {style_order}")
     
     # Read source files
     index_html_path = os.path.join(src_dir, 'index.html')
-    styles_css_path = os.path.join(src_dir, 'style.css')
     
     if not os.path.exists(index_html_path):
         print(f"⚠️  Warning: No index.html found in src/ for {app_id}")
@@ -160,10 +177,37 @@ def auto_pack_app(app_id, app_path):
     with open(index_html_path, 'r', encoding='utf-8') as f:
         merged += f.read()
     
-    if os.path.exists(styles_css_path):
-        with open(styles_css_path, 'r', encoding='utf-8') as f:
-            css = f.read()
-        merged += f'\n<style>{css}</style>'
+    # Pack styles in order
+    all_styles = []
+    missing_styles = []
+    
+    for style_file in style_order:
+        style_path = os.path.join(src_dir, style_file)
+        if os.path.exists(style_path):
+            with open(style_path, 'r', encoding='utf-8') as f:
+                style_content = f.read()
+            all_styles.append(style_content)
+            print(f"✅ Added style: {style_file}")
+        else:
+            missing_styles.append(style_file)
+            print(f"⚠️  Warning: Style file not found: {style_file}")
+    
+    if missing_styles:
+        print(f"⚠️  Missing styles: {missing_styles}")
+        print(f"   Available styles in src/: {[f for f in os.listdir(src_dir) if f.endswith('.css')]}")
+    
+    if all_styles:
+        # Combine all styles with separators
+        style_separators = []
+        for i, style_name in enumerate(style_order):
+            if style_name in [s for s in style_order if os.path.exists(os.path.join(src_dir, s))]:
+                style_separators.append(f"/* ===== Style: {style_name} ===== */\n")
+        
+        combined_style = '\n\n'.join([sep + style for sep, style in zip(style_separators, all_styles)])
+        merged += f'\n<style>{combined_style}</style>'
+        print(f"📦 Packed {len(all_styles)} styles in order")
+    else:
+        print(f"⚠️  No styles found to pack")
     
     # Pack scripts in order
     all_scripts = []
