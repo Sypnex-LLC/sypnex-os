@@ -6,7 +6,6 @@
 
 A web-based operating system interface built with Flask and vanilla JavaScript, providing a desktop-like experience with window management, app sandboxing, and API system for user applications.
 
-
 > **🚀 Active Development**: Sypnex OS is an open-source project in active development. We welcome contributions to help reach production readiness. Whether you're interested in feature development, testing, documentation, or UI/UX improvements, contributions are welcome.
 
 
@@ -15,11 +14,6 @@ A web-based operating system interface built with Flask and vanilla JavaScript, 
 Here's a quick demo of Sypnex OS:
 
 https://www.youtube.com/watch?v=xaooKK8Qop8
-
----
-
-## About Sypnex OS
-...
 
 
 ## 🚀 Quick Start
