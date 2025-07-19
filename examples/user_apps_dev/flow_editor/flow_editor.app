@@ -22,6 +22,7 @@
     "workflow.js",
     "canvas-manager.js",
     "tag-manager.js",
+    "file-manager.js",
     "main.js"
   ],
   "settings": [

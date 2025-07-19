@@ -549,8 +549,8 @@ function updateInputMapping(nodeId, inputPort, selectedOutputPort) {
             showNodeConfig(nodeId);
         }
         // Auto-save the workflow to persist the mapping change
-        if (window.saveFlow) {
-            window.saveFlow();
+        if (window.fileManager.saveFlow) {
+            window.fileManager.saveFlow();
         }
     }
 }
@@ -582,5 +582,5 @@ function updateOutputMapping(nodeId, outputPort, targetNodeId, selectedOutputPor
         }, 10);
     }
     // Auto-save
-    if (window.saveFlow) window.saveFlow();
+    if (window.fileManager.saveFlow) window.fileManager.saveFlow();
 }

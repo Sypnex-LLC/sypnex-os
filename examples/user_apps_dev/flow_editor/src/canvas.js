@@ -220,15 +220,15 @@ function handleKeyDown(e) {
     } else if ((e.ctrlKey || e.metaKey) && e.key === 's' && !e.shiftKey) {
         // Ctrl/Cmd + S: Save
         e.preventDefault();
-        saveFlow();
+        window.fileManager.saveFlow();
     } else if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'S') {
         // Ctrl/Cmd + Shift + S: Save As
         e.preventDefault();
-        saveFlowAs();
+        window.fileManager.saveFlowAs();
     } else if ((e.ctrlKey || e.metaKey) && e.key === 'o') {
         // Ctrl/Cmd + O: Load
         e.preventDefault();
-        loadFlow();
+        window.fileManager.loadFlow();
     }
 }
 
@@ -459,8 +459,8 @@ function clearCanvas() {
         }
         
         // Update filename display
-        if (typeof updateFilenameDisplay === 'function') {
-            updateFilenameDisplay();
+        if (typeof window.fileManager.updateFilenameDisplay === 'function') {
+            window.fileManager.updateFilenameDisplay();
         }
         
         // Clear config panel
