@@ -12,10 +12,9 @@ A web-based operating system interface built with Flask and vanilla JavaScript, 
 
 # Demo
 
-Here's a quick demo of Sypnex OS and the Flow Editor:
+Here's a quick demo of Sypnex OS:
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/YOUR_VIDEO_ID_HERE" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-
+https://www.youtube.com/watch?v=xaooKK8Qop8
 
 ---
 
