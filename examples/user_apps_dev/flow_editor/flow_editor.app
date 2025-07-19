@@ -13,6 +13,11 @@
     "canvas.js",
     "node-config.js",
     "node-renderer.js",
+    "data-executors.js",
+    "http-executors.js",
+    "media-executors.js",
+    "flow-executors.js",
+    "ai-executors.js",
     "execution-engine.js",
     "workflow.js",
     "main.js"
