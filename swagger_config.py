@@ -49,7 +49,7 @@ class AutoSwaggerConfig:
                 "version": "1.0.0",
                 "contact": {
                     "name": "Sypnex OS",
-                    "url": "https://github.com/your-repo/dynamic-os"
+                    "url": "https://github.com/Sypnex-LLC/sypnex-os"
                 }
             },
             "host": "localhost:5000",

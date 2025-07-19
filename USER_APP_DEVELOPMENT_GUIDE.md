@@ -790,8 +790,8 @@ console.log('My App script loaded');
 ## 🤝 Community & Support
 
 ### Getting Help
-- **Questions & Support**: [GitHub Discussions](https://github.com/your-repo/sypnex-os/discussions)
-- **Bug Reports**: [GitHub Issues](https://github.com/your-repo/sypnex-os/issues)
+- **Questions & Support**: [GitHub Discussions](https://github.com/Sypnex-LLC/sypnex-os/discussions)
+- **Bug Reports**: [GitHub Issues](https://github.com/Sypnex-LLC/sypnex-os/issues)
 - **App Development Help**: Use the `app-development` tag in discussions
 
 ### Sharing Your Apps

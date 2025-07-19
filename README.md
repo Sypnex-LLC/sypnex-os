@@ -139,9 +139,9 @@ python run_dev.py
 We're building a community around Sypnex OS and welcome contributions of all kinds.
 
 ### Getting Help & Discussions
-- **Questions & Support**: [GitHub Discussions](https://github.com/your-repo/sypnex-os/discussions)
-- **Bug Reports**: [GitHub Issues](https://github.com/your-repo/sypnex-os/issues)
-- **Feature Requests**: [GitHub Issues](https://github.com/your-repo/sypnex-os/issues) with the `enhancement` label
+- **Questions & Support**: [GitHub Discussions](https://github.com/Sypnex-LLC/sypnex-os/discussions)
+- **Bug Reports**: [GitHub Issues](https://github.com/Sypnex-LLC/sypnex-os/issues)
+- **Feature Requests**: [GitHub Issues](https://github.com/Sypnex-LLC/sypnex-os/issues) with the `enhancement` label
 
 ### Contributing
 We welcome contributions in these areas:

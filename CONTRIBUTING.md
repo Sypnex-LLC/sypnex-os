@@ -15,7 +15,7 @@ Thank you for your interest in contributing to Sypnex OS! We welcome contributio
 1. **Fork the repository** on GitHub
 2. **Clone your fork** locally:
    ```bash
-   git clone https://github.com/your-username/sypnex-os.git
+   git clone https://github.com/Sypnex-LLC/sypnex-os.git
    cd sypnex-os
    ```
 3. **Install dependencies**:
@@ -172,7 +172,7 @@ When contributing features or fixes:
 ## 🆘 Getting Help
 
 If you're stuck or have questions:
-- Check existing [GitHub Discussions](https://github.com/your-repo/sypnex-os/discussions)
+- Check existing [GitHub Discussions](https://github.com/Sypnex-LLC/sypnex-os/discussions)
 - Create a new discussion for general questions
 - Use GitHub Issues for specific bugs or feature requests
 - Look at the documentation in the repository
