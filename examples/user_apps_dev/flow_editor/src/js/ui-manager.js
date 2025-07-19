@@ -76,6 +76,13 @@ function setupEventHandlers() {
     document.getElementById('clear-canvas')?.addEventListener('click', clearCanvas);
     document.getElementById('add-tag')?.addEventListener('click', window.tagManager.addTag);
     document.getElementById('reset-pan')?.addEventListener('click', window.canvasManager.resetCanvasPan);
+    
+    // Zoom controls
+    document.getElementById('zoom-in')?.addEventListener('click', window.canvasManager.zoomIn);
+    document.getElementById('zoom-out')?.addEventListener('click', window.canvasManager.zoomOut);
+    document.getElementById('zoom-fit')?.addEventListener('click', window.canvasManager.zoomToFit);
+    
+    // File operations
     document.getElementById('save-flow')?.addEventListener('click', window.fileManager.saveFlow);
     document.getElementById('save-flow-as')?.addEventListener('click', window.fileManager.saveFlowAs);
     document.getElementById('load-flow')?.addEventListener('click', window.fileManager.loadFlow);
@@ -134,6 +141,7 @@ function setupEventHandlers() {
     // Canvas events
     flowEditor.canvas.addEventListener('click', window.canvasManager.handleCanvasClick);
     flowEditor.canvas.addEventListener('mousedown', window.canvasManager.startCanvasPan);
+    flowEditor.canvas.addEventListener('wheel', window.canvasManager.handleMouseWheel, { passive: false });
     
     // Document-level mouse events for smooth dragging and panning
     document.addEventListener('mousedown', window.canvasManager.handleDocumentMouseDown);

@@ -88,31 +88,50 @@ function updateConnection(connection) {
     const fromNode = document.getElementById(connection.from.nodeId);
     const toNode = document.getElementById(connection.to.nodeId);
     
-    if (!fromNode || !toNode || !connection.svg) return;
+    if (!fromNode || !toNode || !connection.svg) {
+        console.log('Missing elements for connection:', connection.id);
+        return;
+    }
     
-    // Use scaled rects for accurate positioning
-    const fromRect = window.flowEditorUtils ? 
-        window.flowEditorUtils.getScaledBoundingClientRect(fromNode) : 
-        fromNode.getBoundingClientRect();
-    const toRect = window.flowEditorUtils ? 
-        window.flowEditorUtils.getScaledBoundingClientRect(toNode) : 
-        toNode.getBoundingClientRect();
-    const canvasRect = window.flowEditorUtils ? 
-        window.flowEditorUtils.getScaledBoundingClientRect(flowEditor.canvas) : 
-        flowEditor.canvas.getBoundingClientRect();
+    // Get node data positions
+    const fromNodeData = flowEditor.nodes.get(connection.from.nodeId);
+    const toNodeData = flowEditor.nodes.get(connection.to.nodeId);
     
-    // Calculate connection positions
-    const fromX = fromRect.right - canvasRect.left;
-    const fromY = fromRect.top + fromRect.height / 2 - canvasRect.top;
-    const toX = toRect.left - canvasRect.left;
-    const toY = toRect.top + toRect.height / 2 - canvasRect.top;
+    if (!fromNodeData || !toNodeData) {
+        console.log('Missing node data for connection:', connection.id);
+        return;
+    }
+    
+    // Get actual node dimensions from computed styles
+    const fromStyles = window.getComputedStyle(fromNode);
+    const toStyles = window.getComputedStyle(toNode);
+    
+    const fromWidth = parseFloat(fromStyles.width) || 200;
+    const fromHeight = parseFloat(fromStyles.height) || 80;
+    const toWidth = parseFloat(toStyles.width) || 200;
+    const toHeight = parseFloat(toStyles.height) || 80;
+    
+    // Calculate connection positions directly from node data (no extra transforms)
+    // From output port (right side of from node, middle vertically)
+    const fromX = fromNodeData.x + fromWidth;
+    const fromY = fromNodeData.y + fromHeight / 2;
+    
+    // To input port (left side of to node, middle vertically)  
+    const toX = toNodeData.x;
+    const toY = toNodeData.y + toHeight / 2;
+    
+    console.log('Connection coords:', connection.id, 'from:', fromX, fromY, 'to:', toX, toY);
     
     // Update the path
     const path = connection.svg.querySelector('path');
     if (path) {
         const controlPoint1X = fromX + (toX - fromX) * 0.5;
         const controlPoint2X = fromX + (toX - fromX) * 0.5;
-        path.setAttribute('d', `M ${fromX} ${fromY} C ${controlPoint1X} ${fromY} ${controlPoint2X} ${toY} ${toX} ${toY}`);
+        const pathD = `M ${fromX} ${fromY} C ${controlPoint1X} ${fromY} ${controlPoint2X} ${toY} ${toX} ${toY}`;
+        path.setAttribute('d', pathD);
+        console.log('Set path:', pathD);
+    } else {
+        console.log('No path element found for connection:', connection.id);
     }
 }
 
@@ -229,6 +248,22 @@ function handleKeyDown(e) {
         // Ctrl/Cmd + O: Load
         e.preventDefault();
         window.fileManager.loadFlow();
+    } else if ((e.ctrlKey || e.metaKey) && e.key === '=') {
+        // Ctrl/Cmd + =: Zoom In
+        e.preventDefault();
+        window.canvasManager.zoomIn();
+    } else if ((e.ctrlKey || e.metaKey) && e.key === '-') {
+        // Ctrl/Cmd + -: Zoom Out
+        e.preventDefault();
+        window.canvasManager.zoomOut();
+    } else if ((e.ctrlKey || e.metaKey) && e.key === '0') {
+        // Ctrl/Cmd + 0: Reset zoom and pan
+        e.preventDefault();
+        window.canvasManager.resetCanvasPan();
+    } else if ((e.ctrlKey || e.metaKey) && (e.shiftKey) && e.key === 'F') {
+        // Ctrl/Cmd + Shift + F: Zoom to fit
+        e.preventDefault();
+        window.canvasManager.zoomToFit();
     }
 }
 
@@ -454,6 +489,10 @@ function clearCanvas() {
         
         // Reset pan offset to center of large canvas
         flowEditor.panOffset = { x: -5000, y: -5000 };
+        
+        // Reset zoom level
+        flowEditor.zoomLevel = 1.0;
+        
         if (typeof window.canvasManager.updateCanvasTransform === 'function') {
             window.canvasManager.updateCanvasTransform();
         }

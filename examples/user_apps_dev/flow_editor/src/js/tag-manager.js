@@ -7,23 +7,17 @@ function addTag() {
     const tagId = `tag_${++flowEditor.tagCounter}`;
 
     // Calculate position at current viewport center
-    const container = flowEditor.canvas.parentElement;
-    const containerRect = container.getBoundingClientRect();
-
-    // Center of the viewport
-    const viewportCenterX = containerRect.width / 2;
-    const viewportCenterY = containerRect.height / 2;
-
-    // Convert viewport center to canvas coordinates (accounting for pan)
-    const canvasCenterX = viewportCenterX - flowEditor.panOffset.x;
-    const canvasCenterY = viewportCenterY - flowEditor.panOffset.y;
+    // Get center position in canvas coordinates
+    const center = window.flowEditorUtils ? 
+        window.flowEditorUtils.getViewportCenterInCanvas() :
+        { x: 5000, y: 5000 }; // Fallback to canvas center
 
     const tag = {
         id: tagId,
         name: tagName.trim(),
         description: '',
-        x: canvasCenterX,
-        y: canvasCenterY,
+        x: center.x,
+        y: center.y,
         color: '#4CAF50' // Green color
     };
 
@@ -92,20 +86,27 @@ function startDraggingTag(tagId, e) {
 
     flowEditor.draggingTag = tagId;
 
-    // Calculate offset from mouse to tag corner using scaled coordinates
-    const tagElement = document.getElementById(tagId);
-    const rect = window.flowEditorUtils ?
-        window.flowEditorUtils.getScaledBoundingClientRect(tagElement) :
-        tagElement.getBoundingClientRect();
-    const mouseCoords = window.flowEditorUtils ?
-        window.flowEditorUtils.getScaledMouseCoords(e) :
+    // Calculate offset from mouse to tag corner, accounting for zoom
+    const container = flowEditor.canvas.parentElement;
+    const containerRect = window.flowEditorUtils ? 
+        window.flowEditorUtils.getScaledBoundingClientRect(container) : 
+        container.getBoundingClientRect();
+    
+    const mouseCoords = window.flowEditorUtils ? 
+        window.flowEditorUtils.getScaledMouseCoords(e) : 
         { x: e.clientX, y: e.clientY };
-
+    
+    // Convert mouse position to canvas coordinates
+    const canvasMouseX = (mouseCoords.x - containerRect.left - flowEditor.panOffset.x) / flowEditor.zoomLevel;
+    const canvasMouseY = (mouseCoords.y - containerRect.top - flowEditor.panOffset.y) / flowEditor.zoomLevel;
+    
+    // Calculate offset in canvas coordinates
     flowEditor.tagDragOffset = {
-        x: mouseCoords.x - rect.left,
-        y: mouseCoords.y - rect.top
+        x: (canvasMouseX - tag.x) * flowEditor.zoomLevel,
+        y: (canvasMouseY - tag.y) * flowEditor.zoomLevel
     };
 
+    const tagElement = document.getElementById(tagId);
     tagElement.style.cursor = 'grabbing';
     tagElement.style.zIndex = '1001';
     tagElement.style.transition = 'none'; // Disable transitions during drag
@@ -119,17 +120,22 @@ function jumpToTag(tagId) {
     // Add smooth transition
     flowEditor.canvas.style.transition = 'transform 0.5s ease-out';
 
-    // Get canvas container dimensions (scaled)
-    const container = flowEditor.canvas.parentElement;
-    const containerRect = window.flowEditorUtils ?
-        window.flowEditorUtils.getScaledBoundingClientRect(container) :
-        container.getBoundingClientRect();
-
-    // Calculate pan offset to center the tag in the viewport
-    flowEditor.panOffset.x = -tag.x + containerRect.width / 2;
-    flowEditor.panOffset.y = -tag.y + containerRect.height / 2;
-
-    window.canvasManager.updateCanvasTransform();
+    // Use utility function to center viewport on tag coordinates
+    if (window.flowEditorUtils && window.flowEditorUtils.centerViewportOnCanvas) {
+        window.flowEditorUtils.centerViewportOnCanvas(tag.x, tag.y);
+    } else {
+        // Fallback method
+        const container = flowEditor.canvas.parentElement;
+        const containerRect = container.getBoundingClientRect();
+        
+        const viewportCenterX = containerRect.width / 2;
+        const viewportCenterY = containerRect.height / 2;
+        
+        flowEditor.panOffset.x = viewportCenterX - (tag.x * flowEditor.zoomLevel);
+        flowEditor.panOffset.y = viewportCenterY - (tag.y * flowEditor.zoomLevel);
+        
+        window.canvasManager.updateCanvasTransform();
+    }
 
     // Remove transition after animation completes
     setTimeout(() => {

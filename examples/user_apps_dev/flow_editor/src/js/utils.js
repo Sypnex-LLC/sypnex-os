@@ -54,44 +54,56 @@ function detectAppScale() {
     }
 }
 
-// Convert screen coordinates to app coordinates
+// Get the total effective scale (app scale × zoom scale)
+function getEffectiveScale() {
+    const appScale = detectAppScale();
+    const zoomScale = (typeof flowEditor !== 'undefined' && flowEditor.zoomLevel) ? flowEditor.zoomLevel : 1.0;
+    return appScale * zoomScale;
+}
+
+// Convert screen coordinates to app coordinates (accounting for both app scale and zoom)
 function screenToAppCoords(screenX, screenY) {
-    const scale = detectAppScale();
+    const scale = getEffectiveScale();
     return {
         x: screenX / scale,
         y: screenY / scale
     };
 }
 
-// Convert app coordinates to screen coordinates
+// Convert app coordinates to screen coordinates (accounting for both app scale and zoom)
 function appToScreenCoords(appX, appY) {
-    const scale = detectAppScale();
+    const scale = getEffectiveScale();
     return {
         x: appX * scale,
         y: appY * scale
     };
 }
 
-// Get scaled element rect (compensates for app scaling)
+// Get scaled element rect (compensates for app scaling and zoom)
 function getScaledBoundingClientRect(element) {
     const rect = element.getBoundingClientRect();
-    const scale = detectAppScale();
+    const appScale = detectAppScale();
+    // Note: Don't include zoom scale here as getBoundingClientRect already accounts for CSS transforms
 
     return {
-        left: rect.left / scale,
-        top: rect.top / scale,
-        right: rect.right / scale,
-        bottom: rect.bottom / scale,
-        width: rect.width / scale,
-        height: rect.height / scale,
-        x: rect.x / scale,
-        y: rect.y / scale
+        left: rect.left / appScale,
+        top: rect.top / appScale,
+        right: rect.right / appScale,
+        bottom: rect.bottom / appScale,
+        width: rect.width / appScale,
+        height: rect.height / appScale,
+        x: rect.x / appScale,
+        y: rect.y / appScale
     };
 }
 
-// Get scaled mouse coordinates from event
+// Get scaled mouse coordinates from event (compensates for app scaling only)
 function getScaledMouseCoords(e) {
-    return screenToAppCoords(e.clientX, e.clientY);
+    const appScale = detectAppScale();
+    return {
+        x: e.clientX / appScale,
+        y: e.clientY / appScale
+    };
 }
 
 // Initialize scale detection
@@ -228,9 +240,77 @@ function detectImageTypeFromBase64(base64Data) {
     }
 }
 
+// Convert viewport coordinates to canvas coordinates (accounting for pan and zoom)
+function viewportToCanvasCoords(viewportX, viewportY) {
+    if (typeof flowEditor === 'undefined') {
+        return { x: viewportX, y: viewportY };
+    }
+    
+    return {
+        x: (viewportX - flowEditor.panOffset.x) / flowEditor.zoomLevel,
+        y: (viewportY - flowEditor.panOffset.y) / flowEditor.zoomLevel
+    };
+}
+
+// Convert canvas coordinates to viewport coordinates (accounting for pan and zoom)
+function canvasToViewportCoords(canvasX, canvasY) {
+    if (typeof flowEditor === 'undefined') {
+        return { x: canvasX, y: canvasY };
+    }
+    
+    return {
+        x: (canvasX * flowEditor.zoomLevel) + flowEditor.panOffset.x,
+        y: (canvasY * flowEditor.zoomLevel) + flowEditor.panOffset.y
+    };
+}
+
+// Get the center of the current viewport in canvas coordinates
+function getViewportCenterInCanvas() {
+    if (typeof flowEditor === 'undefined' || !flowEditor.canvas) {
+        return { x: 0, y: 0 };
+    }
+    
+    const container = flowEditor.canvas.parentElement;
+    if (!container) {
+        return { x: 0, y: 0 };
+    }
+    
+    const containerRect = container.getBoundingClientRect();
+    const viewportCenterX = containerRect.width / 2;
+    const viewportCenterY = containerRect.height / 2;
+    
+    return viewportToCanvasCoords(viewportCenterX, viewportCenterY);
+}
+
+// Center the viewport on specific canvas coordinates
+function centerViewportOnCanvas(canvasX, canvasY) {
+    if (typeof flowEditor === 'undefined' || !flowEditor.canvas) {
+        return;
+    }
+    
+    const container = flowEditor.canvas.parentElement;
+    if (!container) {
+        return;
+    }
+    
+    const containerRect = container.getBoundingClientRect();
+    const viewportCenterX = containerRect.width / 2;
+    const viewportCenterY = containerRect.height / 2;
+    
+    // Calculate pan offset to center the specified canvas coordinates in the viewport
+    flowEditor.panOffset.x = viewportCenterX - (canvasX * flowEditor.zoomLevel);
+    flowEditor.panOffset.y = viewportCenterY - (canvasY * flowEditor.zoomLevel);
+    
+    // Update the transform
+    if (window.canvasManager && window.canvasManager.updateCanvasTransform) {
+        window.canvasManager.updateCanvasTransform();
+    }
+}
+
 // Export utilities for use in other modules
 window.flowEditorUtils = {
     detectAppScale,
+    getEffectiveScale,
     screenToAppCoords,
     appToScreenCoords,
     getScaledBoundingClientRect,
@@ -241,7 +321,11 @@ window.flowEditorUtils = {
     debounce,
     processTemplates,
     extractNestedValue,
-    detectImageTypeFromBase64
+    detectImageTypeFromBase64,
+    viewportToCanvasCoords,
+    canvasToViewportCoords,
+    getViewportCenterInCanvas,
+    centerViewportOnCanvas
 };
 
 // Replace template placeholders in JSON body

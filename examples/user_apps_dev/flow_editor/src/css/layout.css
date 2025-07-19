@@ -119,6 +119,45 @@
     align-items: center;
 }
 
+/* Zoom Controls */
+.zoom-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+}
+
+.zoom-level {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-color);
+    min-width: 40px;
+    text-align: center;
+    user-select: none;
+}
+
+.zoom-controls button {
+    padding: 4px 6px;
+    font-size: 12px;
+    border: 1px solid var(--border-color);
+    background: var(--surface-color);
+    color: var(--text-color);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.zoom-controls button:hover {
+    background: var(--border-color);
+}
+
+.zoom-controls button:active {
+    transform: scale(0.95);
+}
+
 /* Canvas Container */
 .flow-canvas-container {
     flex: 1;

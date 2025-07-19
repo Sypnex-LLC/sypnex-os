@@ -1,7 +1,14 @@
-// Update canvas transform for panning
+// Update canvas transform for panning and zooming
 function updateCanvasTransform() {
     if (flowEditor.canvas) {
-        flowEditor.canvas.style.transform = `translate(${flowEditor.panOffset.x}px, ${flowEditor.panOffset.y}px)`;
+        const transform = `translate(${flowEditor.panOffset.x}px, ${flowEditor.panOffset.y}px) scale(${flowEditor.zoomLevel})`;
+        flowEditor.canvas.style.transform = transform;
+        
+        // Update zoom level display
+        const zoomDisplay = document.getElementById('zoom-level');
+        if (zoomDisplay) {
+            zoomDisplay.textContent = Math.round(flowEditor.zoomLevel * 100) + '%';
+        }
     }
 }
 
@@ -79,12 +86,168 @@ function resetCanvasPan() {
         flowEditor.panOffset = { x: -5000, y: -5000 };
     }
 
+    // Reset zoom to 100%
+    flowEditor.zoomLevel = 1.0;
+
     updateCanvasTransform();
 
     // Remove transition after animation completes
     setTimeout(() => {
         flowEditor.canvas.style.transition = '';
     }, 300);
+}
+
+// Zoom functions
+function zoomIn() {
+    const newZoom = Math.min(flowEditor.zoomLevel + flowEditor.zoomStep, flowEditor.maxZoom);
+    setZoomLevel(newZoom);
+}
+
+function zoomOut() {
+    const newZoom = Math.max(flowEditor.zoomLevel - flowEditor.zoomStep, flowEditor.minZoom);
+    setZoomLevel(newZoom);
+}
+
+function setZoomLevel(zoomLevel) {
+    // Get the center of the canvas container for zoom origin
+    const container = flowEditor.canvas.parentElement;
+    const containerRect = window.flowEditorUtils ?
+        window.flowEditorUtils.getScaledBoundingClientRect(container) :
+        container.getBoundingClientRect();
+    
+    const centerX = containerRect.width / 2;
+    const centerY = containerRect.height / 2;
+    
+    // Calculate the point in canvas coordinates that should remain fixed
+    const canvasX = (centerX - flowEditor.panOffset.x) / flowEditor.zoomLevel;
+    const canvasY = (centerY - flowEditor.panOffset.y) / flowEditor.zoomLevel;
+    
+    // Update zoom level
+    flowEditor.zoomLevel = Math.max(flowEditor.minZoom, Math.min(flowEditor.maxZoom, zoomLevel));
+    
+    // Adjust pan offset to keep the center point fixed
+    flowEditor.panOffset.x = centerX - canvasX * flowEditor.zoomLevel;
+    flowEditor.panOffset.y = centerY - canvasY * flowEditor.zoomLevel;
+    
+    updateCanvasTransform();
+    
+    // Redraw connections after zoom
+    setTimeout(() => {
+        redrawAllConnections();
+    }, 16);
+}
+
+function zoomToFit() {
+    if (flowEditor.nodes.size === 0) {
+        // If no nodes, reset to 100% zoom and center
+        flowEditor.zoomLevel = 1.0;
+        flowEditor.panOffset = { x: -5000, y: -5000 };
+        updateCanvasTransform();
+        return;
+    }
+    
+    // Find bounds of all nodes
+    const nodes = Array.from(flowEditor.nodes.values());
+    const padding = 100; // Extra padding around nodes
+    
+    let minX = Infinity, maxX = -Infinity;
+    let minY = Infinity, maxY = -Infinity;
+    
+    nodes.forEach(node => {
+        const nodeElement = document.getElementById(node.id);
+        if (nodeElement) {
+            const rect = nodeElement.getBoundingClientRect();
+            minX = Math.min(minX, node.x);
+            maxX = Math.max(maxX, node.x + rect.width);
+            minY = Math.min(minY, node.y);
+            maxY = Math.max(maxY, node.y + rect.height);
+        }
+    });
+    
+    // Add padding
+    minX -= padding;
+    maxX += padding;
+    minY -= padding;
+    maxY += padding;
+    
+    const contentWidth = maxX - minX;
+    const contentHeight = maxY - minY;
+    
+    // Get container dimensions
+    const container = flowEditor.canvas.parentElement;
+    const containerRect = window.flowEditorUtils ?
+        window.flowEditorUtils.getScaledBoundingClientRect(container) :
+        container.getBoundingClientRect();
+    
+    // Calculate zoom to fit
+    const zoomX = containerRect.width / contentWidth;
+    const zoomY = containerRect.height / contentHeight;
+    const newZoom = Math.min(zoomX, zoomY, flowEditor.maxZoom);
+    
+    // Set zoom level
+    flowEditor.zoomLevel = Math.max(flowEditor.minZoom, newZoom);
+    
+    // Center the content
+    const centerX = (minX + maxX) / 2;
+    const centerY = (minY + maxY) / 2;
+    
+    flowEditor.panOffset.x = containerRect.width / 2 - centerX * flowEditor.zoomLevel;
+    flowEditor.panOffset.y = containerRect.height / 2 - centerY * flowEditor.zoomLevel;
+    
+    // Add smooth transition
+    flowEditor.canvas.style.transition = 'transform 0.3s ease-out';
+    updateCanvasTransform();
+    
+    // Remove transition after animation
+    setTimeout(() => {
+        flowEditor.canvas.style.transition = '';
+        redrawAllConnections();
+    }, 300);
+}
+
+// Handle mouse wheel zoom
+function handleMouseWheel(e) {
+    if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        
+        // Get mouse position relative to container
+        const container = flowEditor.canvas.parentElement;
+        const containerRect = window.flowEditorUtils ?
+            window.flowEditorUtils.getScaledBoundingClientRect(container) :
+            container.getBoundingClientRect();
+        
+        const mouseCoords = window.flowEditorUtils ?
+            window.flowEditorUtils.getScaledMouseCoords(e) :
+            { x: e.clientX, y: e.clientY };
+        
+        const mouseX = mouseCoords.x - containerRect.left;
+        const mouseY = mouseCoords.y - containerRect.top;
+        
+        // Calculate zoom delta
+        const zoomDelta = e.deltaY > 0 ? -flowEditor.zoomStep : flowEditor.zoomStep;
+        const newZoom = Math.max(flowEditor.minZoom, Math.min(flowEditor.maxZoom, flowEditor.zoomLevel + zoomDelta));
+        
+        if (newZoom !== flowEditor.zoomLevel) {
+            // Calculate the point in canvas coordinates that should remain fixed (under mouse)
+            const canvasX = (mouseX - flowEditor.panOffset.x) / flowEditor.zoomLevel;
+            const canvasY = (mouseY - flowEditor.panOffset.y) / flowEditor.zoomLevel;
+            
+            // Update zoom level
+            flowEditor.zoomLevel = newZoom;
+            
+            // Adjust pan offset to keep the mouse point fixed
+            flowEditor.panOffset.x = mouseX - canvasX * flowEditor.zoomLevel;
+            flowEditor.panOffset.y = mouseY - canvasY * flowEditor.zoomLevel;
+            
+            updateCanvasTransform();
+            
+            // Redraw connections after zoom
+            clearTimeout(flowEditor.zoomRedrawTimeout);
+            flowEditor.zoomRedrawTimeout = setTimeout(() => {
+                redrawAllConnections();
+            }, 50);
+        }
+    }
 }
 
 // Handle canvas click events
@@ -129,18 +292,31 @@ function handleDocumentMouseDown(e) {
     if (node) {
         flowEditor.draggingNode = nodeId;
         
-        // Calculate offset from mouse to node corner
-        const rect = nodeElement.getBoundingClientRect();
+        // Calculate offset from mouse to node corner, accounting for zoom
+        const container = flowEditor.canvas.parentElement;
+        const containerRect = window.flowEditorUtils ? 
+            window.flowEditorUtils.getScaledBoundingClientRect(container) : 
+            container.getBoundingClientRect();
+        
+        const mouseCoords = window.flowEditorUtils ? 
+            window.flowEditorUtils.getScaledMouseCoords(e) : 
+            { x: e.clientX, y: e.clientY };
+        
+        // Convert mouse position to canvas coordinates
+        const canvasMouseX = (mouseCoords.x - containerRect.left - flowEditor.panOffset.x) / flowEditor.zoomLevel;
+        const canvasMouseY = (mouseCoords.y - containerRect.top - flowEditor.panOffset.y) / flowEditor.zoomLevel;
+        
+        // Calculate offset in canvas coordinates
         flowEditor.dragOffset = {
-            x: e.clientX - rect.left,
-            y: e.clientY - rect.top
+            x: (canvasMouseX - node.x) * flowEditor.zoomLevel,
+            y: (canvasMouseY - node.y) * flowEditor.zoomLevel
         };
         
         nodeElement.style.cursor = 'grabbing';
         nodeElement.style.zIndex = '1000'; // Bring to front while dragging
         
-        // Cache canvas rect for performance
-        flowEditor.canvasRect = flowEditor.canvas.getBoundingClientRect();
+        // Cache container rect for performance
+        flowEditor.canvasRect = containerRect;
     }
 }
 
@@ -160,19 +336,26 @@ function handleDocumentMouseMove(e) {
     if (flowEditor.draggingTag && flowEditor.tagDragOffset) {
         const tag = flowEditor.tags.get(flowEditor.draggingTag);
         if (tag) {
-            // Use cached canvas rect for better performance (scaled)
-            const canvasRect = flowEditor.canvasRect || 
-                (window.flowEditorUtils ? 
-                    window.flowEditorUtils.getScaledBoundingClientRect(flowEditor.canvas) : 
-                    flowEditor.canvas.getBoundingClientRect());
+            // Get container dimensions for coordinate conversion
+            const container = flowEditor.canvas.parentElement;
+            const containerRect = window.flowEditorUtils ? 
+                window.flowEditorUtils.getScaledBoundingClientRect(container) : 
+                container.getBoundingClientRect();
             
-            // Calculate new position with offset
-            tag.x = mouseCoords.x - canvasRect.left - flowEditor.tagDragOffset.x;
-            tag.y = mouseCoords.y - canvasRect.top - flowEditor.tagDragOffset.y;
+            // Convert mouse coordinates to canvas coordinates, accounting for pan and zoom
+            const canvasMouseX = (mouseCoords.x - containerRect.left - flowEditor.panOffset.x) / flowEditor.zoomLevel;
+            const canvasMouseY = (mouseCoords.y - containerRect.top - flowEditor.panOffset.y) / flowEditor.zoomLevel;
+            
+            // Calculate new position with offset (drag offset is also in screen coordinates, so convert it)
+            const dragOffsetX = flowEditor.tagDragOffset.x / flowEditor.zoomLevel;
+            const dragOffsetY = flowEditor.tagDragOffset.y / flowEditor.zoomLevel;
+            
+            tag.x = canvasMouseX - dragOffsetX;
+            tag.y = canvasMouseY - dragOffsetY;
             
             const tagElement = document.getElementById(flowEditor.draggingTag);
             if (tagElement) {
-                // Use left/top for positioning (revert to original method)
+                // Use left/top for positioning
                 tagElement.style.left = tag.x + 'px';
                 tagElement.style.top = tag.y + 'px';
             }
@@ -190,18 +373,22 @@ function handleDocumentMouseMove(e) {
     if (flowEditor.draggingNode && flowEditor.dragOffset) {
         const node = flowEditor.nodes.get(flowEditor.draggingNode);
         if (node) {
-            // Use cached canvas rect for better performance (scaled)
-            const canvasRect = flowEditor.canvasRect || 
-                (window.flowEditorUtils ? 
-                    window.flowEditorUtils.getScaledBoundingClientRect(flowEditor.canvas) : 
-                    flowEditor.canvas.getBoundingClientRect());
+            // Get container dimensions for coordinate conversion
+            const container = flowEditor.canvas.parentElement;
+            const containerRect = window.flowEditorUtils ? 
+                window.flowEditorUtils.getScaledBoundingClientRect(container) : 
+                container.getBoundingClientRect();
             
-            // Calculate new position with offset
-            node.x = mouseCoords.x - canvasRect.left - flowEditor.dragOffset.x;
-            node.y = mouseCoords.y - canvasRect.top - flowEditor.dragOffset.y;
+            // Convert mouse coordinates to canvas coordinates, accounting for pan and zoom
+            const canvasMouseX = (mouseCoords.x - containerRect.left - flowEditor.panOffset.x) / flowEditor.zoomLevel;
+            const canvasMouseY = (mouseCoords.y - containerRect.top - flowEditor.panOffset.y) / flowEditor.zoomLevel;
             
-            // Allow nodes to be placed anywhere in the workspace (no bounds restriction)
-            // This enables using the full panned canvas area
+            // Calculate new position with offset (drag offset is also in screen coordinates, so convert it)
+            const dragOffsetX = flowEditor.dragOffset.x / flowEditor.zoomLevel;
+            const dragOffsetY = flowEditor.dragOffset.y / flowEditor.zoomLevel;
+            
+            node.x = canvasMouseX - dragOffsetX;
+            node.y = canvasMouseY - dragOffsetY;
             
             const nodeElement = document.getElementById(flowEditor.draggingNode);
             if (nodeElement) {
@@ -274,5 +461,10 @@ window.canvasManager = {
     handleCanvasClick,
     handleDocumentMouseDown,
     handleDocumentMouseMove,
-    handleDocumentMouseUp
+    handleDocumentMouseUp,
+    zoomIn,
+    zoomOut,
+    setZoomLevel,
+    zoomToFit,
+    handleMouseWheel
 };

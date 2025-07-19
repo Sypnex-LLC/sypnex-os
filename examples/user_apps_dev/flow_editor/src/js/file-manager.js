@@ -218,11 +218,14 @@ async function loadFlow() {
                 });
             }
             
-            // Load connections
+            // Load connections after nodes are fully created and positioned
             if (flowData.connections) {
                 flowData.connections.forEach(connData => {
                     createConnection(connData.from.nodeId, connData.from.portName, connData.to.nodeId, connData.to.portName);
                 });
+                
+                // Immediately redraw connections now that all SVG elements exist
+                redrawAllConnections();
             }
             
             // Load tags
@@ -269,10 +272,8 @@ async function loadFlow() {
                 window.canvasManager.updateCanvasTransform();
             }
             
-            // Redraw all connections after a small delay to ensure nodes are positioned
-            setTimeout(() => {
-                redrawAllConnections();
-            }, 50);
+            // Final connection redraw after all positioning is complete
+            redrawAllConnections();
             
             // Update tag panel
             window.tagManager.updateTagPanel();

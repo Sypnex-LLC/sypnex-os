@@ -18,6 +18,11 @@ let flowEditor = {
     panStart: { x: 0, y: 0 },
     panOffset: { x: -5000, y: -5000 }, // Center the large canvas initially
     lastPanOffset: { x: -5000, y: -5000 },
+    // Zoom state
+    zoomLevel: 1.0,
+    minZoom: 0.1,
+    maxZoom: 3.0,
+    zoomStep: 0.1,
     // Tag system
     tags: new Map(),
     tagCounter: 0,
@@ -61,6 +66,32 @@ async function initFlowEditor() {
         console.error('Flow canvas not found');
         return;
     }
+    
+    // Create SVG marker definitions for connection arrows
+    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+    const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+    marker.setAttribute('id', 'arrowhead');
+    marker.setAttribute('markerWidth', '10');
+    marker.setAttribute('markerHeight', '7');
+    marker.setAttribute('refX', '9');
+    marker.setAttribute('refY', '3.5');
+    marker.setAttribute('orient', 'auto');
+    marker.setAttribute('markerUnits', 'strokeWidth');
+    
+    const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+    polygon.setAttribute('points', '0 0, 10 3.5, 0 7');
+    polygon.setAttribute('fill', '#4CAF50');
+    
+    marker.appendChild(polygon);
+    defs.appendChild(marker);
+    
+    // Create a temporary SVG container for the marker definition
+    const markerSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    markerSvg.style.position = 'absolute';
+    markerSvg.style.width = '0';
+    markerSvg.style.height = '0';
+    markerSvg.appendChild(defs);
+    flowEditor.canvas.appendChild(markerSvg);
     
     // Initialize canvas transform for panning
     window.canvasManager.updateCanvasTransform();
@@ -175,16 +206,9 @@ function addNode(type) {
     const nodeId = `node_${++flowEditor.nodeCounter}`;
     
     // Calculate position relative to current viewport center
-    const container = flowEditor.canvas.parentElement;
-    const containerRect = container.getBoundingClientRect();
-    
-    // Center of the viewport
-    const viewportCenterX = containerRect.width / 2;
-    const viewportCenterY = containerRect.height / 2;
-    
-    // Convert viewport center to canvas coordinates (accounting for pan)
-    const canvasCenterX = viewportCenterX - flowEditor.panOffset.x;
-    const canvasCenterY = viewportCenterY - flowEditor.panOffset.y;
+    const center = window.flowEditorUtils ? 
+        window.flowEditorUtils.getViewportCenterInCanvas() :
+        { x: 5000, y: 5000 }; // Fallback to canvas center
     
     // Add some random offset around the center
     const offsetX = (Math.random() - 0.5) * 200; // -100 to +100
@@ -193,8 +217,8 @@ function addNode(type) {
     const node = {
         id: nodeId,
         type: type,
-        x: canvasCenterX + offsetX,
-        y: canvasCenterY + offsetY,
+        x: center.x + offsetX,
+        y: center.y + offsetY,
         config: JSON.parse(JSON.stringify(nodeDef.config)), // Deep copy
         data: {}
     };
