@@ -21,6 +21,7 @@
     "execution-engine.js",
     "workflow.js",
     "canvas-manager.js",
+    "tag-manager.js",
     "main.js"
   ],
   "settings": [
