@@ -23,6 +23,7 @@
     "canvas-manager.js",
     "tag-manager.js",
     "file-manager.js",
+    "ui-manager.js",
     "main.js"
   ],
   "settings": [
