@@ -156,7 +156,7 @@ class UserAppManager:
                 continue
                 
             try:
-                # Parse metadata
+                # Parse metadata (VFS apps use direct metadata format)
                 metadata = json.loads(metadata_data['content'].decode('utf-8'))
                 
                 # Validate required fields
@@ -270,7 +270,9 @@ class UserAppManager:
                 'icon': app_data['icon'],
                 'description': app_data['description'],
                 'type': 'user_app',
-                'source': app_data.get('source', 'unknown')
+                'source': app_data.get('source', 'unknown'),
+                'author': app_data.get('author', 'Unknown'),
+                'version': app_data.get('version', '1.0.0')
             })
         return results
     
