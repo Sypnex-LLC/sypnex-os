@@ -12,6 +12,7 @@ jobs:
   release-specific-file:
     runs-on: ubuntu-latest # Use a Linux runner
     permissions:
+      # Grant write permission to the GITHUB_TOKEN for contents (required for releases)
       contents: write
 
     steps:
@@ -82,33 +83,45 @@ jobs:
             # The .app file is the JSON file itself, e.g., "examples/flow_editor.app"
             APP_METADATA_PATH="examples/$app_file_original"
 
+            echo "--- Processing $app_file_original ---"
+            echo "Checking path: $APP_METADATA_PATH"
+            ls -la "$APP_METADATA_PATH" || echo "File does not exist at path: $APP_METADATA_PATH" # Verify file existence
+            
             if [ ! -f "$APP_METADATA_PATH" ]; then
               echo "❌ Error: App metadata file not found for $app_file_original at $APP_METADATA_PATH. Skipping."
               continue # Skip this file if .app metadata isn't found
             fi
 
-            # Extract the 'id' and 'version' using jq
+            echo "Content of $APP_METADATA_PATH (first 500 chars):"
+            head -c 500 "$APP_METADATA_PATH" # Show content of the .app file as seen by the runner
+            echo "..." # Indicate content might be truncated
+
+            # Extract the 'id' and 'version' from the 'app_metadata' object using jq
             # -r flag ensures raw string output without quotes
-            APP_ID=$(jq -r '.id' "$APP_METADATA_PATH")
-            APP_VERSION=$(jq -r '.version' "$APP_METADATA_PATH")
+            # Added '|| echo ""' to ensure variable is empty if jq fails, not an error
+            APP_ID=$(jq -r '.app_metadata.id' "$APP_METADATA_PATH" 2>/dev/null || echo "")
+            APP_VERSION=$(jq -r '.app_metadata.version' "$APP_METADATA_PATH" 2>/dev/null || echo "")
+
+            echo "Extracted APP_ID variable value: '$APP_ID'" # Verify variable content
+            echo "Extracted APP_VERSION variable value: '$APP_VERSION'" # Verify variable content
 
             if [ -z "$APP_ID" ]; then
-              echo "⚠️ Warning: Could not extract 'id' from $app_file_original. Skipping this app."
+              echo "⚠️ Warning: Extracted 'id' is empty for $app_file_original. Skipping this app."
               continue
             fi
             if [ -z "$APP_VERSION" ]; then
-              echo "⚠️ Warning: Could not extract 'version' from $app_file_original. Using 'unknown' for this app."
-              APP_VERSION="unknown"
+              echo "⚠️ Warning: Extracted 'version' is empty for $app_file_original. Using 'unknown' for this app."
+              APP_VERSION="unknown" # Fallback
             fi
             
-            echo "Extracted ID: $APP_ID, Version: $APP_VERSION for $app_file_original"
+            echo "Final ID: $APP_ID, Final Version: $APP_VERSION for $app_file_original"
 
             if [ "$first_entry" = true ]; then
               first_entry=false
             else
               JSON_CONTENT+=",\n"
             fi
-            # Use the extracted app_id as the key in the manifest, as it's cleaner for your app to reference
+            # Use the extracted app_id as the key in the manifest
             JSON_CONTENT+="  \"${APP_ID}\": \"${APP_VERSION}\""
           done
           JSON_CONTENT+="\n}"
@@ -175,4 +188,4 @@ jobs:
           files: |
             ${{ steps.generate_content_lists.outputs.UPLOAD_FILES }} # Use the new output for files
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }
