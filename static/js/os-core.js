@@ -366,19 +366,24 @@ class SypnexOS {
                 if (data.success && data.apps) {
                     // Store comprehensive app data in memory for quick access
                     this.latestVersions = data.apps;
+                    console.log('✅ Latest app versions cached successfully');
                     
                     // Update any currently open windows
                     if (this.updateUpdateButtonsForAllWindows) {
                         this.updateUpdateButtonsForAllWindows();
                     }
                 } else {
-                    console.warn('Failed to get latest versions:', data.error);
+                    console.warn('⚠️ Failed to get latest versions:', data.error || 'Unknown error');
+                    this.latestVersions = null;
                 }
             } else {
-                console.warn('Failed to fetch latest versions:', response.status);
+                console.warn('⚠️ Failed to fetch latest versions: HTTP', response.status);
+                this.latestVersions = null;
             }
         } catch (error) {
-            console.error('Error caching latest versions:', error);
+            // Network error, offline, or server unreachable - fail silently
+            console.warn('⚠️ Unable to check for updates (offline or network error):', error.message);
+            this.latestVersions = null;
         }
     }
 
