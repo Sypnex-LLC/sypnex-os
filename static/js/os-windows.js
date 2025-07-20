@@ -202,6 +202,48 @@ Object.assign(SypnexOS.prototype, {
                         // Determine the correct app ID for settings (extract original app ID from settings window ID)
                         const actualAppId = '${appId}'.startsWith('settings-') ? '${appId}'.replace('settings-', '') : '${appId}';
                         
+                        // Timer tracking for automatic cleanup
+                        const appTimers = new Set();
+                        const originalSetInterval = setInterval;
+                        const originalSetTimeout = setTimeout;
+                        const originalClearInterval = clearInterval;
+                        const originalClearTimeout = clearTimeout;
+                        
+                        // Override timer functions to track them
+                        setInterval = function(callback, delay, ...args) {
+                            const id = originalSetInterval(callback, delay, ...args);
+                            appTimers.add({type: 'interval', id: id});
+                            console.log('App \${actualAppId} created setInterval:', id);
+                            return id;
+                        };
+                        
+                        setTimeout = function(callback, delay, ...args) {
+                            const id = originalSetTimeout(callback, delay, ...args);
+                            appTimers.add({type: 'timeout', id: id});
+                            console.log('App \${actualAppId} created setTimeout:', id);
+                            return id;
+                        };
+                        
+                        clearInterval = function(id) {
+                            originalClearInterval(id);
+                            appTimers.forEach(timer => {
+                                if (timer.id === id && timer.type === 'interval') {
+                                    appTimers.delete(timer);
+                                    console.log('App \${actualAppId} cleared setInterval:', id);
+                                }
+                            });
+                        };
+                        
+                        clearTimeout = function(id) {
+                            originalClearTimeout(id);
+                            appTimers.forEach(timer => {
+                                if (timer.id === id && timer.type === 'timeout') {
+                                    appTimers.delete(timer);
+                                    console.log('App \${actualAppId} cleared setTimeout:', id);
+                                }
+                            });
+                        };
+                        
                         // Create app-specific helper functions (local to this scope)
                         const getAppSetting = async function(key, defaultValue = null) {
                             try {
@@ -286,7 +328,27 @@ Object.assign(SypnexOS.prototype, {
                             getAllAppSettings: getAllAppSettings,
                             showNotification: showNotification,
                             windowElement: windowElement,
-                            appContainer: appContainer
+                            appContainer: appContainer,
+                            // Timer cleanup function
+                            cleanupTimers: function() {
+                                let cleanedCount = 0;
+                                appTimers.forEach(timer => {
+                                    if (timer.type === 'interval') {
+                                        originalClearInterval(timer.id);
+                                        cleanedCount++;
+                                        console.log('Cleaned up setInterval:', timer.id);
+                                    } else if (timer.type === 'timeout') {
+                                        originalClearTimeout(timer.id);
+                                        cleanedCount++;
+                                        console.log('Cleaned up setTimeout:', timer.id);
+                                    }
+                                });
+                                appTimers.clear();
+                                if (cleanedCount > 0) {
+                                    console.log('App \${actualAppId}: Cleaned up', cleanedCount, 'timers');
+                                }
+                                return cleanedCount;
+                            }
                         };
                         
                         console.log('App sandbox created for: ' + actualAppId);
@@ -900,6 +962,14 @@ Object.assign(SypnexOS.prototype, {
         if (windowElement) {
             // Save window state before closing
             this.saveWindowState(appId);
+            
+            // Clean up timers automatically
+            if (window.sypnexApps && window.sypnexApps[appId] && window.sypnexApps[appId].cleanupTimers) {
+                const cleanedTimers = window.sypnexApps[appId].cleanupTimers();
+                if (cleanedTimers > 0) {
+                    console.log(`App ${appId}: Automatically cleaned up ${cleanedTimers} timers on close`);
+                }
+            }
             
             // Clean up WebSocket connection if app has one
             if (window.sypnexApps && window.sypnexApps[appId] && window.sypnexApps[appId].sypnexAPI) {
