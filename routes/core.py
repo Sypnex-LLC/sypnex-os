@@ -146,7 +146,8 @@ def register_core_routes(app, managers, builtin_apps):
                     'name': app['name'],
                     'icon': app['icon'],
                     'description': app['description'],
-                    'type': app.get('type', 'unknown')
+                    'type': app.get('type', 'unknown'),
+                    'version': app.get('version', '1.0.0')
                 })
             
             return jsonify(results)

@@ -264,6 +264,38 @@
     to { transform: rotate(360deg); }
 }
 
+/* App Status Indicators */
+.app-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    margin-bottom: 12px;
+}
+
+.app-status.installed {
+    color: var(--success-color, #28a745);
+}
+
+.app-status.not-installed {
+    color: var(--text-secondary, rgba(255,255,255,0.7));
+}
+
+.app-status.update-available {
+    color: var(--warning-color, #ffc107);
+}
+
+.btn-warning {
+    background: var(--warning-color, #ffc107);
+    color: var(--dark-color, #000);
+}
+
+.btn-warning:hover:not(:disabled) {
+    background: var(--warning-hover, #e0a800);
+    transform: translateY(-1px);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .apps-grid {

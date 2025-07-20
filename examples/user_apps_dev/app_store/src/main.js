@@ -4,7 +4,7 @@ console.log('App Store script loaded');
 class AppStore {
     constructor() {
         this.apps = new Map();
-        this.installedApps = new Set();
+        this.installedApps = new Map(); // Changed to Map to store version info
         this.filteredApps = new Map();
         this.isLoading = false;
         
@@ -83,12 +83,15 @@ class AppStore {
             }
 
             const data = await response.json();
+            console.log('Raw available apps response:', data); // Debug log
+            
             if (!data.success || !data.apps) {
                 throw new Error('Invalid response format');
             }
 
             const appsMap = new Map();
             Object.entries(data.apps).forEach(([appId, appData]) => {
+                console.log(`Processing available app: ${appId}, version: ${appData.version}, full data:`, appData); // Debug log
                 appsMap.set(appId, {
                     id: appId,
                     name: this.formatAppName(appId),
@@ -99,6 +102,7 @@ class AppStore {
                 });
             });
 
+            console.log('Final available apps map:', appsMap); // Debug log
             return appsMap;
         } catch (error) {
             console.error('Error fetching available apps:', error);
@@ -114,19 +118,26 @@ class AppStore {
             }
 
             const apps = await response.json();
-            const installedSet = new Set();
+            console.log('Raw installed apps response:', apps); // Debug log
+            
+            const installedMap = new Map();
             
             apps.forEach(app => {
                 if (app.type === 'user_app') {
-                    installedSet.add(app.id);
+                    console.log(`Processing installed app: ${app.id}, version: ${app.version}, full app data:`, app); // Debug log
+                    installedMap.set(app.id, {
+                        version: app.version || '1.0.0', // Default version if not specified
+                        id: app.id
+                    });
                 }
             });
 
-            return installedSet;
+            console.log('Final installed apps map:', installedMap); // Debug log
+            return installedMap;
         } catch (error) {
             console.error('Error fetching installed apps:', error);
-            // Don't throw here, just return empty set so we can still show available apps
-            return new Set();
+            // Don't throw here, just return empty map so we can still show available apps
+            return new Map();
         }
     }
 
@@ -183,7 +194,40 @@ class AppStore {
     }
 
     createAppCard(app) {
-        const isInstalled = this.installedApps.has(app.id);
+        const installedApp = this.installedApps.get(app.id);
+        const isInstalled = installedApp !== undefined;
+        const needsUpdate = isInstalled && installedApp.version !== app.version;
+        
+        // Debug logging for version comparison
+        if (isInstalled) {
+            console.log(`Version comparison for ${app.id}:`, {
+                availableVersion: app.version,
+                installedVersion: installedApp.version,
+                needsUpdate: needsUpdate
+            });
+        }
+        
+        let statusText, statusClass, buttonText, buttonClass, buttonIcon;
+        
+        if (!isInstalled) {
+            statusText = 'Not Installed';
+            statusClass = 'not-installed';
+            buttonText = 'Install';
+            buttonClass = 'btn-primary';
+            buttonIcon = 'fa-download';
+        } else if (needsUpdate) {
+            statusText = `Installed (v${installedApp.version}) - Update Available`;
+            statusClass = 'update-available';
+            buttonText = 'Update';
+            buttonClass = 'btn-warning';
+            buttonIcon = 'fa-arrow-up';
+        } else {
+            statusText = 'Installed';
+            statusClass = 'installed';
+            buttonText = 'Installed';
+            buttonClass = 'btn-secondary';
+            buttonIcon = 'fa-check';
+        }
         
         const card = document.createElement('div');
         card.className = 'app-card';
@@ -201,25 +245,25 @@ class AppStore {
                 ${app.description}
             </div>
             <div class="app-actions">
-                <div class="app-status ${isInstalled ? 'installed' : 'not-installed'}">
+                <div class="app-status ${statusClass}">
                     <i class="fas ${isInstalled ? 'fa-check-circle' : 'fa-circle'}"></i>
-                    ${isInstalled ? 'Installed' : 'Not Installed'}
+                    ${statusText}
                 </div>
-                <button class="btn btn-sm ${isInstalled ? 'btn-secondary' : 'btn-primary'}" 
+                <button class="btn btn-sm ${buttonClass}" 
                         data-app-id="${app.id}" 
                         data-download-url="${app.download_url}"
-                        ${isInstalled ? 'disabled' : ''}>
-                    <i class="fas ${isInstalled ? 'fa-check' : 'fa-download'}"></i>
-                    ${isInstalled ? 'Installed' : 'Install'}
+                        ${(!isInstalled || needsUpdate) ? '' : 'disabled'}>
+                    <i class="fas ${buttonIcon}"></i>
+                    ${buttonText}
                 </button>
             </div>
         `;
 
-        // Add install button event listener
-        if (!isInstalled) {
-            const installBtn = card.querySelector('button');
-            installBtn.addEventListener('click', () => {
-                this.installApp(app.id, app.download_url, installBtn);
+        // Add install/update button event listener
+        if (!isInstalled || needsUpdate) {
+            const actionBtn = card.querySelector('button');
+            actionBtn.addEventListener('click', () => {
+                this.installApp(app.id, app.download_url, actionBtn, needsUpdate);
             });
         }
 
@@ -237,11 +281,12 @@ class AppStore {
         return `fas ${icons[appId] || 'fa-puzzle-piece'}`;
     }
 
-    async installApp(appId, downloadUrl, button) {
+    async installApp(appId, downloadUrl, button, isUpdate = false) {
         try {
             // Show loading state
             const originalContent = button.innerHTML;
-            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Installing...';
+            const actionText = isUpdate ? 'Updating' : 'Installing';
+            button.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${actionText}...`;
             button.disabled = true;
 
             // Use the update endpoint to install the app (it handles downloads from URLs)
@@ -258,10 +303,14 @@ class AppStore {
             const result = await response.json();
 
             if (response.ok) {
-                showNotification(`${result.app_name || appId} installed successfully!`, 'success');
+                const successText = isUpdate ? 'updated' : 'installed';
+                showNotification(`${result.app_name || appId} ${successText} successfully!`, 'success');
                 
-                // Update the UI to reflect the installation
-                this.installedApps.add(appId);
+                // Update the local state to reflect the installation/update
+                this.installedApps.set(appId, {
+                    version: this.apps.get(appId).version,
+                    id: appId
+                });
                 
                 // Update button state
                 button.innerHTML = '<i class="fas fa-check"></i> Installed';
@@ -277,15 +326,17 @@ class AppStore {
                 await fetch('/api/user-apps/refresh', { method: 'POST' });
                 
             } else {
-                throw new Error(result.error || 'Installation failed');
+                throw new Error(result.error || `${isUpdate ? 'Update' : 'Installation'} failed`);
             }
 
         } catch (error) {
-            console.error('Installation error:', error);
-            showNotification(`Installation failed: ${error.message}`, 'error');
+            console.error(`${isUpdate ? 'Update' : 'Installation'} error:`, error);
+            showNotification(`${isUpdate ? 'Update' : 'Installation'} failed: ${error.message}`, 'error');
             
             // Restore button state
-            button.innerHTML = '<i class="fas fa-download"></i> Install';
+            const actionText = isUpdate ? 'Update' : 'Install';
+            const iconClass = isUpdate ? 'fa-arrow-up' : 'fa-download';
+            button.innerHTML = `<i class="fas ${iconClass}"></i> ${actionText}`;
             button.disabled = false;
         }
     }
