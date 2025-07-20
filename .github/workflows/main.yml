@@ -5,7 +5,7 @@ name: Create GitHub Release (Simplified)
 on:
   push:
     branches:
-      - master # Trigger on pushes to the 'main' branch (or 'master' if you use that)
+      - master # Trigger on pushes to the 'master' branch
   workflow_dispatch: # This line allows you to manually trigger the workflow from the GitHub UI
 
 jobs:
@@ -18,6 +18,15 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4 # Action to check out your code
+
+      - name: List files in examples directory (Diagnostic Step)
+        run: |
+          echo "Contents of the 'examples' directory:"
+          ls -la examples/
+          echo "--- End of 'examples' directory contents ---"
+        # This step will help you verify if 'flow_editor_packages.app' is truly there
+        # and what its exact filename is within the runner's environment.
+        # Check the logs for this step in your GitHub Actions run.
 
       - name: Create GitHub Release and Upload Specific Asset
         id: create_release
@@ -32,7 +41,7 @@ jobs:
             ## Automated Release #${{ github.run_number }}
 
             This release includes the `flow_editor_packages.app` file.
-            Triggered by a push to the `main` branch.
+            Triggered by a push to the `master` branch.
 
             ### File Included:
             - `/examples/flow_editor_packages.app`
