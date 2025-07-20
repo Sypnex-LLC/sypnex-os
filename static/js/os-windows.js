@@ -209,18 +209,23 @@ Object.assign(SypnexOS.prototype, {
                         const originalClearInterval = clearInterval;
                         const originalClearTimeout = clearTimeout;
                         
+                        // Event listener tracking for automatic cleanup
+                        const appEventListeners = new Set();
+                        const originalAddEventListener = EventTarget.prototype.addEventListener;
+                        const originalRemoveEventListener = EventTarget.prototype.removeEventListener;
+                        
                         // Override timer functions to track them
                         setInterval = function(callback, delay, ...args) {
                             const id = originalSetInterval(callback, delay, ...args);
                             appTimers.add({type: 'interval', id: id});
-                            console.log('App \${actualAppId} created setInterval:', id);
+                            console.log('App ${appId} created setInterval:', id);
                             return id;
                         };
                         
                         setTimeout = function(callback, delay, ...args) {
                             const id = originalSetTimeout(callback, delay, ...args);
                             appTimers.add({type: 'timeout', id: id});
-                            console.log('App \${actualAppId} created setTimeout:', id);
+                            console.log('App ${appId} created setTimeout:', id);
                             return id;
                         };
                         
@@ -229,7 +234,7 @@ Object.assign(SypnexOS.prototype, {
                             appTimers.forEach(timer => {
                                 if (timer.id === id && timer.type === 'interval') {
                                     appTimers.delete(timer);
-                                    console.log('App \${actualAppId} cleared setInterval:', id);
+                                    console.log('App ${appId} cleared setInterval:', id);
                                 }
                             });
                         };
@@ -239,9 +244,41 @@ Object.assign(SypnexOS.prototype, {
                             appTimers.forEach(timer => {
                                 if (timer.id === id && timer.type === 'timeout') {
                                     appTimers.delete(timer);
-                                    console.log('App \${actualAppId} cleared setTimeout:', id);
+                                    console.log('App ${appId} cleared setTimeout:', id);
                                 }
                             });
+                        };
+                        
+                        // Override addEventListener to track listeners
+                        EventTarget.prototype.addEventListener = function(type, listener, options) {
+                            // Only track if this is a global target (document, window, or outside app container)
+                            const isGlobalTarget = this === document || this === window || 
+                                                 !appContainer || !appContainer.contains(this);
+                            
+                            if (isGlobalTarget) {
+                                appEventListeners.add({
+                                    target: this,
+                                    type: type,
+                                    listener: listener,
+                                    options: options
+                                });
+                                console.log('App ${appId} added global event listener:', type, 'on', this.constructor.name);
+                            }
+                            
+                            return originalAddEventListener.call(this, type, listener, options);
+                        };
+                        
+                        // Override removeEventListener to clean up tracking
+                        EventTarget.prototype.removeEventListener = function(type, listener, options) {
+                            // Find and remove from tracking
+                            appEventListeners.forEach(item => {
+                                if (item.target === this && item.type === type && item.listener === listener) {
+                                    appEventListeners.delete(item);
+                                    console.log('App ${appId} removed global event listener:', type, 'from', this.constructor.name);
+                                }
+                            });
+                            
+                            return originalRemoveEventListener.call(this, type, listener, options);
                         };
                         
                         // Create app-specific helper functions (local to this scope)
@@ -345,9 +382,33 @@ Object.assign(SypnexOS.prototype, {
                                 });
                                 appTimers.clear();
                                 if (cleanedCount > 0) {
-                                    console.log('App \${actualAppId}: Cleaned up', cleanedCount, 'timers');
+                                    console.log('App ${appId}: Cleaned up', cleanedCount, 'timers');
                                 }
                                 return cleanedCount;
+                            },
+                            // Event listener cleanup function
+                            cleanupEventListeners: function() {
+                                let cleanedCount = 0;
+                                appEventListeners.forEach(item => {
+                                    try {
+                                        originalRemoveEventListener.call(item.target, item.type, item.listener, item.options);
+                                        cleanedCount++;
+                                        console.log('Cleaned up event listener:', item.type, 'from', item.target.constructor.name);
+                                    } catch (error) {
+                                        console.warn('Error cleaning up event listener:', error);
+                                    }
+                                });
+                                appEventListeners.clear();
+                                if (cleanedCount > 0) {
+                                    console.log('App ${appId}: Cleaned up', cleanedCount, 'event listeners');
+                                }
+                                return cleanedCount;
+                            },
+                            // Combined cleanup function
+                            cleanup: function() {
+                                const timersCleanedUp = this.cleanupTimers();
+                                const listenersCleanedUp = this.cleanupEventListeners();
+                                return { timers: timersCleanedUp, listeners: listenersCleanedUp };
                             }
                         };
                         
@@ -963,11 +1024,12 @@ Object.assign(SypnexOS.prototype, {
             // Save window state before closing
             this.saveWindowState(appId);
             
-            // Clean up timers automatically
-            if (window.sypnexApps && window.sypnexApps[appId] && window.sypnexApps[appId].cleanupTimers) {
-                const cleanedTimers = window.sypnexApps[appId].cleanupTimers();
-                if (cleanedTimers > 0) {
-                    console.log(`App ${appId}: Automatically cleaned up ${cleanedTimers} timers on close`);
+            // Clean up timers and event listeners automatically
+            if (window.sypnexApps && window.sypnexApps[appId] && window.sypnexApps[appId].cleanup) {
+                const cleanupResult = window.sypnexApps[appId].cleanup();
+                const totalCleaned = cleanupResult.timers + cleanupResult.listeners;
+                if (totalCleaned > 0) {
+                    console.log(`App ${appId}: Automatically cleaned up ${cleanupResult.timers} timers and ${cleanupResult.listeners} event listeners on close`);
                 }
             }
             
