@@ -19,6 +19,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4 # Action to check out your code
 
+      # Dynamically get all .app files from the /examples/ folder (no subfolders)
+      - name: Discover .app files in examples directory
+        id: discover_app_files
+        run: |
+          # Use 'find' to get all .app files directly in 'examples/'
+          # -maxdepth 1 ensures no subfolders are included
+          # -name "*.app" filters for .app files
+          # -printf "%f\n" prints only the filename (e.g., "flow_editor_packaged.app")
+          APP_FILES=$(find examples/ -maxdepth 1 -name "*.app" -printf "%f\n" | tr '\n' ' ')
+          echo "Discovered APP_FILES: $APP_FILES"
+          echo "APP_FILES=$APP_FILES" >> $GITHUB_OUTPUT
+
       - name: List root directory contents (Diagnostic)
         run: |
           echo "Contents of the repository root directory:"
@@ -31,26 +43,33 @@ jobs:
           find examples/ -maxdepth 1 -print -ls
           echo "--- End of 'examples' directory contents ---"
 
-      - name: Verify specific file existence (Diagnostic)
+      - name: Copy .app files and rename for release upload (Workaround for .app extension issue)
         run: |
-          # Corrected filename here: flow_editor_packaged.app
-          if [ -f "examples/flow_editor_packaged.app" ]; then
-            echo "✅ File 'examples/flow_editor_packaged.app' found!"
-            ls -la examples/flow_editor_packaged.app
-          else
-            echo "❌ File 'examples/flow_editor_packaged.app' NOT found at expected path."
-            echo "Please check path, filename (including case), and if it's committed."
-            exit 1 # Exit if file not found, to prevent release creation with missing asset
+          # Loop through the dynamically discovered APP_FILES and copy/rename each one
+          # Check if APP_FILES is empty to avoid errors
+          if [ -z "${{ steps.discover_app_files.outputs.APP_FILES }}" ]; then
+            echo "No .app files found in 'examples/' to package. Exiting."
+            exit 1
           fi
 
-      - name: Copy .app file and rename for release upload (Workaround for .app extension issue)
-        run: |
-          # Copying flow_editor_packaged.app and renaming to flow_editor_packaged.bin for upload
-          cp examples/flow_editor_packaged.app flow_editor_packaged.bin
-          echo "Copied flow_editor_packaged.app to flow_editor_packaged.bin for upload."
-          ls -la flow_editor_packaged.bin # Verify copy and new name
+          for app_file in ${{ steps.discover_app_files.outputs.APP_FILES }}; do
+            source_path="examples/$app_file"
+            dest_name="${app_file%.app}.bin" # Rename .app to .bin
+            dest_path="$dest_name"
 
-      - name: Create GitHub Release and Upload Specific Asset
+            if [ -f "$source_path" ]; then
+              cp "$source_path" "$dest_path"
+              echo "Copied $source_path to $dest_path for upload."
+              ls -la "$dest_path" # Verify copy and new name
+            else
+              # This case should ideally not happen if 'find' worked correctly,
+              # but it's a good safeguard.
+              echo "❌ Error: File '$source_path' was listed but not found during copy. Skipping."
+              exit 1 # Exit if a specified file is not found
+            fi
+          done
+
+      - name: Create GitHub Release and Upload Specific Assets
         id: create_release
         uses: softprops/action-gh-release@v2 # Action to create a GitHub Release
         with:
@@ -59,18 +78,20 @@ jobs:
           body: |
             ## Automated Release #${{ github.run_number }}
 
-            This release includes the `flow_editor_packaged.app` file.
+            This release includes the following packaged application files:
             Triggered by a push to the `master` branch.
 
-            ### File Included:
-            - `/examples/flow_editor_packaged.app` (Original Path)
-
-            **Important:** The attached file is named `flow_editor_packaged.bin` due to GitHub's asset naming policies.
-            Please rename it to `flow_editor_packaged.app` after downloading for proper use.
+            ### Files Included:
+            $(for app_file in ${{ steps.discover_app_files.outputs.APP_FILES }}; do
+                echo "- $app_file (Original Path: /examples/$app_file)"
+                echo "  **Important:** The attached file is named ${app_file%.app}.bin. Please rename it to $app_file after downloading for proper use."
+            done)
           draft: false
           prerelease: false
-          # Now pointing to the renamed .bin file in the root directory for upload
+          # Now pointing to all the renamed .bin files in the root directory for upload
           files: |
-            flow_editor_packaged.bin
+            $(for app_file in ${{ steps.discover_app_files.outputs.APP_FILES }}; do
+                echo "${app_file%.app}.bin"
+            done)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
