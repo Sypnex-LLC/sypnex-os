@@ -12,7 +12,6 @@ jobs:
   release-specific-file:
     runs-on: ubuntu-latest # Use a Linux runner
     permissions:
-      # Grant write permission to the GITHUB_TOKEN for contents (required for releases)
       contents: write
 
     steps:
@@ -69,6 +68,62 @@ jobs:
             fi
           done
 
+      # --- NEW STEP: Extract versions from .app files (JSON) and generate versions.json ---
+      - name: Extract App Versions (from .app JSON) and Generate Manifest
+        id: generate_versions_manifest
+        run: |
+          # Install jq if not available. ubuntu-latest usually has it, but it's good to ensure.
+          sudo apt-get update && sudo apt-get install -y jq
+
+          JSON_CONTENT="{\n"
+          first_entry=true
+
+          for app_file_original in ${{ steps.discover_app_files.outputs.APP_FILES }}; do
+            # The .app file is the JSON file itself, e.g., "examples/flow_editor.app"
+            APP_METADATA_PATH="examples/$app_file_original"
+
+            if [ ! -f "$APP_METADATA_PATH" ]; then
+              echo "❌ Error: App metadata file not found for $app_file_original at $APP_METADATA_PATH. Skipping."
+              continue # Skip this file if .app metadata isn't found
+            fi
+
+            # Extract the 'id' and 'version' using jq
+            # -r flag ensures raw string output without quotes
+            APP_ID=$(jq -r '.id' "$APP_METADATA_PATH")
+            APP_VERSION=$(jq -r '.version' "$APP_METADATA_PATH")
+
+            if [ -z "$APP_ID" ]; then
+              echo "⚠️ Warning: Could not extract 'id' from $app_file_original. Skipping this app."
+              continue
+            fi
+            if [ -z "$APP_VERSION" ]; then
+              echo "⚠️ Warning: Could not extract 'version' from $app_file_original. Using 'unknown' for this app."
+              APP_VERSION="unknown"
+            fi
+            
+            echo "Extracted ID: $APP_ID, Version: $APP_VERSION for $app_file_original"
+
+            if [ "$first_entry" = true ]; then
+              first_entry=false
+            else
+              JSON_CONTENT+=",\n"
+            fi
+            # Use the extracted app_id as the key in the manifest, as it's cleaner for your app to reference
+            JSON_CONTENT+="  \"${APP_ID}\": \"${APP_VERSION}\""
+          done
+          JSON_CONTENT+="\n}"
+
+          echo "Generated versions.json content:"
+          echo -e "$JSON_CONTENT" | tee versions.json # Output to console and file
+
+          # Output the path to the generated manifest file, for the next step to pick up
+          echo "UPLOAD_VERSIONS_MANIFEST=versions.json" >> $GITHUB_OUTPUT
+          # Also output the content itself for inclusion in the release body
+          echo "VERSION_MANIFEST_CONTENT<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$JSON_CONTENT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+
       # New step to generate the dynamic part of the release body AND the list of files for upload
       - name: Generate Release Body Content and Upload File List
         id: generate_content_lists
@@ -76,10 +131,14 @@ jobs:
           FILES_LIST=""
           UPLOAD_FILES=""
           for app_file in ${{ steps.discover_app_files.outputs.APP_FILES }}; do
-              FILES_LIST+="- $app_file (Original Path: /examples/$app_file)\n"
-              FILES_LIST+="  **Important:** The attached file is named ${app_file%.app}.bin. Please rename it to $app_file after downloading for proper use.\n"
-              UPLOAD_FILES+="${app_file%.app}.bin\n" # Add to the list for upload
+            FILES_LIST+="- $app_file (Original Path: /examples/$app_file)\n"
+            FILES_LIST+="  **Important:** The attached file is named ${app_file%.app}.bin. Please rename it to $app_file after downloading for proper use.\n"
+            UPLOAD_FILES+="${app_file%.app}.bin\n" # Add to the list for upload
           done
+          
+          # Add the versions.json to the UPLOAD_FILES list, using the output from the previous step
+          UPLOAD_FILES+="${{ steps.generate_versions_manifest.outputs.UPLOAD_VERSIONS_MANIFEST }}\n"
+
           # Escape newlines for multi-line output for the body
           echo "FILES_LIST<<EOF" >> $GITHUB_OUTPUT
           echo -e "$FILES_LIST" >> $GITHUB_OUTPUT
@@ -105,9 +164,14 @@ jobs:
 
             ### Files Included:
             ${{ steps.generate_content_lists.outputs.FILES_LIST }} # Reference the output from the new step
+
+            ### Component Versions:
+            ```json
+            ${{ steps.generate_versions_manifest.outputs.VERSION_MANIFEST_CONTENT }} # Include the JSON content directly
+            ```
           draft: false
           prerelease: false
-          # Now pointing to all the renamed .bin files in the root directory for upload
+          # Now pointing to all the renamed .bin files and the versions.json in the root directory for upload
           files: |
             ${{ steps.generate_content_lists.outputs.UPLOAD_FILES }} # Use the new output for files
         env:
