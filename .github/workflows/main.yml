@@ -33,7 +33,7 @@ jobs:
 
       - name: Verify specific file existence (Diagnostic)
         run: |
-          # Corrected filename here
+          # Corrected filename here: flow_editor_packaged.app
           if [ -f "examples/flow_editor_packaged.app" ]; then
             echo "✅ File 'examples/flow_editor_packaged.app' found!"
             ls -la examples/flow_editor_packaged.app
@@ -43,12 +43,12 @@ jobs:
             exit 1 # Exit if file not found, to prevent release creation with missing asset
           fi
 
-      # Removed the copy and rename step, as we're trying to upload .app directly again.
-      # - name: Copy .app file and rename for release upload (Workaround for .app extension issue)
-      #   run: |
-      #     cp examples/flow_editor_packaged.app flow_editor_packaged.bin
-      #     echo "Copied flow_editor_packaged.app to flow_editor_packaged.bin for upload."
-      #     ls -la flow_editor_packaged.bin # Verify copy and new name
+      - name: Copy .app file and rename for release upload (Workaround for .app extension issue)
+        run: |
+          # Copying flow_editor_packaged.app and renaming to flow_editor_packaged.bin for upload
+          cp examples/flow_editor_packaged.app flow_editor_packaged.bin
+          echo "Copied flow_editor_packaged.app to flow_editor_packaged.bin for upload."
+          ls -la flow_editor_packaged.bin # Verify copy and new name
 
       - name: Create GitHub Release and Upload Specific Asset
         id: create_release
@@ -63,11 +63,14 @@ jobs:
             Triggered by a push to the `master` branch.
 
             ### File Included:
-            - `/examples/flow_editor_packaged.app`
+            - `/examples/flow_editor_packaged.app` (Original Path)
+
+            **Important:** The attached file is named `flow_editor_packaged.bin` due to GitHub's asset naming policies.
+            Please rename it to `flow_editor_packaged.app` after downloading for proper use.
           draft: false
           prerelease: false
-          # Now pointing directly to the .app file in its original location
+          # Now pointing to the renamed .bin file in the root directory for upload
           files: |
-            examples/flow_editor_packaged.app
+            flow_editor_packaged.bin
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
