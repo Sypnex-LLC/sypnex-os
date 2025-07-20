@@ -11,6 +11,9 @@ on:
 jobs:
   release-specific-file:
     runs-on: ubuntu-latest # Use a Linux runner
+    permissions:
+      # Grant write permission to the GITHUB_TOKEN for contents (required for releases)
+      contents: write
 
     steps:
       - name: Checkout repository
@@ -32,11 +35,11 @@ jobs:
             Triggered by a push to the `main` branch.
 
             ### File Included:
-            - `/examples/flow_editor_packages.app`
+            - `/example/flow_editor_packages.app`
           draft: false
           prerelease: false
           # Specify the exact path to your .app file relative to the repository root
           files: |
-            releases/flow_editor_packages.app
+            examples/flow_editor_packages.app
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is automatically provided by GitHub Actions
