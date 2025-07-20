@@ -69,19 +69,27 @@ jobs:
             fi
           done
 
-      # New step to generate the dynamic part of the release body
-      - name: Generate Release Body Content
-        id: generate_release_body
+      # New step to generate the dynamic part of the release body AND the list of files for upload
+      - name: Generate Release Body Content and Upload File List
+        id: generate_content_lists
         run: |
           FILES_LIST=""
+          UPLOAD_FILES=""
           for app_file in ${{ steps.discover_app_files.outputs.APP_FILES }}; do
               FILES_LIST+="- $app_file (Original Path: /examples/$app_file)\n"
               FILES_LIST+="  **Important:** The attached file is named ${app_file%.app}.bin. Please rename it to $app_file after downloading for proper use.\n"
+              UPLOAD_FILES+="${app_file%.app}.bin\n" # Add to the list for upload
           done
-          # Escape newlines for multi-line output
+          # Escape newlines for multi-line output for the body
           echo "FILES_LIST<<EOF" >> $GITHUB_OUTPUT
           echo -e "$FILES_LIST" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
+
+          # Output the list of files to upload, newline-separated
+          echo "UPLOAD_FILES<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$UPLOAD_FILES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
 
       - name: Create GitHub Release and Upload Specific Assets
         id: create_release
@@ -96,13 +104,11 @@ jobs:
             Triggered by a push to the `master` branch.
 
             ### Files Included:
-            ${{ steps.generate_release_body.outputs.FILES_LIST }} # Reference the output from the new step
+            ${{ steps.generate_content_lists.outputs.FILES_LIST }} # Reference the output from the new step
           draft: false
           prerelease: false
           # Now pointing to all the renamed .bin files in the root directory for upload
           files: |
-            $(for app_file in ${{ steps.discover_app_files.outputs.APP_FILES }}; do
-                echo "${app_file%.app}.bin"
-            done)
+            ${{ steps.generate_content_lists.outputs.UPLOAD_FILES }} # Use the new output for files
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
