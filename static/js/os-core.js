@@ -134,6 +134,9 @@ class SypnexOS {
                         firstResult.click();
                     }
                 }
+                if (e.key === 'Escape') {
+                    this.hideSpotlight();
+                }
             });
         }
 

@@ -141,4 +141,37 @@
 .spotlight-loading {
     color: var(--accent-color);
     animation: pulse 1.5s infinite;
+}
+
+/* Calculator Result Styles */
+.calculator-result {
+    background: linear-gradient(135deg, rgba(52, 152, 219, 0.1), rgba(155, 89, 182, 0.1));
+    border-left: 4px solid var(--accent-color);
+}
+
+.calculator-result:hover {
+    background: linear-gradient(135deg, rgba(52, 152, 219, 0.15), rgba(155, 89, 182, 0.15));
+    transform: translateY(-1px);
+}
+
+.calculator-icon {
+    color: var(--accent-color);
+    font-size: 18px;
+    margin-right: 18px;
+    width: 24px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.calculator-result .result-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--accent-color);
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+}
+
+.calculator-result .result-description {
+    color: var(--text-secondary);
+    font-size: 12px;
+    opacity: 0.8;
 } 
