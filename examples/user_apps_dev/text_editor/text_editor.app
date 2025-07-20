@@ -5,10 +5,18 @@
     "icon": "fas fa-edit",
     "keywords": ["text", "editor", "file", "edit", "write"],
     "author": "Sypnex OS",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "type": "user_app",
     "scripts": [
-        "main.js"
+        "js/utils.js",
+        "js/settings-manager.js",
+        "js/file-manager.js",
+        "js/editor-manager.js",
+        "js/syntax-highlighting.js",
+        "js/code-validation.js", 
+        "js/terminal-manager.js",
+        "js/ui-manager.js",
+        "js/main.js"
     ],
     "settings": [
         {
