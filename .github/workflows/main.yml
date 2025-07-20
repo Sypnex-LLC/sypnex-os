@@ -34,11 +34,11 @@ jobs:
 
       - name: Verify specific file existence (Enhanced Diagnostic)
         run: |
-          if [ -f "examples/flow_editor_packages.app" ]; then
-            echo "✅ File 'examples/flow_editor_packages.app' found!"
-            ls -la examples/flow_editor_packages.app
+          if [ -f "examples/flow_editor_packaged.app" ]; then
+            echo "✅ File 'examples/flow_editor_packaged.app' found!"
+            ls -la examples/flow_editor_packaged.app
           else
-            echo "❌ File 'examples/flow_editor_packages.app' NOT found at expected path."
+            echo "❌ File 'examples/flow_editor_packaged.app' NOT found at expected path."
             echo "Please check path, filename (including case), and if it's committed."
           fi
 
@@ -54,15 +54,15 @@ jobs:
           body: |
             ## Automated Release #${{ github.run_number }}
 
-            This release includes the `flow_editor_packages.app` file.
+            This release includes the `flow_editor_packaged.app` file.
             Triggered by a push to the `master` branch.
 
             ### File Included:
-            - `/examples/flow_editor_packages.app`
+            - `/examples/flow_editor_packaged.app`
           draft: false
           prerelease: false
           # Specify the exact path to your .app file relative to the repository root
           files: |
-            examples/flow_editor_packages.app
+            examples/flow_editor_packaged.app
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is automatically provided by GitHub Actions
