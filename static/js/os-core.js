@@ -12,6 +12,7 @@ class SypnexOS {
         this.sypnexAPIContent = null; // Cache for SypnexAPI content
         this.websocketStatus = 'unknown'; // WebSocket server status
         this.lastWebSocketCheck = 0; // Last WebSocket status check time
+        this.latestVersions = null; // Cached latest app versions
         this.init();
         this.initModalEvents();
     }
@@ -23,6 +24,9 @@ class SypnexOS {
         
         // Setup page unload cleanup
         this.setupPageUnloadCleanup();
+        
+        // Cache latest app versions on startup
+        this.cacheLatestVersions();
         
         // Update time and network status every second
         setInterval(() => {
@@ -347,4 +351,97 @@ class SypnexOS {
             }
         });
     }
-} 
+
+    async cacheLatestVersions() {
+        /**
+         * Fetch latest app versions and cache them for the session
+         * This runs once on OS startup to avoid repeated API calls
+         */
+        try {
+            console.log('Caching latest app versions...');
+            
+            const response = await fetch('/api/updates/latest');
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success && data.versions) {
+                    // Store in memory for quick access
+                    this.latestVersions = data.versions;
+                    
+                    // Also store in VFS so apps can access it
+                    await this.storeVersionsInVFS(data.versions);
+                    
+                    console.log('✅ Latest versions cached:', data.versions);
+                    
+                    // Update any currently open windows
+                    if (this.updateUpdateButtonsForAllWindows) {
+                        this.updateUpdateButtonsForAllWindows();
+                    }
+                } else {
+                    console.warn('Failed to get latest versions:', data.error);
+                }
+            } else {
+                console.warn('Failed to fetch latest versions:', response.status);
+            }
+        } catch (error) {
+            console.error('Error caching latest versions:', error);
+        }
+    }
+
+    async storeVersionsInVFS(versions) {
+        /**
+         * Store version data in VFS so sandboxed apps can access it
+         */
+        try {
+            // Ensure system directory exists
+            await fetch('/api/virtual-files/create-folder', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    name: 'system',
+                    parent_path: '/'
+                })
+            });
+
+            // Ensure cache directory exists
+            await fetch('/api/virtual-files/create-folder', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    name: 'cache',
+                    parent_path: '/system'
+                })
+            });
+
+            // Store versions data
+            const versionsData = {
+                versions: versions,
+                cached_at: new Date().toISOString(),
+                ttl: 24 * 60 * 60 * 1000 // 24 hours TTL
+            };
+
+            await fetch('/api/virtual-files/create-file', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: 'latest_versions.json',
+                    parent_path: '/system/cache',
+                    content: JSON.stringify(versionsData, null, 2)
+                })
+            });
+
+            console.log('✅ Versions cached in VFS');
+        } catch (error) {
+            console.error('Error storing versions in VFS:', error);
+        }
+    }
+
+    getLatestVersion(appId) {
+        /**
+         * Get the latest cached version for an app
+         */
+        if (this.latestVersions && this.latestVersions[appId]) {
+            return this.latestVersions[appId];
+        }
+        return null;
+    }
+}

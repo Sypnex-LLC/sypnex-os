@@ -153,6 +153,7 @@ Object.assign(SypnexOS.prototype, {
         if (!appId.startsWith('settings-')) {
             this.checkAppSettings(appId, windowElement);
             this.checkAppReload(appId, windowElement);
+            this.checkAppUpdate(appId, windowElement);
         }
 
         // Extract script content from user apps before setting innerHTML
@@ -470,6 +471,7 @@ Object.assign(SypnexOS.prototype, {
         const maximizeBtn = windowElement.querySelector('.app-maximize');
         const settingsBtn = windowElement.querySelector('.app-settings');
         const reloadBtn = windowElement.querySelector('.app-reload');
+        const updateBtn = windowElement.querySelector('.app-update');
 
         closeBtn.addEventListener('click', () => {
             this.closeApp(appId);
@@ -495,6 +497,12 @@ Object.assign(SypnexOS.prototype, {
 
         reloadBtn.addEventListener('click', () => {
             this.reloadApp(appId);
+        });
+
+        updateBtn.addEventListener('click', () => {
+            // TODO: Implement app update functionality
+            console.log(`Update clicked for app: ${appId}`);
+            this.showNotification(`Update functionality coming soon for ${appId}`, 'info');
         });
     },
 
@@ -546,6 +554,49 @@ Object.assign(SypnexOS.prototype, {
             console.error('Error checking app reload capability:', error);
         }
     },
+
+    async checkAppUpdate(appId, windowElement) {
+        // Skip for settings windows and non-user apps
+        if (appId.startsWith('settings-')) {
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/api/app-metadata/${appId}`);
+            if (response.ok) {
+                const appData = await response.json();
+                const updateBtn = windowElement.querySelector('.app-update');
+                
+                // Only check updates for user apps
+                if (appData.type === 'user_app') {
+                    // Get current app version from metadata
+                    const currentVersion = appData.version || appData.metadata?.version;
+                    
+                    if (currentVersion) {
+                        // Get latest version from cached data
+                        const latestVersion = this.getLatestVersion(appId);
+                        
+                        if (latestVersion && currentVersion !== latestVersion) {
+                            // Update available - show the red download icon
+                            updateBtn.style.display = 'flex';
+                            updateBtn.title = `Update available: v${latestVersion} (current: v${currentVersion})`;
+                            console.log(`🔄 Update available for ${appId}: ${currentVersion} → ${latestVersion}`);
+                        } else {
+                            updateBtn.style.display = 'none';
+                        }
+                    } else {
+                        // No version info, hide update button
+                        updateBtn.style.display = 'none';
+                    }
+                } else {
+                    // Not a user app, hide update button
+                    updateBtn.style.display = 'none';
+                }
+            }
+        } catch (error) {
+            console.error('Error checking app update:', error);
+        }
+    },
     
     async isDeveloperModeEnabled() {
         try {
@@ -570,6 +621,15 @@ Object.assign(SypnexOS.prototype, {
                     const shouldShow = isDeveloperMode && windowElement.dataset.appType === 'user_app';
                     reloadBtn.style.display = shouldShow ? 'flex' : 'none';
                 }
+            }
+        }
+    },
+
+    async updateUpdateButtonsForAllWindows() {
+        // Update update button visibility for all open windows
+        for (const [appId, windowElement] of this.apps) {
+            if (!appId.startsWith('settings-')) {
+                await this.checkAppUpdate(appId, windowElement);
             }
         }
     },

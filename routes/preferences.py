@@ -124,6 +124,7 @@ def register_preference_routes(app, managers):
                     'icon': user_app['icon'],
                     'description': user_app['description'],
                     'type': 'user_app',
+                    'version': user_app.get('version', '1.0.0'),  # Include version from .app file
                     'settings': user_app.get('settings', [])  # Include settings from .app file
                 })
             
