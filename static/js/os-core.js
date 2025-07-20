@@ -367,11 +367,6 @@ class SypnexOS {
                     // Store in memory for quick access
                     this.latestVersions = data.versions;
                     
-                    // Also store in VFS so apps can access it
-                    await this.storeVersionsInVFS(data.versions);
-                    
-                    console.log('✅ Latest versions cached:', data.versions);
-                    
                     // Update any currently open windows
                     if (this.updateUpdateButtonsForAllWindows) {
                         this.updateUpdateButtonsForAllWindows();
@@ -384,54 +379,6 @@ class SypnexOS {
             }
         } catch (error) {
             console.error('Error caching latest versions:', error);
-        }
-    }
-
-    async storeVersionsInVFS(versions) {
-        /**
-         * Store version data in VFS so sandboxed apps can access it
-         */
-        try {
-            // Ensure system directory exists
-            await fetch('/api/virtual-files/create-folder', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    name: 'system',
-                    parent_path: '/'
-                })
-            });
-
-            // Ensure cache directory exists
-            await fetch('/api/virtual-files/create-folder', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    name: 'cache',
-                    parent_path: '/system'
-                })
-            });
-
-            // Store versions data
-            const versionsData = {
-                versions: versions,
-                cached_at: new Date().toISOString(),
-                ttl: 24 * 60 * 60 * 1000 // 24 hours TTL
-            };
-
-            await fetch('/api/virtual-files/create-file', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    name: 'latest_versions.json',
-                    parent_path: '/system/cache',
-                    content: JSON.stringify(versionsData, null, 2)
-                })
-            });
-
-            console.log('✅ Versions cached in VFS');
-        } catch (error) {
-            console.error('Error storing versions in VFS:', error);
         }
     }
 
