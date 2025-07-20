@@ -43,12 +43,12 @@ jobs:
             exit 1 # Exit if file not found, to prevent release creation with missing asset
           fi
 
-      - name: Copy .app file and rename for release upload (Workaround for .app extension issue)
-        run: |
-          # Corrected source filename, and renaming to .bin for upload
-          cp examples/flow_editor_packaged.app flow_editor_packaged.bin
-          echo "Copied flow_editor_packaged.app to flow_editor_packaged.bin for upload."
-          ls -la flow_editor_packaged.bin # Verify copy and new name
+      # Removed the copy and rename step, as we're trying to upload .app directly again.
+      # - name: Copy .app file and rename for release upload (Workaround for .app extension issue)
+      #   run: |
+      #     cp examples/flow_editor_packaged.app flow_editor_packaged.bin
+      #     echo "Copied flow_editor_packaged.app to flow_editor_packaged.bin for upload."
+      #     ls -la flow_editor_packaged.bin # Verify copy and new name
 
       - name: Create GitHub Release and Upload Specific Asset
         id: create_release
@@ -63,14 +63,11 @@ jobs:
             Triggered by a push to the `master` branch.
 
             ### File Included:
-            - `/examples/flow_editor_packaged.app` (Original Path)
-
-            **Important:** The attached file is named `flow_editor_packaged.bin`.
-            Please rename it to `flow_editor_packaged.app` after downloading.
+            - `/examples/flow_editor_packaged.app`
           draft: false
           prerelease: false
-          # Now point to the renamed .bin file in the root directory
+          # Now pointing directly to the .app file in its original location
           files: |
-            flow_editor_packaged.bin
+            examples/flow_editor_packaged.app
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
