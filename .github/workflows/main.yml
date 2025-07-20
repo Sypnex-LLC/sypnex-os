@@ -69,6 +69,20 @@ jobs:
             fi
           done
 
+      # New step to generate the dynamic part of the release body
+      - name: Generate Release Body Content
+        id: generate_release_body
+        run: |
+          FILES_LIST=""
+          for app_file in ${{ steps.discover_app_files.outputs.APP_FILES }}; do
+              FILES_LIST+="- $app_file (Original Path: /examples/$app_file)\n"
+              FILES_LIST+="  **Important:** The attached file is named ${app_file%.app}.bin. Please rename it to $app_file after downloading for proper use.\n"
+          done
+          # Escape newlines for multi-line output
+          echo "FILES_LIST<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$FILES_LIST" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
       - name: Create GitHub Release and Upload Specific Assets
         id: create_release
         uses: softprops/action-gh-release@v2 # Action to create a GitHub Release
@@ -82,10 +96,7 @@ jobs:
             Triggered by a push to the `master` branch.
 
             ### Files Included:
-            $(for app_file in ${{ steps.discover_app_files.outputs.APP_FILES }}; do
-                echo "- $app_file (Original Path: /examples/$app_file)"
-                echo "  **Important:** The attached file is named ${app_file%.app}.bin. Please rename it to $app_file after downloading for proper use."
-            done)
+            ${{ steps.generate_release_body.outputs.FILES_LIST }} # Reference the output from the new step
           draft: false
           prerelease: false
           # Now pointing to all the renamed .bin files in the root directory for upload
