@@ -1,0 +1,52 @@
+<div class="app-container">
+    <div class="app-header">
+        <h2><i class="fas fa-store"></i> App Store</h2>
+        <p>Browse and install available user applications</p>
+    </div>
+
+    <div class="app-content">
+        <!-- Toolbar -->
+        <div class="store-toolbar">
+            <button id="refresh-apps" class="btn btn-primary">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+            <div class="search-container">
+                <input type="text" id="search-input" placeholder="Search apps..." class="form-control">
+                <i class="fas fa-search search-icon"></i>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading-state" class="loading-state">
+            <div class="loading-spinner">
+                <i class="fas fa-spinner fa-spin"></i>
+            </div>
+            <p>Loading available apps...</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="error-state" class="error-state" style="display: none;">
+            <div class="error-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <p id="error-message">Failed to load apps</p>
+            <button id="retry-button" class="btn btn-secondary">
+                <i class="fas fa-redo"></i> Retry
+            </button>
+        </div>
+
+        <!-- Apps Grid -->
+        <div id="apps-grid" class="apps-grid" style="display: none;">
+            <!-- Apps will be populated dynamically -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="empty-state" style="display: none;">
+            <div class="empty-icon">
+                <i class="fas fa-inbox"></i>
+            </div>
+            <p>No apps found</p>
+            <p class="text-muted">Try refreshing or check your connection</p>
+        </div>
+    </div>
+</div>
