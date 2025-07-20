@@ -35,7 +35,7 @@ jobs:
             Triggered by a push to the `main` branch.
 
             ### File Included:
-            - `/example/flow_editor_packages.app`
+            - `/examples/flow_editor_packages.app`
           draft: false
           prerelease: false
           # Specify the exact path to your .app file relative to the repository root
