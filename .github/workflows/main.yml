@@ -66,6 +66,7 @@ jobs:
               # but it's a good safeguard.
               echo "❌ Error: File '$source_path' was listed but not found during copy. Skipping."
               exit 1 # Exit if a specified file is not found
+            CATION: Invalid workflow file: .github/workflows/main.yml#L191
             fi
           done
 
@@ -188,4 +189,4 @@ jobs:
           files: |
             ${{ steps.generate_content_lists.outputs.UPLOAD_FILES }} # Use the new output for files
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This was the line missing a closing '}'
