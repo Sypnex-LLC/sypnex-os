@@ -19,38 +19,43 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4 # Action to check out your code
 
-      - name: List root directory contents (Enhanced Diagnostic)
+      - name: List root directory contents (Diagnostic)
         run: |
           echo "Contents of the repository root directory:"
           ls -la .
           echo "--- End of root directory contents ---"
 
-      - name: List files in examples directory (Enhanced Diagnostic)
+      - name: List files in examples directory (Diagnostic)
         run: |
           echo "Contents of the 'examples' directory:"
-          # Use 'find' to show files and their full paths, including case sensitivity
           find examples/ -maxdepth 1 -print -ls
           echo "--- End of 'examples' directory contents ---"
 
-      - name: Verify specific file existence (Enhanced Diagnostic)
+      - name: Verify specific file existence (Diagnostic)
         run: |
+          # Corrected filename here
           if [ -f "examples/flow_editor_packaged.app" ]; then
             echo "✅ File 'examples/flow_editor_packaged.app' found!"
             ls -la examples/flow_editor_packaged.app
           else
             echo "❌ File 'examples/flow_editor_packaged.app' NOT found at expected path."
             echo "Please check path, filename (including case), and if it's committed."
+            exit 1 # Exit if file not found, to prevent release creation with missing asset
           fi
+
+      - name: Copy .app file and rename for release upload (Workaround for .app extension issue)
+        run: |
+          # Corrected source filename, and renaming to .bin for upload
+          cp examples/flow_editor_packaged.app flow_editor_packaged.bin
+          echo "Copied flow_editor_packaged.app to flow_editor_packaged.bin for upload."
+          ls -la flow_editor_packaged.bin # Verify copy and new name
 
       - name: Create GitHub Release and Upload Specific Asset
         id: create_release
         uses: softprops/action-gh-release@v2 # Action to create a GitHub Release
         with:
-          # Use the GITHUB_RUN_NUMBER for a unique release name.
-          # This will be like "Release 1", "Release 2", etc.
           name: Release ${{ github.run_number }}
-          tag_name: release-${{ github.run_number }} # A unique tag is still required by GitHub,
-                                                      # so we'll auto-generate one based on run number.
+          tag_name: release-${{ github.run_number }}
           body: |
             ## Automated Release #${{ github.run_number }}
 
@@ -58,11 +63,14 @@ jobs:
             Triggered by a push to the `master` branch.
 
             ### File Included:
-            - `/examples/flow_editor_packaged.app`
+            - `/examples/flow_editor_packaged.app` (Original Path)
+
+            **Important:** The attached file is named `flow_editor_packaged.bin`.
+            Please rename it to `flow_editor_packaged.app` after downloading.
           draft: false
           prerelease: false
-          # Specify the exact path to your .app file relative to the repository root
+          # Now point to the renamed .bin file in the root directory
           files: |
-            examples/flow_editor_packaged.app
+            flow_editor_packaged.bin
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is automatically provided by GitHub Actions
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
