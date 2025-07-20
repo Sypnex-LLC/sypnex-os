@@ -36,7 +36,7 @@ Object.assign(SypnexOS.prototype, {
         // Update network icon based on latency
         if (this.networkLatency === -1) {
             // Network error
-            networkIcon.className = 'fas fa-wifi-slash status-icon network-error';
+            networkIcon.className = 'fas fa-wifi status-icon network-error';
             networkIcon.title = 'Network Error';
         } else if (this.networkLatency < 50) {
             // Excellent connection
@@ -58,7 +58,7 @@ Object.assign(SypnexOS.prototype, {
 
         // Check if we haven't received a heartbeat in 5 seconds
         if (Date.now() - this.lastHeartbeat > 10000) {
-            networkIcon.className = 'fas fa-wifi-slash status-icon network-error';
+            networkIcon.className = 'fas fa-wifi status-icon network-error';
             networkIcon.title = 'Network Timeout';
         }
     },
