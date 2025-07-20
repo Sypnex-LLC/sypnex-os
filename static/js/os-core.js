@@ -33,7 +33,7 @@ class SypnexOS {
             this.updateTime();
             this.updateNetworkStatus();
             this.updateWebSocketStatus();
-        }, 1000);
+        }, 5000);
     }
 
     setupEventListeners() {

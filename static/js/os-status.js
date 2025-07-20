@@ -57,7 +57,7 @@ Object.assign(SypnexOS.prototype, {
         }
 
         // Check if we haven't received a heartbeat in 5 seconds
-        if (Date.now() - this.lastHeartbeat > 5000) {
+        if (Date.now() - this.lastHeartbeat > 10000) {
             networkIcon.className = 'fas fa-wifi-slash status-icon network-error';
             networkIcon.title = 'Network Timeout';
         }
