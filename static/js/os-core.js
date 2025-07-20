@@ -363,9 +363,9 @@ class SypnexOS {
             const response = await fetch('/api/updates/latest');
             if (response.ok) {
                 const data = await response.json();
-                if (data.success && data.versions) {
-                    // Store in memory for quick access
-                    this.latestVersions = data.versions;
+                if (data.success && data.apps) {
+                    // Store comprehensive app data in memory for quick access
+                    this.latestVersions = data.apps;
                     
                     // Update any currently open windows
                     if (this.updateUpdateButtonsForAllWindows) {
@@ -385,6 +385,16 @@ class SypnexOS {
     getLatestVersion(appId) {
         /**
          * Get the latest cached version for an app
+         */
+        if (this.latestVersions && this.latestVersions[appId]) {
+            return this.latestVersions[appId].version;
+        }
+        return null;
+    }
+
+    getLatestAppData(appId) {
+        /**
+         * Get the complete cached app data (version, download_url, filename)
          */
         if (this.latestVersions && this.latestVersions[appId]) {
             return this.latestVersions[appId];
