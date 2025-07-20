@@ -29,9 +29,3 @@ function isPythonFile(filePath) {
 function getSimpleTextContent() {
     return textEditor.textarea.value;
 }
-
-
-// Simple helper functions (keeping these for potential future use)
-function getSimpleTextContent() {
-    return textEditor.textarea.value;
-}
