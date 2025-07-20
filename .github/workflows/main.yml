@@ -181,7 +181,7 @@ jobs:
 
             ### Component Versions:
             ```json
-            ${{ steps.generate_versions_manifest.outputs.VERSION_MANIFEST_CONTENT }} # Include the JSON content directly
+            ${{ steps.generate_versions_manifest.outputs.VERSION_MANIFEST_CONTENT }}
             ```
           draft: false
           prerelease: false
