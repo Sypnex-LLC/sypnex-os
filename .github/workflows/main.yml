@@ -19,14 +19,28 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4 # Action to check out your code
 
-      - name: List files in examples directory (Diagnostic Step)
+      - name: List root directory contents (Enhanced Diagnostic)
+        run: |
+          echo "Contents of the repository root directory:"
+          ls -la .
+          echo "--- End of root directory contents ---"
+
+      - name: List files in examples directory (Enhanced Diagnostic)
         run: |
           echo "Contents of the 'examples' directory:"
-          ls -la examples/
+          # Use 'find' to show files and their full paths, including case sensitivity
+          find examples/ -maxdepth 1 -print -ls
           echo "--- End of 'examples' directory contents ---"
-        # This step will help you verify if 'flow_editor_packages.app' is truly there
-        # and what its exact filename is within the runner's environment.
-        # Check the logs for this step in your GitHub Actions run.
+
+      - name: Verify specific file existence (Enhanced Diagnostic)
+        run: |
+          if [ -f "examples/flow_editor_packages.app" ]; then
+            echo "✅ File 'examples/flow_editor_packages.app' found!"
+            ls -la examples/flow_editor_packages.app
+          else
+            echo "❌ File 'examples/flow_editor_packages.app' NOT found at expected path."
+            echo "Please check path, filename (including case), and if it's committed."
+          fi
 
       - name: Create GitHub Release and Upload Specific Asset
         id: create_release
