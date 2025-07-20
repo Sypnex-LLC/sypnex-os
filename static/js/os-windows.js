@@ -499,10 +499,58 @@ Object.assign(SypnexOS.prototype, {
             this.reloadApp(appId);
         });
 
-        updateBtn.addEventListener('click', () => {
-            // TODO: Implement app update functionality
-            console.log(`Update clicked for app: ${appId}`);
-            this.showNotification(`Update functionality coming soon for ${appId}`, 'info');
+        updateBtn.addEventListener('click', async () => {
+            try {
+                // Get the cached app data with download URL
+                const appData = this.getLatestAppData(appId);
+                if (!appData || !appData.download_url) {
+                    this.showNotification('Update URL not available', 'error');
+                    return;
+                }
+                
+                // Show loading state
+                updateBtn.style.opacity = '0.5';
+                updateBtn.style.pointerEvents = 'none';
+                
+                const response = await fetch(`/api/user-apps/update/${appId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        download_url: appData.download_url
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    this.showNotification(`${result.app_name} updated successfully!`, 'success');
+                    
+                    // Hide update button since app is now up to date
+                    updateBtn.style.display = 'none';
+                    
+                    // Refresh the app registry to recognize the new version
+                    await fetch('/api/user-apps/refresh', { method: 'POST' });
+                    
+                    // Refresh the app cache to get latest versions
+                    await this.cacheLatestVersions();
+                    
+                    // Reload the app to apply the update
+                    setTimeout(() => {
+                        this.reloadApp(appId);
+                    }, 500);
+                } else {
+                    this.showNotification(`Update failed: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                console.error('Update error:', error);
+                this.showNotification(`Update failed: ${error.message}`, 'error');
+            } finally {
+                // Restore button state
+                updateBtn.style.opacity = '';
+                updateBtn.style.pointerEvents = '';
+            }
         });
     },
 

@@ -5,6 +5,7 @@ from flask import request, jsonify
 import tempfile
 import os
 import json
+import requests
 from app_utils import install_app_direct, sanitize_user_app_content
 
 def register_user_app_routes(app, managers):
@@ -103,6 +104,65 @@ def register_user_app_routes(app, managers):
             import traceback
             traceback.print_exc()
             return jsonify({'error': f'Installation failed: {str(e)}'}), 500
+
+    @app.route('/api/user-apps/update/<app_id>', methods=['POST'])
+    def update_user_app(app_id):
+        """Update an app by downloading from the provided URL and installing it"""
+        try:
+            data = request.get_json()
+            if not data or 'download_url' not in data:
+                return jsonify({'error': 'download_url is required in request body'}), 400
+            
+            download_url = data['download_url']
+            
+            # Download the .bin file
+            print(f"Downloading update for {app_id} from {download_url}")
+            download_response = requests.get(download_url, timeout=30)
+            download_response.raise_for_status()
+            
+            # Save downloaded content to temporary file with .app extension
+            temp_dir = tempfile.gettempdir()
+            temp_path = os.path.join(temp_dir, f"{app_id}_update.app")
+            
+            with open(temp_path, 'wb') as f:
+                f.write(download_response.content)
+            
+            try:
+                # Use the same install logic to update the app
+                success = install_app_direct(temp_path, managers['virtual_file_manager'])
+                
+                if success:
+                    # Extract app name from the package for response
+                    try:
+                        with open(temp_path, 'r', encoding='utf-8') as f:
+                            package_data = json.load(f)
+                            app_name = package_data.get('app_metadata', {}).get('name', app_id)
+                    except:
+                        app_name = app_id
+                    
+                    # Refresh terminal manager to pick up any changes
+                    managers['terminal_manager'].refresh_user_apps()
+                    
+                    return jsonify({
+                        'message': 'App updated successfully',
+                        'app_name': app_name,
+                        'app_id': app_id
+                    })
+                else:
+                    return jsonify({'error': 'Failed to update app'}), 500
+                    
+            finally:
+                # Clean up temporary file
+                if os.path.exists(temp_path):
+                    os.remove(temp_path)
+                    
+        except requests.exceptions.RequestException as e:
+            return jsonify({'error': f'Failed to download update: {str(e)}'}), 500
+        except Exception as e:
+            print(f"Error updating app: {e}")
+            import traceback
+            traceback.print_exc()
+            return jsonify({'error': f'Update failed: {str(e)}'}), 500
 
     @app.route('/api/user-apps/uninstall/<app_id>', methods=['DELETE'])
     def uninstall_user_app(app_id):
