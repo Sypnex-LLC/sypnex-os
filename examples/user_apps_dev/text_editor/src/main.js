@@ -19,15 +19,23 @@ let textEditor = {
     prismLoaded: false,
     syntaxHighlightingEnabled: false,
     highlightedEditor: null,
+    highlightContainer: null,
+    originalTextareaStyles: null,
     debounceTimer: null,
     // Cursor position tracking
-    cursorPosition: 0
+    cursorPosition: 0,
+    // Code validation
+    pyodideLoaded: false,
+    validationEnabled: true,
+    validationDebounceTimer: null,
+    currentErrors: [],
+    errorMarkers: []
 };
 
 // DOM elements
 let newFileBtn, loadFileBtn, saveFileBtn, saveAsFileBtn;
-let currentFilenameEl, wordWrapToggle, lineNumbersToggle, syntaxHighlightingToggle;
-let modifiedStatusEl;
+let currentFilenameEl, wordWrapToggle, lineNumbersToggle, syntaxHighlightingToggle, validationToggle;
+let modifiedStatusEl, errorCountEl;
 
 // Initialize when DOM is ready
 function initTextEditor() {
@@ -61,8 +69,10 @@ function initTextEditor() {
     wordWrapToggle = document.getElementById('word-wrap-toggle');
     lineNumbersToggle = document.getElementById('line-numbers-toggle');
     syntaxHighlightingToggle = document.getElementById('syntax-highlighting-toggle');
+    validationToggle = document.getElementById('validation-toggle');
     
     modifiedStatusEl = document.getElementById('modified-status');
+    errorCountEl = document.getElementById('error-count');
     
     // Critical element checks
     if (!textEditor.textarea) {
@@ -103,6 +113,9 @@ function initTextEditor() {
     if (syntaxHighlightingToggle) {
         syntaxHighlightingToggle.classList.toggle('active', textEditor.settings.syntaxHighlighting);
     }
+    if (validationToggle) {
+        validationToggle.classList.toggle('active', textEditor.validationEnabled);
+    }
     
     // Text Editor loaded successfully (no notification needed)
     
@@ -116,14 +129,20 @@ async function loadSettings() {
             autoSaveInterval: await sypnexAPI.getSetting('AUTO_SAVE_INTERVAL', 30),
             fontSize: await sypnexAPI.getSetting('FONT_SIZE', 14),
             tabSize: await sypnexAPI.getSetting('TAB_SIZE', 4),
-            syntaxHighlighting: await sypnexAPI.getSetting('SYNTAX_HIGHLIGHTING', true)
+            syntaxHighlighting: await sypnexAPI.getSetting('SYNTAX_HIGHLIGHTING', true),
+            codeValidation: await sypnexAPI.getSetting('CODE_VALIDATION', true)
         };
         
-        // Apply settings
-        textEditor.textarea.style.fontSize = textEditor.settings.fontSize + 'px';
-        textEditor.textarea.style.tabSize = textEditor.settings.tabSize;
-        
-        console.log('Settings loaded:', textEditor.settings);
+    // Apply settings
+    textEditor.textarea.style.fontSize = textEditor.settings.fontSize + 'px';
+    textEditor.textarea.style.tabSize = textEditor.settings.tabSize;
+    textEditor.validationEnabled = textEditor.settings.codeValidation;
+    
+    // Disable browser spell checking and auto-features for code editing
+    textEditor.textarea.setAttribute('spellcheck', 'false');
+    textEditor.textarea.setAttribute('autocomplete', 'off');
+    textEditor.textarea.setAttribute('autocorrect', 'off');
+    textEditor.textarea.setAttribute('autocapitalize', 'off');        console.log('Settings loaded:', textEditor.settings);
     } catch (error) {
         console.error('Failed to load settings:', error);
         // Use defaults
@@ -131,8 +150,10 @@ async function loadSettings() {
             autoSaveInterval: 30,
             fontSize: 14,
             tabSize: 4,
-            syntaxHighlighting: true
+            syntaxHighlighting: true,
+            codeValidation: true
         };
+        textEditor.validationEnabled = true;
     }
 }
 
@@ -203,6 +224,23 @@ async function loadPrismJS() {
         link.href = 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css';
         document.head.appendChild(link);
         
+        // Add custom CSS to fix styling issues
+        const customStyle = document.createElement('style');
+        customStyle.textContent = `
+            .highlighted-backdrop * {
+                text-decoration: none !important;
+                text-decoration-line: none !important;
+                text-decoration-style: none !important;
+                text-decoration-color: transparent !important;
+                border-bottom: none !important;
+                text-underline-offset: 0 !important;
+            }
+            .highlighted-backdrop .token.string {
+                text-decoration: none !important;
+            }
+        `;
+        document.head.appendChild(customStyle);
+        
         textEditor.prismLoaded = true;
         console.log('✅ Prism.js with all language grammars loaded successfully');
         
@@ -212,86 +250,407 @@ async function loadPrismJS() {
     }
 }
 
+// Load Pyodide for Python syntax validation
+async function loadPyodide() {
+    console.log('📦 loadPyodide called, current state:', textEditor.pyodideLoaded);
+    
+    if (textEditor.pyodideLoaded && window.pyodide) {
+        console.log('✅ Pyodide already loaded, returning existing instance');
+        return window.pyodide;
+    }
+    
+    try {
+        console.log('🚀 Starting Pyodide loading process...');
+        
+        // Load Pyodide script
+        await sypnexAPI.loadLibrary('https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js', {
+            localName: 'loadPyodide'
+        });
+        
+        console.log('📚 Pyodide library loaded, initializing instance...');
+        
+        // Initialize Pyodide - use the global loadPyodide function
+        window.pyodide = await window.loadPyodide({
+            indexURL: "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/"
+        });
+        
+        console.log('🐍 Pyodide initialized, installing Python validation function...');
+        
+        // Install validation function
+        window.pyodide.runPython(`
+import ast
+
+def validate_python_syntax(code):
+    """Validate Python syntax and return errors"""
+    try:
+        # Try to parse the code as an AST
+        ast.parse(code)
+        return {"valid": True, "errors": []}
+    except SyntaxError as e:
+        error_info = {
+            "line": e.lineno or 1,
+            "column": e.offset or 1, 
+            "message": e.msg or "Syntax error",
+            "type": "syntax"
+        }
+        return {"valid": False, "errors": [error_info]}
+    except Exception as e:
+        error_info = {
+            "line": 1,
+            "column": 1,
+            "message": str(e),
+            "type": "general"
+        }
+        return {"valid": False, "errors": [error_info]}
+        `);
+        
+        textEditor.pyodideLoaded = true;
+        console.log('✅ Pyodide loaded and configured successfully!');
+        
+        // Show notification
+        sypnexAPI.showNotification('Python validation ready!', 'success');
+        
+        return window.pyodide;
+        
+    } catch (error) {
+        console.error('❌ Failed to load Pyodide:', error);
+        sypnexAPI.showNotification('Failed to load Python validation: ' + error.message, 'error');
+        throw error;
+    }
+}
+
+// Validate Python syntax using Pyodide
+async function validatePythonSyntax(code) {
+    console.log('🔬 validatePythonSyntax called');
+    console.log('Validation enabled:', textEditor.validationEnabled);
+    
+    if (!textEditor.validationEnabled) {
+        console.log('❌ Validation disabled - returning valid');
+        return {"valid": true, "errors": []};
+    }
+    
+    try {
+        console.log('📦 Loading Pyodide...');
+        const pyodide = await loadPyodide();
+        console.log('✅ Pyodide loaded, validating code...');
+        
+        // Call the Python validation function
+        pyodide.globals.set("code_to_validate", code);
+        const result = pyodide.runPython("validate_python_syntax(code_to_validate)");
+        
+        const jsResult = result.toJs({dict_converter: Object.fromEntries});
+        console.log('🎯 Python validation result:', jsResult);
+        
+        return jsResult;
+        
+    } catch (error) {
+        console.error('❌ Pyodide validation error:', error);
+        console.log('🔄 Falling back to basic syntax validation...');
+        
+        // Fallback to basic client-side validation
+        return validatePythonBasic(code);
+    }
+}
+
+// Basic Python syntax validation (fallback)
+function validatePythonBasic(code) {
+    console.log('🔧 Using basic Python validation fallback');
+    const errors = [];
+    const lines = code.split('\n');
+    
+    lines.forEach((line, index) => {
+        const lineNum = index + 1;
+        const trimmed = line.trim();
+        
+        // Skip empty lines and comments
+        if (!trimmed || trimmed.startsWith('#')) return;
+        
+        // Check for unterminated strings (more accurate)
+        let inString = false;
+        let stringChar = null;
+        let escaped = false;
+        
+        for (let i = 0; i < trimmed.length; i++) {
+            const char = trimmed[i];
+            
+            if (escaped) {
+                escaped = false;
+                continue;
+            }
+            
+            if (char === '\\') {
+                escaped = true;
+                continue;
+            }
+            
+            if (!inString && (char === '"' || char === "'")) {
+                inString = true;
+                stringChar = char;
+            } else if (inString && char === stringChar) {
+                inString = false;
+                stringChar = null;
+            }
+        }
+        
+        if (inString) {
+            errors.push({
+                line: lineNum,
+                column: 1,
+                message: "Unterminated string literal",
+                type: "syntax"
+            });
+        }
+        
+        // Check for missing colons after control structures (more precise)
+        const controlStructures = /^(if|elif|else|for|while|def|class|try|except|finally|with|async\s+def)\s/;
+        if (controlStructures.test(trimmed) && !trimmed.endsWith(':') && !trimmed.includes('#')) {
+            errors.push({
+                line: lineNum,
+                column: trimmed.length,
+                message: "Missing colon",
+                type: "syntax"
+            });
+        }
+        
+        // Check for basic indentation errors (very basic)
+        if (trimmed.match(/^(return|break|continue|pass|raise|yield)\s/) && line !== trimmed) {
+            // These keywords should typically be at proper indentation levels
+            // But this is too complex for basic validation, so skip it
+        }
+        
+        // Only check parentheses on lines that seem to have function calls or definitions
+        if (trimmed.includes('(') || trimmed.includes(')')) {
+            const openParens = (trimmed.match(/\(/g) || []).length;
+            const closeParens = (trimmed.match(/\)/g) || []).length;
+            if (openParens !== closeParens) {
+                errors.push({
+                    line: lineNum,
+                    column: 1,
+                    message: "Unmatched parentheses",
+                    type: "syntax"
+                });
+            }
+        }
+    });
+    
+    console.log(`🎯 Basic validation found ${errors.length} errors`);
+    return {
+        valid: errors.length === 0,
+        errors: errors
+    };
+}
+
+// Schedule validation with debouncing
+function scheduleValidation() {
+    console.log('🔍 scheduleValidation called');
+    console.log('Current file path:', textEditor.filePath);
+    console.log('Is Python file:', isPythonFile(textEditor.filePath));
+    console.log('Validation enabled:', textEditor.validationEnabled);
+    
+    // Clear existing timer
+    if (textEditor.validationDebounceTimer) {
+        clearTimeout(textEditor.validationDebounceTimer);
+    }
+    
+    // Only validate Python files
+    if (!isPythonFile(textEditor.filePath) || !textEditor.validationEnabled) {
+        console.log('❌ Skipping validation - not Python file or validation disabled');
+        clearErrorMarkers();
+        updateErrorCount(0);
+        return;
+    }
+    
+    console.log('✅ Scheduling Python validation...');
+    
+    // Debounce validation to avoid too frequent calls and interference with typing
+    textEditor.validationDebounceTimer = setTimeout(async () => {
+        const code = textEditor.textarea.value;
+        console.log('🐍 About to validate Python code:', code.substring(0, 100) + '...');
+        
+        // Don't validate empty files
+        if (!code.trim()) {
+            console.log('📝 Empty code - clearing errors');
+            clearErrorMarkers();
+            updateErrorCount(0);
+            return;
+        }
+        
+        try {
+            console.log('🚀 Calling validatePythonSyntax...');
+            const result = await validatePythonSyntax(code);
+            console.log('📊 Validation result:', result);
+            displayValidationErrors(result.errors || []);
+        } catch (error) {
+            console.error('❌ Validation scheduling error:', error);
+        }
+    }, 1000); // 1000ms delay - much longer to avoid interfering with fast typing
+}
+
+// Display validation errors in the editor
+function displayValidationErrors(errors) {
+    // Clear previous errors
+    clearErrorMarkers();
+    
+    // Store current errors
+    textEditor.currentErrors = errors;
+    
+    // Update error count
+    updateErrorCount(errors.length);
+    
+    // Add error markers
+    errors.forEach(error => {
+        addErrorMarker(error.line, error.message, error.type);
+    });
+    
+    console.log(`Validation complete: ${errors.length} errors found`);
+}
+
+// Add error marker to a specific line
+function addErrorMarker(lineNumber, message, type = 'syntax') {
+    if (!textEditor.lineNumbers || lineNumber < 1) return;
+    
+    // Find the line number element
+    const lineNumberElements = textEditor.lineNumbers.children;
+    const lineIndex = lineNumber - 1; // Convert to 0-based index
+    
+    if (lineIndex < lineNumberElements.length) {
+        const lineEl = lineNumberElements[lineIndex];
+        
+        // Add error class
+        lineEl.classList.add('line-error');
+        lineEl.title = `Line ${lineNumber}: ${message}`;
+        
+        // Store error info for cleanup
+        textEditor.errorMarkers.push(lineEl);
+    }
+    
+    // Also try to add underline to the text if using highlighted editor
+    if (textEditor.highlightedEditor) {
+        addErrorUnderline(lineNumber, message);
+    }
+}
+
+// Add error underline to highlighted editor (basic implementation)
+function addErrorUnderline(lineNumber, message) {
+    // This is a simplified version - we could make it more sophisticated
+    // For now, we'll rely on the line number highlighting
+    console.log(`Error on line ${lineNumber}: ${message}`);
+}
+
+// Clear all error markers
+function clearErrorMarkers() {
+    // Clear line number error classes
+    textEditor.errorMarkers.forEach(lineEl => {
+        lineEl.classList.remove('line-error');
+        lineEl.removeAttribute('title');
+    });
+    
+    textEditor.errorMarkers = [];
+    textEditor.currentErrors = [];
+}
+
+// Update error count in status bar
+function updateErrorCount(count) {
+    if (errorCountEl) {
+        errorCountEl.textContent = count.toString();
+        errorCountEl.style.color = count > 0 ? '#ff6b6b' : '#51cf66';
+    }
+}
+
 // Create highlighted editor
 function createHighlightedEditor() {
     if (!textEditor.prismLoaded) return;
     
+    // Clean up any existing highlighted setup
+    cleanupHighlightedEditor();
+    
     const editorWrapper = textEditor.textarea.parentElement;
     const textarea = textEditor.textarea;
     
-    // Create highlighted editor div
-    const highlightedEditor = document.createElement('div');
-    highlightedEditor.id = 'highlighted-editor';
-    highlightedEditor.className = 'highlighted-editor';
-    highlightedEditor.contentEditable = true;
-    highlightedEditor.spellcheck = false;
+    // Store original textarea styles
+    const originalStyles = {
+        position: textarea.style.position,
+        background: textarea.style.background,
+        color: textarea.style.color,
+        zIndex: textarea.style.zIndex,
+        caretColor: textarea.style.caretColor,
+        spellcheck: textarea.getAttribute('spellcheck'),
+        autocomplete: textarea.getAttribute('autocomplete'),
+        autocorrect: textarea.getAttribute('autocorrect'),
+        autocapitalize: textarea.getAttribute('autocapitalize')
+    };
     
-    // Copy textarea styles
-    highlightedEditor.style.cssText = textarea.style.cssText;
-    highlightedEditor.style.fontFamily = 'monospace';
-    highlightedEditor.style.whiteSpace = 'pre-wrap';
-    highlightedEditor.style.wordWrap = textEditor.wordWrapEnabled ? 'break-word' : 'normal';
-    highlightedEditor.style.overflow = 'auto';
-    highlightedEditor.style.resize = 'none';
-    highlightedEditor.style.border = 'none';
-    highlightedEditor.style.outline = 'none';
-    highlightedEditor.style.background = 'transparent';
-    highlightedEditor.style.color = 'inherit';
+    // Create a container for the overlay approach
+    const highlightContainer = document.createElement('div');
+    highlightContainer.className = 'highlight-container';
+    highlightContainer.style.position = 'relative';
+    highlightContainer.style.width = '100%';
+    highlightContainer.style.height = '100%';
     
-    // Hide original textarea
-    textarea.style.display = 'none';
+    // Create highlighted backdrop
+    const highlightedBackdrop = document.createElement('div');
+    highlightedBackdrop.id = 'highlighted-backdrop';
+    highlightedBackdrop.className = 'highlighted-backdrop';
+    highlightedBackdrop.style.position = 'absolute';
+    highlightedBackdrop.style.top = '0';
+    highlightedBackdrop.style.left = '0';
+    highlightedBackdrop.style.width = '100%';
+    highlightedBackdrop.style.height = '100%';
+    highlightedBackdrop.style.pointerEvents = 'none';
+    highlightedBackdrop.style.fontFamily = window.getComputedStyle(textarea).fontFamily;
+    highlightedBackdrop.style.fontSize = window.getComputedStyle(textarea).fontSize;
+    highlightedBackdrop.style.lineHeight = window.getComputedStyle(textarea).lineHeight;
+    highlightedBackdrop.style.padding = window.getComputedStyle(textarea).padding;
+    highlightedBackdrop.style.margin = '0';
+    highlightedBackdrop.style.border = window.getComputedStyle(textarea).border;
+    highlightedBackdrop.style.whiteSpace = 'pre-wrap';
+    highlightedBackdrop.style.wordWrap = 'break-word';
+    highlightedBackdrop.style.overflow = 'hidden';
+    highlightedBackdrop.style.zIndex = '1';
+    highlightedBackdrop.style.resize = 'none';
+    highlightedBackdrop.style.color = '#ffffff'; // Default text color for highlighting
     
-    // Insert highlighted editor
-    editorWrapper.insertBefore(highlightedEditor, textarea);
+    // Make sure textarea is on top and has transparent background and text
+    textarea.style.position = 'relative';
+    textarea.style.zIndex = '2';
+    textarea.style.background = 'transparent';
+    textarea.style.color = 'transparent';
+    textarea.style.caretColor = '#ffffff';
     
-    textEditor.highlightedEditor = highlightedEditor;
+    // Disable browser spell checking for code
+    textarea.setAttribute('spellcheck', 'false');
+    textarea.setAttribute('autocomplete', 'off');
+    textarea.setAttribute('autocorrect', 'off');
+    textarea.setAttribute('autocapitalize', 'off');
+    
+    // Wrap textarea in container
+    editorWrapper.insertBefore(highlightContainer, textarea);
+    highlightContainer.appendChild(highlightedBackdrop);
+    highlightContainer.appendChild(textarea);
+    
+    textEditor.highlightedEditor = highlightedBackdrop;
+    textEditor.highlightContainer = highlightContainer;
+    textEditor.originalTextareaStyles = originalStyles;
+    textEditor.syntaxHighlightingEnabled = true;
     
     // Set initial content
     updateHighlightedContent();
     
-    // Set up event handlers for highlighted editor
-    highlightedEditor.addEventListener('input', handleHighlightedInput);
-    highlightedEditor.addEventListener('scroll', syncScroll);
-    highlightedEditor.addEventListener('keydown', handleHighlightedKeyDown);
-    highlightedEditor.addEventListener('paste', handleHighlightedPaste);
-    highlightedEditor.addEventListener('click', updateCursorPosition);
-    highlightedEditor.addEventListener('keyup', updateCursorPosition);
-    highlightedEditor.addEventListener('focus', updateCursorPosition);
+    // Set up simple event handlers for the textarea (not the backdrop)
+    textarea.addEventListener('input', handleSimpleInput);
+    textarea.addEventListener('scroll', syncBackdropScroll);
+    textarea.addEventListener('keydown', handleHighlightKeyDown);
+    textarea.addEventListener('click', handleHighlightClick);
+    textarea.addEventListener('focus', handleHighlightFocus);
     
-    console.log('✅ Highlighted editor created');
+    console.log('✅ Highlighted backdrop created (overlay method)');
 }
 
-// Track cursor position
-function updateCursorPosition() {
-    const selection = window.getSelection();
-    if (selection.rangeCount > 0) {
-        const range = selection.getRangeAt(0);
-        textEditor.cursorPosition = getTextOffset(range.startContainer, range.startOffset);
-        // Sync to textarea
-        syncCursorToTextarea();
+// Focus appropriate editor
+function focusEditor() {
+    if (textEditor.textarea) {
+        textEditor.textarea.focus();
     }
-}
-
-// Sync cursor position from textarea to highlighted editor
-function syncCursorFromTextarea() {
-    if (!textEditor.highlightedEditor) return;
-    
-    const textarea = textEditor.textarea;
-    const cursorPos = textarea.selectionStart;
-    textEditor.cursorPosition = cursorPos;
-    
-    // Restore cursor position in highlighted editor
-    setTimeout(() => {
-        restoreCursorPosition();
-    }, 0);
-}
-
-// Sync cursor position from highlighted editor to textarea
-function syncCursorToTextarea() {
-    if (!textEditor.highlightedEditor) return;
-    
-    const textarea = textEditor.textarea;
-    textarea.setSelectionRange(textEditor.cursorPosition, textEditor.cursorPosition);
 }
 
 // Update highlighted content
@@ -307,224 +666,122 @@ function updateHighlightedContent() {
         return;
     }
     
+    // Apply syntax highlighting to backdrop
     const highlightedContent = Prism.highlight(content, Prism.languages[language], language);
-    
-    // Store current cursor position
-    updateCursorPosition();
-    
-    // Store the cursor position before DOM manipulation
-    const savedCursorPos = textEditor.cursorPosition;
-    
     textEditor.highlightedEditor.innerHTML = highlightedContent;
     
-    // Restore cursor position immediately
-    textEditor.cursorPosition = savedCursorPos;
-    restoreCursorPosition();
+    // Sync scroll position
+    syncBackdropScroll();
+    
+    console.log('✅ Backdrop highlighting updated');
 }
 
-// Restore cursor position
-function restoreCursorPosition() {
-    if (textEditor.cursorPosition <= 0) {
-        // Fallback to textarea cursor position
-        syncCursorFromTextarea();
-        return;
-    }
-    
-    const selection = window.getSelection();
-    const textNode = findTextNodeAtOffset(textEditor.highlightedEditor, textEditor.cursorPosition);
-    
-    if (textNode) {
-        const nodeOffset = Math.min(textNode._nodeOffset || 0, textNode.textContent.length);
-        const range = document.createRange();
-        range.setStart(textNode, nodeOffset);
-        range.collapse(true);
-        selection.removeAllRanges();
-        selection.addRange(range);
-    } else {
-        // If we can't find the text node, fallback to textarea position
-        syncCursorFromTextarea();
-    }
+// Simple helper functions (keeping these for potential future use)
+function getSimpleTextContent() {
+    return textEditor.textarea.value;
 }
 
-// Get text offset for cursor preservation - improved version
-function getTextOffset(node, offset) {
-    let totalOffset = 0;
-    const walker = document.createTreeWalker(
-        textEditor.highlightedEditor,
-        NodeFilter.SHOW_TEXT,
-        null,
-        false
-    );
-    
-    let currentNode;
-    while (currentNode = walker.nextNode()) {
-        if (currentNode === node) {
-            return totalOffset + offset;
-        }
-        totalOffset += currentNode.textContent.length;
-    }
-    return totalOffset;
-}
-
-// Find text node at offset for cursor restoration - improved version
-function findTextNodeAtOffset(element, offset) {
-    let currentOffset = 0;
-    const walker = document.createTreeWalker(
-        element,
-        NodeFilter.SHOW_TEXT,
-        null,
-        false
-    );
-    
-    let node;
-    while (node = walker.nextNode()) {
-        const nodeLength = node.textContent.length;
-        if (currentOffset + nodeLength >= offset) {
-            // Store the offset within this node for later use
-            node._nodeOffset = offset - currentOffset;
-            return node;
-        }
-        currentOffset += nodeLength;
-    }
-    
-    // If we didn't find a node, return the last text node
-    const allTextNodes = [];
-    const walker2 = document.createTreeWalker(
-        element,
-        NodeFilter.SHOW_TEXT,
-        null,
-        false
-    );
-    while (node = walker2.nextNode()) {
-        allTextNodes.push(node);
-    }
-    const lastNode = allTextNodes[allTextNodes.length - 1];
-    if (lastNode) {
-        lastNode._nodeOffset = lastNode.textContent.length;
-    }
-    return lastNode || null;
-}
-
-// Handle input in highlighted editor
-function handleHighlightedInput() {
-    // Update textarea value
-    textEditor.textarea.value = textEditor.highlightedEditor.textContent;
-    
-    // Update cursor position immediately
-    updateCursorPosition();
-    
-    // Debounced highlighting with shorter delay for better responsiveness
-    if (textEditor.debounceTimer) {
-        clearTimeout(textEditor.debounceTimer);
-    }
-    
-    textEditor.debounceTimer = setTimeout(() => {
-        updateHighlightedContent();
-    }, 50); // Reduced from 100ms to 50ms
-    
-    // Update line numbers and status
+// Handle simple input for backdrop approach
+function handleSimpleInput() {
+    // Update line numbers and status immediately
     updateLineNumbers();
     updateStatus();
     markAsModified();
+    
+    // Immediate highlighting update for responsive feel
+    updateHighlightedContent();
+    
+    // Schedule validation for Python files
+    scheduleValidation();
 }
 
-// Handle keydown in highlighted editor
-function handleHighlightedKeyDown(e) {
-    // Tab handling
-    if (e.key === 'Tab') {
-        e.preventDefault();
-        const selection = window.getSelection();
-        const range = selection.getRangeAt(0);
-        const spaces = ' '.repeat(textEditor.settings.tabSize);
-        
-        // Insert spaces at cursor position
-        const textNode = range.startContainer;
-        const offset = range.startOffset;
-        textNode.textContent = textNode.textContent.substring(0, offset) + 
-                              spaces + 
-                              textNode.textContent.substring(offset);
-        
-        // Move cursor after inserted spaces
-        range.setStart(textNode, offset + spaces.length);
-        range.collapse(true);
-        selection.removeAllRanges();
-        selection.addRange(range);
-        
-        // Trigger input event
-        textEditor.highlightedEditor.dispatchEvent(new Event('input'));
-        return;
+// Handle key events that might change content
+function handleHighlightKeyDown(e) {
+    // For keys that modify content, update highlighting immediately after the event
+    if (e.key === 'Tab' || e.key === 'Enter' || e.key === 'Backspace' || e.key === 'Delete') {
+        setTimeout(() => {
+            updateHighlightedContent();
+        }, 0); // Update on next tick after the key event is processed
     }
-    
-    // Enter key handling
-    if (e.key === 'Enter') {
-        e.preventDefault();
-        const selection = window.getSelection();
-        const range = selection.getRangeAt(0);
-        
-        // Insert newline at cursor position
-        const textNode = range.startContainer;
-        const offset = range.startOffset;
-        
-        // Handle case where cursor is at the end of a text node
-        if (offset === textNode.textContent.length) {
-            // Create a new text node after the current one
-            const newTextNode = document.createTextNode('\n');
-            textNode.parentNode.insertBefore(newTextNode, textNode.nextSibling);
+}
+
+// Handle click events (cursor position changes)
+function handleHighlightClick() {
+    // Sync scroll position when user clicks
+    syncBackdropScroll();
+}
+
+// Handle focus events
+function handleHighlightFocus() {
+    // Ensure highlighting is in sync when textarea gets focus
+    updateHighlightedContent();
+    syncBackdropScroll();
+}
+
+// Sync backdrop scroll with textarea
+function syncBackdropScroll() {
+    if (textEditor.highlightedEditor) {
+        textEditor.highlightedEditor.scrollTop = textEditor.textarea.scrollTop;
+        textEditor.highlightedEditor.scrollLeft = textEditor.textarea.scrollLeft;
+    }
+}
+
+// Clean up highlighted editor
+function cleanupHighlightedEditor() {
+    if (textEditor.highlightContainer) {
+        // Restore original textarea styles
+        if (textEditor.originalTextareaStyles) {
+            const textarea = textEditor.textarea;
+            textarea.style.position = textEditor.originalTextareaStyles.position;
+            textarea.style.background = textEditor.originalTextareaStyles.background;
+            textarea.style.color = textEditor.originalTextareaStyles.color;
+            textarea.style.zIndex = textEditor.originalTextareaStyles.zIndex;
+            textarea.style.caretColor = textEditor.originalTextareaStyles.caretColor;
             
-            // Move cursor to the new text node
-            range.setStart(newTextNode, 1);
-            range.collapse(true);
-        } else {
-            // Insert newline in the middle of text
-            textNode.textContent = textNode.textContent.substring(0, offset) + 
-                                  '\n' + 
-                                  textNode.textContent.substring(offset);
-            
-            // Move cursor after newline
-            range.setStart(textNode, offset + 1);
-            range.collapse(true);
+            // Restore browser features attributes
+            if (textEditor.originalTextareaStyles.spellcheck) {
+                textarea.setAttribute('spellcheck', textEditor.originalTextareaStyles.spellcheck);
+            }
+            if (textEditor.originalTextareaStyles.autocomplete) {
+                textarea.setAttribute('autocomplete', textEditor.originalTextareaStyles.autocomplete);
+            }
+            if (textEditor.originalTextareaStyles.autocorrect) {
+                textarea.setAttribute('autocorrect', textEditor.originalTextareaStyles.autocorrect);
+            }
+            if (textEditor.originalTextareaStyles.autocapitalize) {
+                textarea.setAttribute('autocapitalize', textEditor.originalTextareaStyles.autocapitalize);
+            }
         }
         
-        selection.removeAllRanges();
-        selection.addRange(range);
+        // Remove the container and restore textarea to its original parent
+        const editorWrapper = textEditor.highlightContainer.parentElement;
+        const textarea = textEditor.textarea;
         
-        // Trigger input event
-        textEditor.highlightedEditor.dispatchEvent(new Event('input'));
-        return;
+        // Move textarea back to its original location
+        editorWrapper.insertBefore(textarea, textEditor.highlightContainer);
+        
+        // Remove the highlight container
+        textEditor.highlightContainer.remove();
+        
+        // Clear references
+        textEditor.highlightContainer = null;
+        textEditor.highlightedEditor = null;
+        textEditor.originalTextareaStyles = null;
     }
-    
-    // Handle other keyboard shortcuts
-    handleKeyDown(e);
 }
 
-// Handle paste in highlighted editor
-function handleHighlightedPaste(e) {
-    e.preventDefault();
-    
-    const text = e.clipboardData.getData('text/plain');
-    const selection = window.getSelection();
-    const range = selection.getRangeAt(0);
-    
-    // Insert text at cursor position
-    const textNode = range.startContainer;
-    const offset = range.startOffset;
-    textNode.textContent = textNode.textContent.substring(0, offset) + 
-                          text + 
-                          textNode.textContent.substring(offset);
-    
-    // Move cursor after inserted text
-    range.setStart(textNode, offset + text.length);
-    range.collapse(true);
-    selection.removeAllRanges();
-    selection.addRange(range);
-    
-    // Trigger input event
-    textEditor.highlightedEditor.dispatchEvent(new Event('input'));
+// Simple helper functions (keeping these for potential future use)
+function getSimpleTextContent() {
+    return textEditor.textarea.value;
 }
 
 // Enable syntax highlighting for supported files
 async function enableSyntaxHighlighting() {
-    if (!textEditor.settings.syntaxHighlighting) return;
+    if (!textEditor.settings.syntaxHighlighting) {
+        cleanupHighlightedEditor();
+        textEditor.syntaxHighlightingEnabled = false;
+        return;
+    }
     
     const language = getFileLanguage(textEditor.filePath);
     
@@ -541,11 +798,7 @@ async function enableSyntaxHighlighting() {
         console.log(`✅ Syntax highlighting enabled for ${language} file`);
     } else {
         // Disable highlighting for unsupported files
-        if (textEditor.highlightedEditor) {
-            textEditor.highlightedEditor.remove();
-            textEditor.highlightedEditor = null;
-            textEditor.textarea.style.display = '';
-        }
+        cleanupHighlightedEditor();
         textEditor.syntaxHighlightingEnabled = false;
     }
 }
@@ -560,6 +813,7 @@ function setupEventHandlers() {
     wordWrapToggle?.addEventListener('click', toggleWordWrap);
     lineNumbersToggle?.addEventListener('click', toggleLineNumbers);
     syntaxHighlightingToggle?.addEventListener('click', toggleSyntaxHighlighting);
+    validationToggle?.addEventListener('click', toggleValidation);
     
     // Textarea events
     textEditor.textarea.addEventListener('input', handleTextChange);
@@ -606,6 +860,9 @@ function handleTextChange() {
     updateLineNumbers();
     updateStatus();
     markAsModified();
+    
+    // Schedule validation for Python files
+    scheduleValidation();
 }
 
 // Update line numbers
@@ -629,6 +886,9 @@ function syncScroll() {
     if (textEditor.lineNumbers && textEditor.lineNumbersEnabled) {
         textEditor.lineNumbers.scrollTop = textEditor.textarea.scrollTop;
     }
+    
+    // Also sync the backdrop if it exists
+    syncBackdropScroll();
 }
 
 // Update status bar
@@ -687,12 +947,12 @@ function clearEditor() {
         updateHighlightedContent();
     }
     
-    // Focus appropriate editor
-    if (textEditor.highlightedEditor) {
-        textEditor.highlightedEditor.focus();
-    } else {
-        textEditor.textarea.focus();
-    }
+    // Clear any existing errors
+    clearErrorMarkers();
+    updateErrorCount(0);
+    
+    // Focus the textarea (not the backdrop)
+    focusEditor();
 }
 
 // Load file from VFS
@@ -735,6 +995,9 @@ async function loadFile() {
         if (textEditor.syntaxHighlightingEnabled && textEditor.highlightedEditor) {
             updateHighlightedContent();
         }
+        
+        // Schedule validation for Python files
+        scheduleValidation();
         
         sypnexAPI.showNotification(`File loaded: ${filePath}`, 'success');
         
@@ -892,21 +1155,47 @@ async function toggleSyntaxHighlighting() {
         syntaxHighlightingToggle.classList.toggle('active', textEditor.settings.syntaxHighlighting);
     }
     
-    // Apply highlighting if enabled
+    // Apply or disable highlighting
     if (textEditor.settings.syntaxHighlighting) {
         await enableSyntaxHighlighting();
     } else {
         // Disable highlighting
-        if (textEditor.highlightedEditor) {
-            textEditor.highlightedEditor.remove();
-            textEditor.highlightedEditor = null;
-            textEditor.textarea.style.display = '';
-        }
+        cleanupHighlightedEditor();
         textEditor.syntaxHighlightingEnabled = false;
     }
     
     sypnexAPI.showNotification(
         `Syntax highlighting ${textEditor.settings.syntaxHighlighting ? 'enabled' : 'disabled'}`,
+        'info'
+    );
+}
+
+// Toggle code validation
+async function toggleValidation() {
+    textEditor.validationEnabled = !textEditor.validationEnabled;
+    
+    // Save setting
+    try {
+        await sypnexAPI.setSetting('CODE_VALIDATION', textEditor.validationEnabled);
+    } catch (error) {
+        console.error('Failed to save validation setting:', error);
+    }
+    
+    // Update UI
+    if (validationToggle) {
+        validationToggle.classList.toggle('active', textEditor.validationEnabled);
+    }
+    
+    // Apply validation if enabled, otherwise clear errors
+    if (textEditor.validationEnabled) {
+        scheduleValidation();
+    } else {
+        clearErrorMarkers();
+        updateErrorCount(0);
+    }
+    
+    sypnexAPI.showNotification(
+        `Code validation ${textEditor.validationEnabled ? 'enabled' : 'disabled'}`,
         'info'
     );
 }
@@ -939,6 +1228,18 @@ function handleKeyDown(e) {
         loadFile();
     }
     
+    // Ctrl/Cmd + Shift + V: Force validation
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'V') {
+        e.preventDefault();
+        console.log('🔍 Manual validation triggered');
+        if (isPythonFile(textEditor.filePath)) {
+            scheduleValidation();
+            sypnexAPI.showNotification('Validation triggered manually', 'info');
+        } else {
+            sypnexAPI.showNotification('Not a Python file', 'warning');
+        }
+    }
+    
     // Tab handling
     if (e.key === 'Tab') {
         e.preventDefault();
@@ -952,6 +1253,14 @@ function handleKeyDown(e) {
             textEditor.textarea.value.substring(end);
         
         textEditor.textarea.selectionStart = textEditor.textarea.selectionEnd = start + spaces.length;
+        
+        // Manually trigger content update since we prevented the default
+        updateLineNumbers();
+        markAsModified();
+        if (textEditor.syntaxHighlightingEnabled) {
+            updateHighlightedContent();
+        }
+        scheduleValidation();
     }
 }
 

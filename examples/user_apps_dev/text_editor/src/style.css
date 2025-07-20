@@ -41,13 +41,13 @@
     border-right: 1px solid var(--border-color);
     padding: 10px 8px;
     font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
-    font-size: 12px;
+    font-size: 14px; /* Match editor font size */
     color: var(--text-muted);
     text-align: right;
     min-width: 50px;
     user-select: none;
     overflow-y: hidden;
-    line-height: 1.6;
+    line-height: 1.6; /* Match editor line height */
     flex-shrink: 0;
 }
 
@@ -184,7 +184,7 @@
 
 /* Editor Status Bar */
 .editor-status {
-    display: none; /* Hidden for now to save screen real estate */
+    display: flex; /* Changed from none to flex to show status bar */
     gap: 20px;
     padding: 10px 15px;
     background: var(--glass-bg);
@@ -382,7 +382,7 @@
     
     .line-numbers {
         min-width: 40px;
-        font-size: 11px;
+        font-size: 13px; /* Match editor font size */
     }
     
     #text-editor,
@@ -469,4 +469,34 @@
     0% { opacity: 1; }
     50% { opacity: 0.7; }
     100% { opacity: 1; }
+}
+
+/* Code Validation Error Styles */
+.line-error {
+    background-color: rgba(255, 107, 107, 0.2) !important;
+    color: #ff6b6b !important;
+    border-left: 3px solid #ff6b6b !important;
+    position: relative;
+}
+
+.line-error::before {
+    content: "⚠";
+    position: absolute;
+    left: 2px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #ff6b6b;
+    font-size: 10px;
+    z-index: 1;
+}
+
+/* Error count in status bar */
+.status-value {
+    transition: color 0.3s ease;
+}
+
+/* Active validation toggle button */
+.app-btn.active {
+    background: var(--accent-primary);
+    color: white;
 } 
