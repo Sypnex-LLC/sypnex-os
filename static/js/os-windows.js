@@ -214,6 +214,43 @@ Object.assign(SypnexOS.prototype, {
                         const originalAddEventListener = EventTarget.prototype.addEventListener;
                         const originalRemoveEventListener = EventTarget.prototype.removeEventListener;
                         
+                        // Store original global methods to restore later
+                        const originalDocAddEventListener = document.addEventListener;
+                        const originalDocRemoveEventListener = document.removeEventListener;
+                        const originalWinAddEventListener = window.addEventListener;
+                        const originalWinRemoveEventListener = window.removeEventListener;
+                        
+                        // Create app-specific wrapped versions that don't modify global prototypes
+                        const trackingAddEventListener = function(target, type, listener, options) {
+                            // Only track if this is a global target (document, window, or outside app container)
+                            const isGlobalTarget = target === document || target === window || 
+                                                 !appContainer || !appContainer.contains(target);
+                            
+                            if (isGlobalTarget) {
+                                appEventListeners.add({
+                                    target: target,
+                                    type: type,
+                                    listener: listener,
+                                    options: options
+                                });
+                                console.log('App ${appId} added global event listener:', type, 'on', target.constructor.name);
+                            }
+                            
+                            return originalAddEventListener.call(target, type, listener, options);
+                        };
+                        
+                        const trackingRemoveEventListener = function(target, type, listener, options) {
+                            // Find and remove from tracking
+                            appEventListeners.forEach(item => {
+                                if (item.target === target && item.type === type && item.listener === listener) {
+                                    appEventListeners.delete(item);
+                                    console.log('App ${appId} removed global event listener:', type, 'from', target.constructor.name);
+                                }
+                            });
+                            
+                            return originalRemoveEventListener.call(target, type, listener, options);
+                        };
+                        
                         // Override timer functions to track them
                         setInterval = function(callback, delay, ...args) {
                             const id = originalSetInterval(callback, delay, ...args);
@@ -249,36 +286,21 @@ Object.assign(SypnexOS.prototype, {
                             });
                         };
                         
-                        // Override addEventListener to track listeners
-                        EventTarget.prototype.addEventListener = function(type, listener, options) {
-                            // Only track if this is a global target (document, window, or outside app container)
-                            const isGlobalTarget = this === document || this === window || 
-                                                 !appContainer || !appContainer.contains(this);
-                            
-                            if (isGlobalTarget) {
-                                appEventListeners.add({
-                                    target: this,
-                                    type: type,
-                                    listener: listener,
-                                    options: options
-                                });
-                                console.log('App ${appId} added global event listener:', type, 'on', this.constructor.name);
-                            }
-                            
-                            return originalAddEventListener.call(this, type, listener, options);
+                        // Override global methods TEMPORARILY (will be restored on cleanup)
+                        document.addEventListener = function(type, listener, options) {
+                            return trackingAddEventListener(document, type, listener, options);
                         };
                         
-                        // Override removeEventListener to clean up tracking
-                        EventTarget.prototype.removeEventListener = function(type, listener, options) {
-                            // Find and remove from tracking
-                            appEventListeners.forEach(item => {
-                                if (item.target === this && item.type === type && item.listener === listener) {
-                                    appEventListeners.delete(item);
-                                    console.log('App ${appId} removed global event listener:', type, 'from', this.constructor.name);
-                                }
-                            });
-                            
-                            return originalRemoveEventListener.call(this, type, listener, options);
+                        document.removeEventListener = function(type, listener, options) {
+                            return trackingRemoveEventListener(document, type, listener, options);
+                        };
+                        
+                        window.addEventListener = function(type, listener, options) {
+                            return trackingAddEventListener(window, type, listener, options);
+                        };
+                        
+                        window.removeEventListener = function(type, listener, options) {
+                            return trackingRemoveEventListener(window, type, listener, options);
                         };
                         
                         // Create app-specific helper functions (local to this scope)
@@ -408,6 +430,15 @@ Object.assign(SypnexOS.prototype, {
                             cleanup: function() {
                                 const timersCleanedUp = this.cleanupTimers();
                                 const listenersCleanedUp = this.cleanupEventListeners();
+                                
+                                // CRITICAL: Restore original global methods to prevent cross-contamination
+                                document.addEventListener = originalDocAddEventListener;
+                                document.removeEventListener = originalDocRemoveEventListener;
+                                window.addEventListener = originalWinAddEventListener;
+                                window.removeEventListener = originalWinRemoveEventListener;
+                                
+                                console.log('App ${appId}: Restored original global event listener methods');
+                                
                                 return { timers: timersCleanedUp, listeners: listenersCleanedUp };
                             }
                         };
