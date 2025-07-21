@@ -76,19 +76,19 @@ The system follows a modular architecture with several key managers that handle 
 - Automatic service discovery from `services/` directory
 - Service lifecycle management (start/stop)
 - Service health monitoring and logging
-- Configuration management for services
-- Database persistence for service states
+- VFS-based configuration management for services
+- Service configuration persistence via Virtual File System
 
-**Database Tables**:
-- `services`: Service metadata and status
-- `service_logs`: Service event logging
+**VFS Storage**:
+- Service configurations: `/services/configs/*.json`
+- Service logs: Integrated with VFS logs system via logs manager
 
 **Service Operations**:
 - Discover and register services
 - Start/stop services
 - Monitor service health
-- Manage service configurations
-- Log service events
+- Manage service configurations via VFS
+- Log service events via VFS logs manager
 
 ## File System and Storage
 
@@ -270,7 +270,7 @@ The system uses three main SQLite databases:
 
 1. **user_preferences.db**: User preferences, window states, app settings
 2. **virtual_files.db**: Virtual file system storage
-3. **Service-specific databases**: Managed by individual services
+3. **Service configurations**: Stored in VFS at `/services/configs/` (JSON format)
 
 ## Startup Sequence
 
