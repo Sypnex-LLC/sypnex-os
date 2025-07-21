@@ -1064,6 +1064,13 @@ Object.assign(SypnexOS.prototype, {
                 }
             }
             
+            // Clean up any lingering OS-level notifications
+            const allNotifications = document.querySelectorAll('.notification');
+            if (allNotifications.length > 0) {
+                allNotifications.forEach(notification => notification.remove());
+                console.log(`App ${appId}: Cleaned up ${allNotifications.length} OS-level notifications`);
+            }
+            
             // Clean up WebSocket connection if app has one
             if (window.sypnexApps && window.sypnexApps[appId] && window.sypnexApps[appId].sypnexAPI) {
                 const sypnexAPI = window.sypnexApps[appId].sypnexAPI;
