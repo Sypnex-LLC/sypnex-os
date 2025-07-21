@@ -1,0 +1,205 @@
+/* System Lock Overlay Styles */
+
+#system-lock-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+    backdrop-filter: blur(20px);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+#system-lock-overlay.system-lock-hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.lock-container {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 40px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    animation: lockFadeIn 0.5s ease;
+}
+
+@keyframes lockFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.lock-header {
+    margin-bottom: 30px;
+}
+
+.lock-icon {
+    font-size: 3rem;
+    color: var(--accent-color);
+    margin-bottom: 15px;
+    display: block;
+}
+
+.lock-header h2 {
+    color: var(--text-primary);
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin: 0 0 10px 0;
+}
+
+.lock-header p {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    margin: 0;
+}
+
+.lock-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 25px;
+}
+
+.lock-pin-inputs {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.lock-pin-input {
+    width: 50px;
+    height: 50px;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    border: 2px solid var(--glass-border);
+    border-radius: 10px;
+    background: var(--glass-bg);
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+    /* Prevent browser autofill detection */
+    -webkit-text-security: disc;
+    font-family: "Courier New", monospace;
+}
+
+.lock-pin-input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.2);
+    transform: scale(1.05);
+}
+
+.lock-pin-input:hover {
+    border-color: var(--accent-color);
+}
+
+.lock-pin-input.filled {
+    background: rgba(0, 212, 255, 0.1);
+    border-color: var(--accent-color);
+}
+
+/* PIN input error state */
+.lock-pin-input.error {
+    border-color: #ff4757;
+    background: rgba(255, 71, 87, 0.1);
+    animation: inputShake 0.5s ease-in-out;
+}
+
+.lock-pin-input.error:focus {
+    border-color: #ff4757;
+    box-shadow: 0 0 0 3px rgba(255, 71, 87, 0.2);
+}
+
+/* Shake animation for input errors */
+@keyframes inputShake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+    20%, 40%, 60%, 80% { transform: translateX(2px); }
+}
+
+.lock-unlock-btn {
+    padding: 12px 30px;
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.lock-unlock-btn:hover:not(:disabled) {
+    background: rgba(0, 212, 255, 0.8);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 212, 255, 0.3);
+}
+
+.lock-unlock-btn:disabled {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-secondary);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.lock-error {
+    background: rgba(255, 71, 87, 0.1);
+    border: 1px solid rgba(255, 71, 87, 0.3);
+    color: #ff4757;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    animation: lockError 0.5s ease;
+}
+
+@keyframes lockError {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .lock-container {
+        padding: 30px 20px;
+        max-width: 350px;
+    }
+    
+    .lock-pin-input {
+        width: 45px;
+        height: 45px;
+        font-size: 1.3rem;
+    }
+    
+    .lock-pin-inputs {
+        gap: 12px;
+    }
+    
+    .lock-icon {
+        font-size: 2.5rem;
+    }
+    
+    .lock-header h2 {
+        font-size: 1.5rem;
+    }
+}

@@ -58,6 +58,7 @@ def serve_bundled_os():
         "os-resource-manager.js",
         "os-app-manager.js",
         "os-system-settings.js",
+        "os-lock.js",
         "os-init.js"  # Must be last!
     ]
     

@@ -40,6 +40,39 @@ def register_preference_routes(app, managers):
         is_valid = managers['user_preferences'].verify_security_preference(category, key, value)
         return jsonify({'success': True, 'valid': is_valid})
 
+    # Lock state management endpoints
+    @app.route('/api/system/lock', methods=['POST'])
+    def lock_system():
+        """Lock the system"""
+        success = managers['user_preferences'].set_preference('system', 'locked', 'true')
+        return jsonify({'success': success, 'locked': True})
+
+    @app.route('/api/system/unlock', methods=['POST'])
+    def unlock_system():
+        """Unlock the system after PIN verification"""
+        data = request.get_json()
+        pin = data.get('pin')
+        
+        if not pin:
+            return jsonify({'success': False, 'error': 'PIN is required'})
+        
+        # Verify PIN
+        is_valid = managers['user_preferences'].verify_security_preference('security', 'pin_code', pin)
+        
+        if is_valid:
+            # Clear lock state
+            managers['user_preferences'].set_preference('system', 'locked', 'false')
+            return jsonify({'success': True, 'valid': True, 'locked': False})
+        else:
+            return jsonify({'success': True, 'valid': False, 'locked': True})
+
+    @app.route('/api/system/lock-status', methods=['GET'])
+    def get_lock_status():
+        """Get current lock status"""
+        locked_value = managers['user_preferences'].get_preference('system', 'locked')
+        locked = locked_value == 'true' if locked_value else False
+        return jsonify({'success': True, 'locked': locked})
+
     @app.route('/api/preferences', methods=['GET'])
     def get_all_preferences():
         """Get all preferences"""

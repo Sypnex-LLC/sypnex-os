@@ -591,6 +591,9 @@ Object.assign(SypnexOS.prototype, {
                 this.showNotification('PIN code set successfully', 'success');
                 this.updatePinStatus(windowElement, true);
                 this.clearPinInputs(pinInputs);
+                // Refresh lock button visibility
+                console.log('System Settings: Calling refreshPinStatus after PIN set');
+                this.refreshLockButtonVisibility();
             } else {
                 throw new Error('Failed to set PIN code');
             }
@@ -651,6 +654,9 @@ Object.assign(SypnexOS.prototype, {
                 this.showNotification('PIN code removed successfully', 'success');
                 this.updatePinStatus(windowElement, false);
                 this.clearPinInputs(pinInputs);
+                // Refresh lock button visibility
+                console.log('System Settings: Calling refreshPinStatus after PIN removal');
+                this.refreshLockButtonVisibility();
             } else {
                 throw new Error('Failed to remove PIN code');
             }
@@ -712,6 +718,36 @@ Object.assign(SypnexOS.prototype, {
             removePinBtn.classList.add('outline');
             removePinBtn.classList.remove('primary');
             removePinBtn.innerHTML = '<i class="fas fa-unlock"></i> Enter PIN to Remove';
+        }
+    },
+
+    // Method to refresh lock button visibility with fallback
+    async refreshLockButtonVisibility() {
+        // Try to use systemLock if available
+        if (window.systemLock) {
+            console.log('System Settings: Using window.systemLock.refreshPinStatus()');
+            window.systemLock.refreshPinStatus();
+            return;
+        }
+
+        // Fallback: directly update lock button visibility
+        console.log('System Settings: Fallback - directly updating lock button');
+        try {
+            const response = await fetch('/api/preferences/security/pin_code');
+            if (response.ok) {
+                const data = await response.json();
+                const hasPin = data.value ? true : false;
+                
+                const lockButton = document.getElementById('lock-button');
+                if (lockButton) {
+                    lockButton.style.display = hasPin ? 'block' : 'none';
+                    console.log('System Settings: Lock button visibility set to:', hasPin ? 'visible' : 'hidden');
+                } else {
+                    console.warn('System Settings: Lock button element not found');
+                }
+            }
+        } catch (error) {
+            console.error('System Settings: Error refreshing lock button visibility:', error);
         }
     }
 });

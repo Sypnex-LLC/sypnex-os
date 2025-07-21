@@ -9,6 +9,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <!-- Sypnex OS CSS Modules - Load in dependency order -->
     <link href="{{ url_for('static', filename='css/os-base.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/os-lock.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/os-spotlight.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/os-status.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/os-desktop.css') }}" rel="stylesheet">
@@ -66,6 +67,31 @@
             </div>
         </div>
 
+        <!-- System Lock Overlay -->
+        <div id="system-lock-overlay" class="system-lock-hidden">
+            <div class="lock-container">
+                <div class="lock-header">
+                    <i class="fas fa-lock lock-icon"></i>
+                    <h2>System Locked</h2>
+                    <p>Enter your PIN to unlock</p>
+                </div>
+                <div class="lock-content">
+                    <div class="lock-pin-inputs">
+                        <input type="text" class="lock-pin-input" maxlength="1" pattern="[0-9]" data-index="0">
+                        <input type="text" class="lock-pin-input" maxlength="1" pattern="[0-9]" data-index="1">
+                        <input type="text" class="lock-pin-input" maxlength="1" pattern="[0-9]" data-index="2">
+                        <input type="text" class="lock-pin-input" maxlength="1" pattern="[0-9]" data-index="3">
+                    </div>
+                    <button id="unlock-button" class="lock-unlock-btn" disabled>
+                        <i class="fas fa-unlock"></i> Unlock
+                    </button>
+                    <div id="lock-error-message" class="lock-error" style="display: none;">
+                        Incorrect PIN. Please try again.
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- App Windows Container -->
         <div id="app-windows">
             <!-- Apps will be loaded here -->
@@ -113,6 +139,9 @@
                 </button>
                 <button id="system-settings-button" class="status-button" title="System Settings">
                     <i class="fas fa-cog"></i>
+                </button>
+                <button id="lock-button" class="status-button" title="Lock System" style="display: none;">
+                    <i class="fas fa-lock"></i>
                 </button>
             </div>
         </div>
