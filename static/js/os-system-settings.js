@@ -59,6 +59,36 @@ Object.assign(SypnexOS.prototype, {
                 this.saveWallpaperSizing(e.target.value);
             });
         }
+
+        // PIN code inputs
+        const pinInputs = windowElement.querySelectorAll('.pin-input');
+        pinInputs.forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                this.handlePinInput(e, index, pinInputs);
+            });
+            input.addEventListener('keydown', (e) => {
+                this.handlePinKeydown(e, index, pinInputs);
+            });
+            input.addEventListener('paste', (e) => {
+                this.handlePinPaste(e, pinInputs);
+            });
+        });
+
+        // Set PIN button
+        const setPinBtn = windowElement.querySelector('#set-pin-btn');
+        if (setPinBtn) {
+            setPinBtn.addEventListener('click', () => {
+                this.setSystemPin(windowElement);
+            });
+        }
+
+        // Remove PIN button
+        const removePinBtn = windowElement.querySelector('#remove-pin-btn');
+        if (removePinBtn) {
+            removePinBtn.addEventListener('click', () => {
+                this.removeSystemPin(windowElement);
+            });
+        }
     },
     
     async loadSystemPreferences(windowElement) {
@@ -95,6 +125,12 @@ Object.assign(SypnexOS.prototype, {
             if (wallpaperSizingSelect) {
                 wallpaperSizingSelect.value = sizingData.value || 'cover';
             }
+
+            // Load PIN code setting
+            const pinResponse = await fetch('/api/preferences/security/pin_code');
+            const pinData = await pinResponse.json();
+            
+            this.updatePinStatus(windowElement, pinData.value ? true : false);
             
         } catch (error) {
             console.error('Error loading system preferences:', error);
@@ -407,6 +443,275 @@ Object.assign(SypnexOS.prototype, {
                 desktopBackground.style.backgroundSize = 'cover';
                 desktopBackground.style.backgroundPosition = 'center';
                 desktopBackground.style.backgroundRepeat = 'no-repeat';
+        }
+    },
+
+    // PIN Code Management Methods
+    handlePinInput(event, index, pinInputs) {
+        const input = event.target;
+        const value = input.value;
+
+        // Only allow numeric input
+        if (!/^\d$/.test(value) && value !== '') {
+            input.value = '';
+            return;
+        }
+
+        // Update visual state
+        if (value) {
+            input.classList.add('filled');
+            // Move to next input if current is filled
+            if (index < pinInputs.length - 1) {
+                pinInputs[index + 1].focus();
+            }
+        } else {
+            input.classList.remove('filled');
+        }
+
+        // Check if all inputs are filled
+        this.checkPinComplete(pinInputs);
+    },
+
+    handlePinKeydown(event, index, pinInputs) {
+        const input = event.target;
+
+        // Handle backspace
+        if (event.key === 'Backspace') {
+            if (!input.value && index > 0) {
+                // Move to previous input if current is empty
+                pinInputs[index - 1].focus();
+                pinInputs[index - 1].value = '';
+                pinInputs[index - 1].classList.remove('filled');
+            } else if (input.value) {
+                // Clear current input
+                input.value = '';
+                input.classList.remove('filled');
+            }
+            this.checkPinComplete(pinInputs);
+            event.preventDefault();
+        }
+        
+        // Handle arrow keys
+        if (event.key === 'ArrowLeft' && index > 0) {
+            pinInputs[index - 1].focus();
+            event.preventDefault();
+        }
+        
+        if (event.key === 'ArrowRight' && index < pinInputs.length - 1) {
+            pinInputs[index + 1].focus();
+            event.preventDefault();
+        }
+
+        // Prevent non-numeric input
+        if (!/[\d]/.test(event.key) && !['Backspace', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(event.key)) {
+            event.preventDefault();
+        }
+    },
+
+    handlePinPaste(event, pinInputs) {
+        event.preventDefault();
+        const paste = (event.clipboardData || window.clipboardData).getData('text');
+        const digits = paste.replace(/\D/g, '').slice(0, 4);
+
+        digits.split('').forEach((digit, index) => {
+            if (index < pinInputs.length) {
+                pinInputs[index].value = digit;
+                pinInputs[index].classList.add('filled');
+            }
+        });
+
+        // Focus the next empty input or the last one
+        const nextEmpty = digits.length < 4 ? digits.length : 3;
+        pinInputs[nextEmpty].focus();
+
+        this.checkPinComplete(pinInputs);
+    },
+
+    checkPinComplete(pinInputs) {
+        const pin = Array.from(pinInputs).map(input => input.value).join('');
+        const setPinBtn = document.querySelector('#set-pin-btn');
+        const removePinBtn = document.querySelector('#remove-pin-btn');
+        
+        // Handle Set PIN button (when no PIN is set)
+        if (setPinBtn && setPinBtn.style.display !== 'none') {
+            setPinBtn.disabled = pin.length !== 4;
+            if (pin.length === 4) {
+                setPinBtn.classList.add('primary');
+                setPinBtn.classList.remove('secondary');
+            } else {
+                setPinBtn.classList.add('secondary');
+                setPinBtn.classList.remove('primary');
+            }
+        }
+        
+        // Handle Remove PIN button (when PIN is set)
+        if (removePinBtn && removePinBtn.style.display !== 'none') {
+            this.checkPinCompleteForRemoval(pinInputs, removePinBtn);
+        }
+    },
+
+    checkPinCompleteForRemoval(pinInputs, removePinBtn) {
+        const pin = Array.from(pinInputs).map(input => input.value).join('');
+        
+        if (removePinBtn) {
+            removePinBtn.disabled = pin.length !== 4;
+            if (pin.length === 4) {
+                removePinBtn.classList.add('primary');
+                removePinBtn.classList.remove('outline');
+                removePinBtn.innerHTML = '<i class="fas fa-unlock"></i> Verify & Remove';
+            } else {
+                removePinBtn.classList.add('outline');
+                removePinBtn.classList.remove('primary');
+                removePinBtn.innerHTML = '<i class="fas fa-unlock"></i> Enter PIN to Remove';
+            }
+        }
+    },
+
+    async setSystemPin(windowElement) {
+        const pinInputs = windowElement.querySelectorAll('.pin-input');
+        const pin = Array.from(pinInputs).map(input => input.value).join('');
+
+        if (pin.length !== 4) {
+            this.showNotification('Please enter a 4-digit PIN code', 'error');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/preferences/security/pin_code', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    value: pin
+                })
+            });
+
+            if (response.ok) {
+                this.showNotification('PIN code set successfully', 'success');
+                this.updatePinStatus(windowElement, true);
+                this.clearPinInputs(pinInputs);
+            } else {
+                throw new Error('Failed to set PIN code');
+            }
+
+        } catch (error) {
+            console.error('Error setting PIN code:', error);
+            this.showNotification('Failed to set PIN code', 'error');
+        }
+    },
+
+    async removeSystemPin(windowElement) {
+        const pinInputs = windowElement.querySelectorAll('.pin-input');
+        const enteredPin = Array.from(pinInputs).map(input => input.value).join('');
+
+        if (enteredPin.length !== 4) {
+            this.showNotification('Please enter your current PIN code to remove it', 'error');
+            return;
+        }
+
+        try {
+            // Verify the PIN using the new verification endpoint
+            const verifyResponse = await fetch('/api/preferences/security/pin_code/verify', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    value: enteredPin
+                })
+            });
+
+            const verifyData = await verifyResponse.json();
+
+            if (!verifyResponse.ok || !verifyData.success) {
+                this.showNotification('Failed to verify PIN code', 'error');
+                this.clearPinInputs(pinInputs);
+                return;
+            }
+
+            if (!verifyData.valid) {
+                this.showNotification('Incorrect PIN code. Please try again.', 'error');
+                this.clearPinInputs(pinInputs);
+                return;
+            }
+
+            // PIN is valid, proceed with removal
+            const response = await fetch('/api/preferences/security/pin_code', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    value: ''
+                })
+            });
+
+            if (response.ok) {
+                this.showNotification('PIN code removed successfully', 'success');
+                this.updatePinStatus(windowElement, false);
+                this.clearPinInputs(pinInputs);
+            } else {
+                throw new Error('Failed to remove PIN code');
+            }
+
+        } catch (error) {
+            console.error('Error removing PIN code:', error);
+            this.showNotification('Failed to remove PIN code', 'error');
+        }
+    },
+
+    updatePinStatus(windowElement, hasPinSet) {
+        const pinStatus = windowElement.querySelector('#pin-status');
+        const pinStatusText = windowElement.querySelector('.pin-status-text');
+        const setPinBtn = windowElement.querySelector('#set-pin-btn');
+        const removePinBtn = windowElement.querySelector('#remove-pin-btn');
+        const pinInputs = windowElement.querySelectorAll('.pin-input');
+
+        if (hasPinSet) {
+            pinStatus.className = 'pin-status pin-set';
+            pinStatusText.innerHTML = '<i class="fas fa-check-circle"></i> PIN code is set';
+            setPinBtn.style.display = 'none';
+            removePinBtn.style.display = 'inline-flex';
+            
+            // Update button text and functionality for removal
+            removePinBtn.innerHTML = '<i class="fas fa-unlock"></i> Remove PIN';
+            
+            // Enable remove button when PIN is complete
+            this.checkPinCompleteForRemoval(pinInputs, removePinBtn);
+        } else {
+            pinStatus.className = 'pin-status no-pin';
+            pinStatusText.innerHTML = '<i class="fas fa-exclamation-circle"></i> No PIN code set';
+            setPinBtn.style.display = 'inline-flex';
+            removePinBtn.style.display = 'none';
+            
+            // Reset button functionality for setting
+            this.checkPinComplete(pinInputs);
+        }
+    },
+
+    clearPinInputs(pinInputs) {
+        pinInputs.forEach(input => {
+            input.value = '';
+            input.classList.remove('filled');
+        });
+        
+        const setPinBtn = document.querySelector('#set-pin-btn');
+        const removePinBtn = document.querySelector('#remove-pin-btn');
+        
+        // Reset Set PIN button
+        if (setPinBtn && setPinBtn.style.display !== 'none') {
+            setPinBtn.disabled = true;
+            setPinBtn.classList.add('secondary');
+            setPinBtn.classList.remove('primary');
+        }
+        
+        // Reset Remove PIN button
+        if (removePinBtn && removePinBtn.style.display !== 'none') {
+            removePinBtn.disabled = true;
+            removePinBtn.classList.add('outline');
+            removePinBtn.classList.remove('primary');
+            removePinBtn.innerHTML = '<i class="fas fa-unlock"></i> Enter PIN to Remove';
         }
     }
 });

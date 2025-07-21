@@ -1,6 +1,8 @@
 import sqlite3
 import json
 import os
+import hashlib
+import secrets
 from datetime import datetime
 from typing import Dict, Any, Optional
 
@@ -57,6 +59,37 @@ class UserPreferences:
             ''')
             
             conn.commit()
+            
+        # Initialize server-side security salt
+        self._ensure_security_salt()
+    
+    def _ensure_security_salt(self):
+        """Ensure a server-side salt exists for security preferences"""
+        try:
+            # Check if salt already exists
+            existing_salt = self.get_preference('_internal', 'security_salt')
+            if not existing_salt:
+                # Generate a new random salt
+                salt = secrets.token_hex(32)  # 64-character hex string
+                self.set_preference('_internal', 'security_salt', salt)
+                if self.logs_manager:
+                    self.logs_manager.log_info("Generated new security salt for preferences")
+        except Exception as e:
+            print(f"Error ensuring security salt: {e}")
+    
+    def _get_security_salt(self) -> str:
+        """Get the server-side security salt"""
+        return self.get_preference('_internal', 'security_salt', 'default_fallback_salt')
+    
+    def _hash_security_value(self, value: str) -> str:
+        """Hash a security value with server-side salt"""
+        salt = self._get_security_salt()
+        # Use SHA-256 with salt
+        return hashlib.sha256((value + salt).encode()).hexdigest()
+    
+    def _is_security_preference(self, category: str) -> bool:
+        """Check if a preference category is security-related"""
+        return category == 'security'
     
     def get_preference(self, category: str, key: str, default: Any = None) -> Any:
         """Get a preference value"""
@@ -70,7 +103,14 @@ class UserPreferences:
                 result = cursor.fetchone()
                 
                 if result:
-                    return json.loads(result[0])
+                    stored_value = json.loads(result[0])
+                    
+                    # For security preferences, we return a boolean indicating if value exists
+                    # but never return the actual hash
+                    if self._is_security_preference(category):
+                        return bool(stored_value)  # Return True if hash exists, False if empty
+                    
+                    return stored_value
                 return default
         except Exception as e:
             print(f"Error getting preference {category}.{key}: {e}")
@@ -79,16 +119,57 @@ class UserPreferences:
     def set_preference(self, category: str, key: str, value: Any) -> bool:
         """Set a preference value"""
         try:
+            # Handle security preferences with hashing
+            if self._is_security_preference(category):
+                # If value is empty string, store empty (for removal)
+                if value == '':
+                    stored_value = ''
+                else:
+                    # Hash the security value
+                    stored_value = self._hash_security_value(str(value))
+            else:
+                # Regular preferences stored as-is
+                stored_value = value
+            
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
                 cursor.execute('''
                     INSERT OR REPLACE INTO preferences (category, key, value, updated_at)
                     VALUES (?, ?, ?, ?)
-                ''', (category, key, json.dumps(value), datetime.now().isoformat()))
+                ''', (category, key, json.dumps(stored_value), datetime.now().isoformat()))
                 conn.commit()
                 return True
         except Exception as e:
             print(f"Error setting preference {category}.{key}: {e}")
+            return False
+    
+    def verify_security_preference(self, category: str, key: str, value: str) -> bool:
+        """Verify a security preference value against the stored hash"""
+        if not self._is_security_preference(category):
+            return False
+            
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    'SELECT value FROM preferences WHERE category = ? AND key = ?',
+                    (category, key)
+                )
+                result = cursor.fetchone()
+                
+                if not result:
+                    return False
+                
+                stored_hash = json.loads(result[0])
+                if not stored_hash:  # Empty hash means no security value set
+                    return False
+                
+                # Hash the provided value and compare
+                provided_hash = self._hash_security_value(str(value))
+                return stored_hash == provided_hash
+                
+        except Exception as e:
+            print(f"Error verifying security preference {category}.{key}: {e}")
             return False
     
     def delete_preference(self, category: str, key: str) -> bool:

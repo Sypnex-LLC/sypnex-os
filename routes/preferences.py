@@ -28,6 +28,18 @@ def register_preference_routes(app, managers):
         success = managers['user_preferences'].delete_preference(category, key)
         return jsonify({'success': success})
 
+    @app.route('/api/preferences/<category>/<key>/verify', methods=['POST'])
+    def verify_security_preference(category, key):
+        """Verify a security preference value (for PIN codes, etc.)"""
+        data = request.get_json()
+        value = data.get('value')
+        
+        if not value:
+            return jsonify({'success': False, 'error': 'Value is required'})
+        
+        is_valid = managers['user_preferences'].verify_security_preference(category, key, value)
+        return jsonify({'success': True, 'valid': is_valid})
+
     @app.route('/api/preferences', methods=['GET'])
     def get_all_preferences():
         """Get all preferences"""

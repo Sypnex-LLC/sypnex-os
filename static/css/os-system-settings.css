@@ -202,3 +202,142 @@ input:checked + .toggle-slider:before {
     border-color: var(--accent-color);
     background: rgba(0, 212, 255, 0.05);
 }
+
+/* PIN Code Styles */
+.pin-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-end;
+}
+
+.pin-input-container {
+    display: flex;
+    gap: 10px;
+}
+
+.pin-input {
+    width: 40px;
+    height: 40px;
+    text-align: center;
+    font-size: 1.2em;
+    font-weight: bold;
+    border: 2px solid var(--glass-border);
+    border-radius: 8px;
+    background: var(--glass-bg);
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+    /* Prevent browser autofill detection */
+    -webkit-text-security: disc;
+    font-family: "Courier New", monospace;
+}
+
+.pin-input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.2);
+    transform: scale(1.05);
+}
+
+.pin-input:hover {
+    border-color: var(--accent-color);
+}
+
+.pin-input.filled {
+    background: rgba(0, 212, 255, 0.1);
+    border-color: var(--accent-color);
+}
+
+.pin-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.pin-status {
+    font-size: 0.85em;
+    padding: 5px 10px;
+    border-radius: 4px;
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.pin-status.no-pin {
+    color: var(--text-secondary);
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--glass-border);
+}
+
+.pin-status.pin-set {
+    color: #4CAF50;
+    background: rgba(76, 175, 80, 0.1);
+    border-color: rgba(76, 175, 80, 0.3);
+}
+
+.pin-status-text {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Wallpaper Styles */
+.wallpaper-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.wallpaper-sizing-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.wallpaper-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 15px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    max-width: 200px;
+}
+
+.wallpaper-preview img {
+    max-width: 100%;
+    max-height: 100px;
+    border-radius: 4px;
+    border: 1px solid var(--glass-border);
+}
+
+.wallpaper-preview span {
+    font-size: 0.8em;
+    color: var(--text-secondary);
+    text-align: center;
+    word-break: break-word;
+}
+
+.app-select {
+    padding: 8px 12px;
+    border: 1px solid var(--glass-border);
+    border-radius: 6px;
+    background: var(--glass-bg);
+    color: var(--text-primary);
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 200px;
+}
+
+.app-select:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.2);
+}
+
+.app-select:hover {
+    border-color: var(--accent-color);
+    background: rgba(0, 212, 255, 0.05);
+}
