@@ -527,7 +527,4 @@
     pointer-events: all;
 }
 
-/* Maximized window should not be resizable */
-.app-window.maximized .resize-handle {
-    display: none;
-} 
+/* Maximized windows can now be resized - resize handles remain visible */ 

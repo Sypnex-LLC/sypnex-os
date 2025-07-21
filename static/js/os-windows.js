@@ -131,13 +131,7 @@ Object.assign(SypnexOS.prototype, {
             
             if (savedState.maximized) {
                 windowElement.classList.add('maximized');
-                // Hide resize handles for maximized windows
-                setTimeout(() => {
-                    const resizeHandles = windowElement.querySelectorAll('.resize-handle');
-                    resizeHandles.forEach(handle => {
-                        handle.style.display = 'none';
-                    });
-                }, 100);
+                // Keep resize handles visible even when maximized
             }
         } else {
             // Use smart default positioning - center the window with reasonable size
@@ -278,8 +272,12 @@ Object.assign(SypnexOS.prototype, {
             const handle = e.target;
             if (!handle.classList.contains('resize-handle')) return;
 
-            // Don't allow resizing if window is maximized
-            if (windowElement.classList.contains('maximized')) return;
+            // If window is maximized, un-maximize it when user starts resizing
+            if (windowElement.classList.contains('maximized')) {
+                windowElement.classList.remove('maximized');
+                // Save the state change (no longer maximized)
+                this.saveWindowState(windowElement.dataset.appId);
+            }
 
             isResizing = true;
             resizeDirection = handle.dataset.resizeDirection;
@@ -960,11 +958,7 @@ Object.assign(SypnexOS.prototype, {
                     windowElement.style.top = `${defaultPos.y}px`;
                 }
                 
-                // Show resize handles
-                const resizeHandles = windowElement.querySelectorAll('.resize-handle');
-                resizeHandles.forEach(handle => {
-                    handle.style.display = 'block';
-                });
+                // Resize handles are always visible, no need to show them
             } else {
                 // Save current state before maximizing
                 await this.saveWindowState(appId);
@@ -984,11 +978,7 @@ Object.assign(SypnexOS.prototype, {
                 windowElement.style.left = '20px';
                 windowElement.style.top = '20px';
                 
-                // Hide resize handles
-                const resizeHandles = windowElement.querySelectorAll('.resize-handle');
-                resizeHandles.forEach(handle => {
-                    handle.style.display = 'none';
-                });
+                // Keep resize handles visible even when maximized
             }
             // Save state when maximizing/restoring
             this.saveWindowState(appId);
