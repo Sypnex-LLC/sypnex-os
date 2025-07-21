@@ -1,34 +1,57 @@
 #!/usr/bin/env python3
 """
 Service Configuration Manager
-Handles configuration files for services, similar to user apps
+Handles configuration files for services using VFS storage
 """
 
-import os
 import json
-from pathlib import Path
 from typing import Dict, Any, Optional
 
 
 class ServiceConfigManager:
     """
-    Manages configuration files for services.
+    Manages configuration files for services using VFS.
     
     Services can have configuration files in JSON format that can be
     updated via the UI (future feature) and loaded by the service.
     """
     
-    def __init__(self, config_dir="services/configs"):
-        self.config_dir = Path(config_dir)
-        self.config_dir.mkdir(exist_ok=True)
+    def __init__(self, vfs_manager=None, config_dir="/services/configs"):
+        self.vfs_manager = vfs_manager
+        self.config_dir = config_dir
+        self.ensure_config_directory()
     
-    def get_config_path(self, service_id: str) -> Path:
+    def ensure_config_directory(self):
+        """Create config directory structure in VFS if it doesn't exist"""
+        if self.vfs_manager:
+            print(f"[CONFIG_MANAGER] Checking VFS directories...")
+            
+            # First ensure /services directory exists
+            services_dir = "/services"
+            if not self.vfs_manager.get_file_info(services_dir):
+                print(f"[CONFIG_MANAGER] Creating {services_dir} directory...")
+                self.vfs_manager.create_directory(services_dir)
+                print(f"[CONFIG_MANAGER] Created {services_dir} directory")
+            else:
+                print(f"[CONFIG_MANAGER] {services_dir} directory already exists")
+            
+            # Then ensure /services/configs directory exists
+            if not self.vfs_manager.get_file_info(self.config_dir):
+                print(f"[CONFIG_MANAGER] Creating {self.config_dir} directory...")
+                self.vfs_manager.create_directory(self.config_dir)
+                print(f"[CONFIG_MANAGER] Created {self.config_dir} directory")
+            else:
+                print(f"[CONFIG_MANAGER] {self.config_dir} directory already exists")
+        else:
+            print(f"[CONFIG_MANAGER] No VFS manager available - cannot create directories")
+    
+    def get_config_path(self, service_id: str) -> str:
         """Get the configuration file path for a service."""
-        return self.config_dir / f"{service_id}.json"
+        return f"{self.config_dir}/{service_id}.json"
     
     def load_config(self, service_id: str) -> Dict[str, Any]:
         """
-        Load configuration for a service.
+        Load configuration for a service from VFS.
         
         Args:
             service_id: The service identifier
@@ -36,91 +59,49 @@ class ServiceConfigManager:
         Returns:
             Dictionary containing the service configuration
         """
+        if not self.vfs_manager:
+            return {}
+            
         config_path = self.get_config_path(service_id)
         
-        if not config_path.exists():
+        if not self.vfs_manager.get_file_info(config_path):
             return {}
         
         try:
-            with open(config_path, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        except (json.JSONDecodeError, IOError) as e:
+            file_data = self.vfs_manager.read_file(config_path)
+            if file_data and file_data['content']:
+                content = file_data['content'].decode('utf-8')
+                return json.loads(content)
+            return {}
+        except (json.JSONDecodeError, Exception) as e:
             print(f"Error loading config for service {service_id}: {e}")
             return {}
     
-    def save_config(self, service_id: str, config: Dict[str, Any]) -> bool:
-        """
-        Save configuration for a service.
-        
-        Args:
-            service_id: The service identifier
-            config: Configuration dictionary to save
-            
-        Returns:
-            True if saved successfully, False otherwise
-        """
-        config_path = self.get_config_path(service_id)
-        
-        try:
-            with open(config_path, 'w', encoding='utf-8') as f:
-                json.dump(config, f, indent=2, ensure_ascii=False)
-            return True
-        except IOError as e:
-            print(f"Error saving config for service {service_id}: {e}")
-            return False
-    
-    def update_config(self, service_id: str, updates: Dict[str, Any]) -> bool:
-        """
-        Update specific configuration values for a service.
-        
-        Args:
-            service_id: The service identifier
-            updates: Dictionary of configuration updates
-            
-        Returns:
-            True if updated successfully, False otherwise
-        """
-        current_config = self.load_config(service_id)
-        current_config.update(updates)
-        return self.save_config(service_id, current_config)
-    
-    def delete_config(self, service_id: str) -> bool:
-        """
-        Delete configuration file for a service.
-        
-        Args:
-            service_id: The service identifier
-            
-        Returns:
-            True if deleted successfully, False otherwise
-        """
-        config_path = self.get_config_path(service_id)
-        
-        if config_path.exists():
-            try:
-                config_path.unlink()
-                return True
-            except IOError as e:
-                print(f"Error deleting config for service {service_id}: {e}")
-                return False
-        return True
-    
     def list_configs(self) -> list:
         """
-        List all available configuration files.
+        List all available configuration files from VFS.
         
         Returns:
             List of service IDs that have configuration files
         """
+        if not self.vfs_manager:
+            return []
+            
         configs = []
-        for config_file in self.config_dir.glob("*.json"):
-            service_id = config_file.stem
-            configs.append(service_id)
+        try:
+            if self.vfs_manager.get_file_info(self.config_dir):
+                files = self.vfs_manager.list_directory(self.config_dir)
+                for file_info in files:
+                    if file_info['name'].endswith('.json'):
+                        service_id = file_info['name'][:-5]  # Remove .json extension
+                        configs.append(service_id)
+        except Exception as e:
+            print(f"Error listing configs: {e}")
         return configs
     
     def config_exists(self, service_id: str) -> bool:
         """
-        Check if a configuration file exists for a service.
+        Check if a configuration file exists for a service in VFS.
         
         Args:
             service_id: The service identifier
@@ -128,16 +109,18 @@ class ServiceConfigManager:
         Returns:
             True if configuration exists, False otherwise
         """
-        return self.get_config_path(service_id).exists()
+        if not self.vfs_manager:
+            return False
+        return bool(self.vfs_manager.get_file_info(self.get_config_path(service_id)))
 
 
 # Global configuration manager instance
 config_manager_instance = None
 
 
-def get_config_manager() -> ServiceConfigManager:
+def get_config_manager(vfs_manager=None) -> ServiceConfigManager:
     """Get the global configuration manager instance."""
     global config_manager_instance
     if config_manager_instance is None:
-        config_manager_instance = ServiceConfigManager()
+        config_manager_instance = ServiceConfigManager(vfs_manager)
     return config_manager_instance 

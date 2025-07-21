@@ -29,21 +29,7 @@ class ServiceBase(ABC):
         self.config_manager = get_config_manager()
         self.config = {}
     
-    @abstractmethod
-    def get_info(self) -> Dict[str, Any]:
-        """
-        Return service metadata.
-        
-        Returns:
-            Dict containing service information:
-            - id: Unique service identifier
-            - name: Human-readable service name
-            - description: What the service does
-            - version: Service version
-            - author: Service author
-            - auto_start: Whether to auto-start on discovery
-        """
-        pass
+
     
     def start(self) -> bool:
         """
@@ -135,9 +121,8 @@ class ServiceBase(ABC):
     
     def on_start(self):
         """Called when service starts. Override for service-specific startup logic."""
-        # Load configuration
-        service_info = self.get_info()
-        self.config = self.config_manager.load_config(service_info['id'])
+        # Config is loaded by service manager during service discovery
+        pass
     
     def on_stop(self):
         """Called when service stops. Override for service-specific cleanup logic."""
@@ -150,15 +135,7 @@ class ServiceBase(ABC):
     def get_config(self) -> Dict[str, Any]:
         """Get current service configuration."""
         return self.config.copy()
-    
-    def update_config(self, updates: Dict[str, Any]) -> bool:
-        """Update service configuration."""
-        service_info = self.get_info()
-        success = self.config_manager.update_config(service_info['id'], updates)
-        if success:
-            self.config.update(updates)
-        return success
-    
+
     @abstractmethod
     def _run(self):
         """

@@ -7,7 +7,7 @@ from command_registry import (
     CommandRegistry, BaseCommand, UserTerminalAppCommand,
     HelpCommand, ShowAppsCommand,
     ShowServicesCommand, StartServiceCommand, StopServiceCommand, 
-    ServiceLogsCommand, RefreshServicesCommand, ServiceConfigCommand,
+    ReloadServiceCommand,
     LsCommand, CdCommand, PwdCommand, CatCommand, MvCommand, RmCommand,
     EchoCommand, TouchCommand, MkdirCommand, ClsCommand, PythonCommand,
     PipCommand
@@ -45,9 +45,7 @@ class TerminalManager:
         self.registry.register(ShowServicesCommand())
         self.registry.register(StartServiceCommand())
         self.registry.register(StopServiceCommand())
-        self.registry.register(ServiceLogsCommand())
-        self.registry.register(RefreshServicesCommand())
-        self.registry.register(ServiceConfigCommand())
+        self.registry.register(ReloadServiceCommand())
         
         # File system commands
         self.registry.register(LsCommand())

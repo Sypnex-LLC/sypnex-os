@@ -135,8 +135,8 @@ def initialize_managers():
     # Terminal manager depends on other managers, so initialize it last
     terminal_manager = TerminalManager(user_app_manager, websocket_manager, logs_manager)
 
-    # Initialize service manager with logger
-    service_manager = get_service_manager(logs_manager)
+    # Initialize service manager with logger and VFS manager
+    service_manager = get_service_manager(logs_manager, virtual_file_manager)
     
     return {
         'user_app_manager': user_app_manager,

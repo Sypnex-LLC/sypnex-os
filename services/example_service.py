@@ -19,17 +19,7 @@ class ExampleService(ServiceBase):
         super().__init__()
         self.counter = 0
         self.last_check = None
-    
-    def get_info(self):
-        return {
-            'id': 'example_service',
-            'name': 'Example Service',
-            'description': 'A simple example service that demonstrates service functionality',
-            'version': '1.0.0',
-            'author': 'Sypnex OS Team',
-            'auto_start': False
-        }
-    
+
     def on_start(self):
         """Called when service starts."""
         print("Example Service: Starting up...")

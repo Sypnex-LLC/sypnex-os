@@ -325,12 +325,14 @@ class ShowServicesCommand(BaseCommand):
                 
                 for service in services:
                     status_icon = "🟢" if service['running'] else "🔴"
-                    output += f"{status_icon} {service['name']} ({service['id']})\n"
+                    auto_start_icon = "🔄" if service.get('auto_start', False) else "⏸️"
+                    output += f"{status_icon} {auto_start_icon} {service['name']} ({service['id']})\n"
                     if service['description']:
                         output += f"    {service['description']}\n"
                     output += f"    Version: {service['version']}\n"
                     output += f"    Author: {service['author']}\n"
                     output += f"    Status: {'Running' if service['running'] else 'Stopped'}\n"
+                    output += f"    Auto-start: {'Yes' if service.get('auto_start', False) else 'No'}\n"
                     if service['running'] and service['uptime']:
                         output += f"    Uptime: {int(service['uptime'])} seconds\n"
                     if service['last_error']:
@@ -394,184 +396,33 @@ class StopServiceCommand(BaseCommand):
         except Exception as e:
             return {'error': f'Failed to stop service: {str(e)}', 'success': False}
 
-class ServiceLogsCommand(BaseCommand):
-    """Built-in service logs command"""
+class ReloadServiceCommand(BaseCommand):
+    """Command to reload a specific service"""
     
     def __init__(self):
-        super().__init__('service logs', 'Show logs for a service')
+        super().__init__('reload service', 'Reload a specific service from disk')
     
     def execute(self, args, context):
-        if not args:
-            return {'error': 'Usage: service logs <service_id> [limit]', 'success': False}
-        
-        service_id = args[0]
-        limit = int(args[1]) if len(args) > 1 else 20
-        
-        try:
-            service_manager = get_service_manager()
-            logs = service_manager.get_service_logs(service_id, limit)
-            
-            if not logs:
-                output = f"No logs found for service '{service_id}'.\n"
-            else:
-                output = f"Logs for service '{service_id}':\n"
-                output += "=" * (len(service_id) + 20) + "\n\n"
-                
-                for log in logs:
-                    timestamp = log['timestamp'].replace('T', ' ').replace('Z', '')
-                    level_icon = "ℹ️" if log['level'] == 'INFO' else "❌"
-                    output += f"{level_icon} [{timestamp}] {log['message']}\n"
-            
-            return {'output': output, 'success': True}
-            
-        except Exception as e:
-            return {'error': f'Failed to load service logs: {str(e)}', 'success': False}
-
-class RefreshServicesCommand(BaseCommand):
-    """Command to refresh the list of available services"""
-    
-    def __init__(self):
-        super().__init__('refresh services', 'Refresh the list of available services')
-    
-    def execute(self, args, context):
-        service_manager = get_service_manager()
-        service_manager.refresh_services()
-        return {
-            'output': 'Services refreshed successfully',
-            'success': True
-        }
-
-class ServiceConfigCommand(BaseCommand):
-    """Command to view and modify service configurations"""
-    
-    def __init__(self):
-        super().__init__('service config', 'View and modify service configurations')
-    
-    def execute(self, args, context):
-        if not args:
+        if len(args) < 1:
             return {
-                'error': 'Usage: service config <service_id> [set <key> <value>]',
+                'output': 'Usage: reload service <service_id>\nExample: reload service example_service',
                 'success': False
             }
         
         service_id = args[0]
         service_manager = get_service_manager()
         
-        # Check if service exists
-        if service_id not in service_manager.services:
+        result = service_manager.reload_service(service_id)
+        if result['success']:
             return {
-                'error': f'Service "{service_id}" not found',
-                'success': False
-            }
-        
-        # If no additional args, show current config
-        if len(args) == 1:
-            return self._show_config(service_id, service_manager)
-        
-        # Handle set command
-        if len(args) >= 4 and args[1] == 'set':
-            key = args[2]
-            value_str = args[3]
-            return self._set_config(service_id, key, value_str, service_manager)
-        
-        return {
-            'error': 'Usage: service config <service_id> [set <key> <value>]',
-            'success': False
-        }
-    
-    def _show_config(self, service_id, service_manager):
-        """Show current configuration for a service"""
-        config = service_manager.config_manager.load_config(service_id)
-        
-        if not config:
-            return {
-                'output': f'No configuration found for service "{service_id}"',
+                'output': f"Service '{service_id}' reloaded successfully",
                 'success': True
             }
-        
-        # Format config as JSON for display
-        import json
-        formatted_config = json.dumps(config, indent=2)
-        
-        return {
-            'output': f'Configuration for service "{service_id}":\n{formatted_config}',
-            'success': True
-        }
-    
-    def _set_config(self, service_id, key, value_str, service_manager):
-        """Set a configuration value for a service"""
-        try:
-            # Parse the value (handle different types)
-            value = self._parse_value(value_str)
-            
-            # Handle dot notation for nested keys
-            if '.' in key:
-                success = self._set_nested_config(service_id, key, value, service_manager)
-            else:
-                success = service_manager.config_manager.update_config(service_id, {key: value})
-            
-            if success:
-                return {
-                    'output': f'Updated configuration for service "{service_id}": {key} = {value}',
-                    'success': True
-                }
-            else:
-                return {
-                    'error': f'Failed to update configuration for service "{service_id}"',
-                    'success': False
-                }
-                
-        except ValueError as e:
+        else:
             return {
-                'error': f'Invalid value: {e}',
+                'output': f"Failed to reload service '{service_id}': {result['error']}",
                 'success': False
             }
-    
-    def _parse_value(self, value_str):
-        """Parse a string value into appropriate type"""
-        # Remove quotes if present
-        if (value_str.startswith('"') and value_str.endswith('"')) or \
-           (value_str.startswith("'") and value_str.endswith("'")):
-            return value_str[1:-1]
-        
-        # Try to parse as boolean
-        if value_str.lower() in ('true', 'false'):
-            return value_str.lower() == 'true'
-        
-        # Try to parse as number
-        try:
-            if '.' in value_str:
-                return float(value_str)
-            else:
-                return int(value_str)
-        except ValueError:
-            # Return as string
-            return value_str
-    
-    def _set_nested_config(self, service_id, key_path, value, service_manager):
-        """Set a nested configuration value using dot notation"""
-        try:
-            # Load current config
-            config = service_manager.config_manager.load_config(service_id)
-            
-            # Navigate to the nested location
-            keys = key_path.split('.')
-            current = config
-            
-            # Navigate to the parent of the target key
-            for key in keys[:-1]:
-                if key not in current:
-                    return False  # Can't create new keys, only modify existing ones
-                current = current[key]
-            
-            # Set the value
-            current[keys[-1]] = value
-            
-            # Save the updated config
-            return service_manager.config_manager.save_config(service_id, config)
-            
-        except Exception:
-            return False
 
 # File System Commands for Virtual File System
 

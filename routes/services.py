@@ -57,21 +57,6 @@ def register_service_routes(app, managers):
             print(f"Error stopping service {service_id}: {e}")
             return jsonify({'error': 'Failed to stop service'}), 500
 
-    @app.route('/api/services/<service_id>/logs', methods=['GET'])
-    def get_service_logs(service_id):
-        """Get logs for a service"""
-        try:
-            limit = request.args.get('limit', 50, type=int)
-            logs = managers['service_manager'].get_service_logs(service_id, limit)
-            return jsonify({
-                'service_id': service_id,
-                'logs': logs,
-                'total': len(logs)
-            })
-        except Exception as e:
-            print(f"Error getting logs for service {service_id}: {e}")
-            return jsonify({'error': 'Failed to get service logs'}), 500
-
     @app.route('/api/services/refresh', methods=['POST'])
     def refresh_services():
         """Refresh service discovery"""
@@ -84,47 +69,4 @@ def register_service_routes(app, managers):
             })
         except Exception as e:
             print(f"Error refreshing services: {e}")
-            return jsonify({'error': 'Failed to refresh services'}), 500
-
-    @app.route('/api/services/<service_id>/config', methods=['GET'])
-    def get_service_config(service_id):
-        """Get configuration for a service"""
-        try:
-            from services.config_manager import get_config_manager
-            config_manager = get_config_manager()
-            config = config_manager.load_config(service_id)
-            return jsonify({
-                'service_id': service_id,
-                'config': config
-            })
-        except Exception as e:
-            print(f"Error getting config for service {service_id}: {e}")
-            return jsonify({'error': 'Failed to get service config'}), 500
-
-    @app.route('/api/services/<service_id>/config', methods=['POST'])
-    def update_service_config(service_id):
-        """Update configuration for a service"""
-        try:
-            data = request.json
-            if not data:
-                return jsonify({'error': 'No configuration data provided'}), 400
-            
-            from services.config_manager import get_config_manager
-            config_manager = get_config_manager()
-            success = config_manager.update_config(service_id, data)
-            
-            if success:
-                # Update running service if it exists
-                service = managers['service_manager'].services.get(service_id)
-                if service and hasattr(service, 'update_config'):
-                    service.update_config(data)
-                
-                return jsonify({
-                    'message': f'Configuration updated for service {service_id}',
-                    'service_id': service_id
-                })
-            else:
-                return jsonify({'error': 'Failed to update service configuration'}), 500
-        except Exception as e:
-            print(f"Error updating config for service {service_id}: {e}")
-            return jsonify({'error': 'Failed to update service config'}), 500 
+            return jsonify({'error': 'Failed to refresh services'}), 500 
