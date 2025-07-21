@@ -95,7 +95,7 @@ class CommandRegistry:
             if not parts:
                 return {'output': '', 'success': True}
             
-            # Handle multi-word commands like "show apps"
+            # Handle multi-word commands like "show services"
             command_name = parts[0]
             args = parts[1:] if len(parts) > 1 else []
             
@@ -108,7 +108,7 @@ class CommandRegistry:
             
             # If not found and we have more parts, try combining them
             if not command and len(parts) > 1:
-                # Try combinations like "show apps", "show apps list", etc.
+                # Try combinations like "show services", "start service", etc.
                 for i in range(2, len(parts) + 1):
                     combined_name = ' '.join(parts[:i])
                     # Handle ./ prefix for combined names too
@@ -215,39 +215,6 @@ class HelpCommand(BaseCommand):
         else:
             # Show general help
             return {'output': self.registry.get_help_text(), 'success': True}
-
-class ShowAppsCommand(BaseCommand):
-    """Built-in show apps command"""
-    
-    def __init__(self, registry):
-        super().__init__('show apps', 'List available terminal apps')
-        self.registry = registry
-    
-    def execute(self, args, context):
-        user_apps = []
-        
-        # Get user terminal apps from registry
-        for name, command in self.registry.commands.items():
-            if isinstance(command, UserTerminalAppCommand):
-                user_apps.append({
-                    'id': name,
-                    'name': command.app_name,
-                    'description': command.description
-                })
-        
-        if not user_apps:
-            output = "No terminal apps found.\n"
-            output += "To create a terminal app, add a .py file to user_apps/ with 'terminal_app' type.\n"
-        else:
-            output = "Available terminal apps:\n"
-            output += "=======================\n"
-            for app in user_apps:
-                output += f"./{app['id']} - {app['name']}\n"
-                if app.get('description'):
-                    output += f"    {app['description']}\n"
-                output += "\n"
-        
-        return {'output': output, 'success': True}
 
 class UserTerminalAppCommand(BaseCommand):
     """Command wrapper for user terminal apps"""

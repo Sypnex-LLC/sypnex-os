@@ -173,7 +173,7 @@ The system follows a modular architecture with several key managers that handle 
 
 **Built-in Commands**:
 - File system: `ls`, `cd`, `pwd`, `cat`, `mv`, `rm`, `mkdir`, `touch`
-- System: `help`, `show apps`, `show services`
+- System: `help`, `show services`
 - Service management: `start service`, `stop service`, `service logs`
 - Python: `python`, `pip`
 - Utility: `echo`, `cls`

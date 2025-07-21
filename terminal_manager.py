@@ -5,7 +5,7 @@ import tempfile
 from flask import Blueprint, request, jsonify
 from command_registry import (
     CommandRegistry, BaseCommand, UserTerminalAppCommand,
-    HelpCommand, ShowAppsCommand,
+    HelpCommand,
     ShowServicesCommand, StartServiceCommand, StopServiceCommand, 
     ReloadServiceCommand,
     LsCommand, CdCommand, PwdCommand, CatCommand, MvCommand, RmCommand,
@@ -37,9 +37,6 @@ class TerminalManager:
         """Register all built-in commands"""
         # Help command (needs registry reference)
         self.registry.register(HelpCommand(self.registry))
-        
-        # Show apps command (needs registry reference)
-        self.registry.register(ShowAppsCommand(self.registry))
                
         # Service commands
         self.registry.register(ShowServicesCommand())
