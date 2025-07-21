@@ -10,3 +10,4 @@ Flask-CORS==4.0.0
 beautifulsoup4==4.13.4
 lxml==6.0.0
 cssutils==2.11.1
+psutil==7.0.0

@@ -132,6 +132,9 @@ class ServiceManager:
             # Load config into service instance
             service_instance.config = service_config
             
+            # Pass logs manager to service instance
+            service_instance.logs_manager = self.logs_manager
+            
             # Store service (using config ID)
             self.service_classes[service_config['id']] = service_class
             self.services[service_config['id']] = service_instance

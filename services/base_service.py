@@ -28,6 +28,7 @@ class ServiceBase(ABC):
         self._stop_event = threading.Event()
         self.config_manager = get_config_manager()
         self.config = {}
+        self.logs_manager = None  # Will be set by service manager
     
 
     
