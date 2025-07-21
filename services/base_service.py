@@ -29,6 +29,7 @@ class ServiceBase(ABC):
         self.config_manager = get_config_manager()
         self.config = {}
         self.logs_manager = None  # Will be set by service manager
+        self.vfs_manager = None   # Will be set by service manager
     
 
     

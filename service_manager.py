@@ -135,6 +135,9 @@ class ServiceManager:
             # Pass logs manager to service instance
             service_instance.logs_manager = self.logs_manager
             
+            # Pass VFS manager to service instance
+            service_instance.vfs_manager = self.vfs_manager
+            
             # Store service (using config ID)
             self.service_classes[service_config['id']] = service_class
             self.services[service_config['id']] = service_instance
