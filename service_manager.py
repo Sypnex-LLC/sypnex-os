@@ -32,11 +32,81 @@ class ServiceManager:
         print(f"[SERVICE_MANAGER] Initializing config manager with VFS manager: {self.vfs_manager is not None}")
         self.config_manager = get_config_manager(self.vfs_manager)
         
+        # Install default service configurations before discovery
+        self.install_defaults()
+        
         # Discover all services on startup
         self.discover_services()
         
         # Auto-start services that have auto_start=true in their config
         self._auto_start_services()
+    
+    def install_defaults(self):
+        """Install default service configurations from defaults/ directory to VFS."""
+        # Hardcoded array of required services
+        required_services = [
+            'log_cleanup_service',
+            'system_health_service'
+        ]
+        
+        defaults_dir = "defaults"
+        
+        if not self.vfs_manager:
+            print("[SERVICE_MANAGER] No VFS manager available - cannot install default services")
+            return
+        
+        print(f"[SERVICE_MANAGER] Installing default service configurations...")
+        
+        for service_id in required_services:
+            # Check if config already exists in VFS
+            config_path = f"/services/configs/{service_id}.json"
+            
+            if self.vfs_manager.get_file_info(config_path):
+                print(f"[SERVICE_MANAGER] Config for {service_id} already exists in VFS")
+                continue
+            
+            # Look for template file in defaults directory
+            template_path = os.path.join(defaults_dir, f"{service_id}.template")
+            
+            if not os.path.exists(template_path):
+                print(f"[SERVICE_MANAGER] Warning: Template file {template_path} not found for service {service_id}")
+                continue
+            
+            try:
+                # Read template file from filesystem
+                with open(template_path, 'r', encoding='utf-8') as f:
+                    template_content = f.read()
+                
+                # Create the config file in VFS
+                success = self.vfs_manager.create_file(
+                    config_path,
+                    template_content.encode('utf-8'),
+                    'application/json'
+                )
+                
+                if success:
+                    print(f"[SERVICE_MANAGER] Installed default config for {service_id} to VFS")
+                    if self.logs_manager:
+                        self.logs_manager.log(
+                            level='info',
+                            message=f'Installed default service configuration for {service_id}',
+                            component='services',
+                            source='service_manager',
+                            details={'service_id': service_id, 'config_path': config_path}
+                        )
+                else:
+                    print(f"[SERVICE_MANAGER] Failed to create config file for {service_id} in VFS")
+                    
+            except Exception as e:
+                print(f"[SERVICE_MANAGER] Error installing default config for {service_id}: {e}")
+                if self.logs_manager:
+                    self.logs_manager.log(
+                        level='error',
+                        message=f'Failed to install default service configuration for {service_id}: {e}',
+                        component='services',
+                        source='service_manager',
+                        details={'service_id': service_id, 'error': str(e)}
+                    )
     
     def discover_services(self):
         """Discover all services in the services directory on startup."""
