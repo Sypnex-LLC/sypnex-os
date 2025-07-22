@@ -1,5 +1,7 @@
 # Sypnex OS User App Development Guide
 
+> **📦 Looking for apps and development tools?** Check out the [Official Apps Repository](https://github.com/Sypnex-LLC/sypnex-os-apps) for ready-to-use applications, development utilities, and working examples.
+
 ## 🚀 Quick Start
 
 Create your first app in 3 simple steps:
@@ -535,14 +537,17 @@ await sypnexAPI.libraries.loadLibrary('chart', '3.9.1');
 ## Deployment
 
 ### Development Deployment
+Development and packaging tools are available in the [official apps repository](https://github.com/Sypnex-LLC/sypnex-os-apps):
 ```bash
-cd examples
+# Clone the apps repository
+git clone https://github.com/Sypnex-LLC/sypnex-os-apps.git
+cd sypnex-os-apps
 python dev_deploy.py my_app
 ```
 
 ### Production Deployment
 ```bash
-cd examples
+cd sypnex-os-apps
 python pack_app.py my_app
 ```
 
@@ -796,7 +801,7 @@ console.log('My App script loaded');
 
 ### Sharing Your Apps
 We encourage developers to share their applications with the community:
-- Fork the repository and add your app to `examples/user_apps_dev/`
+- Fork the [official apps repository](https://github.com/Sypnex-LLC/sypnex-os-apps) and add your app
 - Create a pull request with your app and documentation
 - Share screenshots and demos in GitHub Discussions
 
@@ -813,7 +818,7 @@ Please submit a pull request or create an issue. Your experience helps other dev
 - [Core Components Documentation](SYPNEX_OS_CORE_COMPONENTS.md)
 - [Frontend Architecture Guide](SYPNEX_OS_FRONTEND_ARCHITECTURE.md)
 - [Contributing Guide](CONTRIBUTING.md)
-- [Example Applications](examples/user_apps_dev/)
+- [Official Apps Repository](https://github.com/Sypnex-LLC/sypnex-os-apps)
 
 ---
 

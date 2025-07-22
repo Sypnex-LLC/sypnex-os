@@ -73,6 +73,22 @@ Think of it as a **web desktop** that connects to backend services, AI models, a
 
 Sypnex OS provides a customizable development environment that you can own and modify. Whether you're building AI applications, need a sandboxed environment, or want to create web-based tools, Sypnex OS provides the foundation.
 
+## 📱 Official Apps Repository
+
+Looking for apps to use with Sypnex OS? Check out our **[Official Apps Repository](https://github.com/Sypnex-LLC/sypnex-os-apps)** which contains:
+
+- **Ready-to-use Applications**: Download and install apps directly into your Sypnex OS instance
+- **Development Tools**: Utilities for building and packaging your own apps
+- **Example Applications**: Sample apps demonstrating various features and APIs
+- **App Templates**: Starting points for creating new applications
+
+The apps repository is separate from the core OS to allow for faster iteration and community contributions focused on application development.
+
+### Repository Structure
+
+- **[sypnex-os](https://github.com/Sypnex-LLC/sypnex-os)** (this repository): Core operating system, APIs, and documentation
+- **[sypnex-os-apps](https://github.com/Sypnex-LLC/sypnex-os-apps)**: Official applications, development tools, and app examples
+
 ## 🤖 Built with AI Collaboration
 
 Sypnex OS was built through collaboration between human creativity and AI assistance. What started as experimental "vibe coding" sessions evolved into a comprehensive operating system that demonstrates the potential of human-AI partnership in software development.
@@ -154,7 +170,7 @@ We're building a community around Sypnex OS and welcome contributions of all kin
 ### Contributing
 We welcome contributions in these areas:
 - **Feature Development**: Core OS features, new APIs, and system improvements
-- **Application Development**: Sample apps and developer tools
+- **Application Development**: Sample apps and developer tools in the [official apps repository](https://github.com/Sypnex-LLC/sypnex-os-apps)
 - **Testing & QA**: Bug testing, performance testing, cross-browser compatibility
 - **Documentation**: Guides, API documentation, and tutorials
 - **UI/UX**: Interface improvements and accessibility enhancements
@@ -166,7 +182,7 @@ See our [Contributing Guide](CONTRIBUTING.md) for detailed information on submit
 2. **Performance Optimization**: Improving load times and responsiveness
 3. **Enhanced Security**: Strengthening the app sandboxing system
 4. **Developer Tools**: Better debugging and development utilities
-5. **Sample Applications**: More examples to showcase capabilities
+5. **Sample Applications**: More examples to showcase capabilities in the [official apps repository](https://github.com/Sypnex-LLC/sypnex-os-apps)
 
 ## 📄 License
 

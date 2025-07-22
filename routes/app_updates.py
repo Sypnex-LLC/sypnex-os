@@ -17,7 +17,7 @@ def register_app_updates_routes(app, managers):
         """
         try:
             # Fetch latest release from GitHub API
-            github_url = "https://api.github.com/repos/Sypnex-LLC/sypnex-os/releases/latest"
+            github_url = "https://api.github.com/repos/Sypnex-LLC/sypnex-os-apps/releases/latest"
             
             response = requests.get(github_url, timeout=10)
             response.raise_for_status()
