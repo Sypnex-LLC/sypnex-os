@@ -33,6 +33,12 @@
     "css/node-types.css",
     "css/responsive.css"
   ],
+  "additional_files": [
+    {
+      "vfs_path": "/nodes/nodes-pack.json",
+      "source_file": "node-definitions/nodes-pack.json"
+    }
+  ],
   "settings": [
     {
       "key": "DEFAULT_HTTP_TIMEOUT",

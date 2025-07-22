@@ -66,6 +66,47 @@ def pack_app(app_name, source_dir="user_apps_dev"):
             package['files'][f"{app_name}.app"] = base64.b64encode(f.read()).decode('utf-8')
         print(f"✅ Added {app_name}.app")
         
+        # Handle additional files (VFS files)
+        additional_files = app_metadata.get('additional_files', [])
+        if additional_files:
+            print(f"📁 Processing {len(additional_files)} additional files...")
+            package['additional_files'] = []
+            
+            for additional_file in additional_files:
+                vfs_path = additional_file.get('vfs_path')
+                source_file = additional_file.get('source_file')
+                
+                if not vfs_path or not source_file:
+                    print(f"⚠️  Warning: Invalid additional file entry: {additional_file}")
+                    continue
+                
+                # Build full path to source file (relative to app's src directory for now)
+                src_dir = os.path.join(app_dir, 'src')
+                source_path = os.path.join(src_dir, source_file)
+                
+                if not os.path.exists(source_path):
+                    print(f"❌ Error: Additional file not found: {source_path}")
+                    continue
+                
+                try:
+                    # Read and encode the additional file
+                    with open(source_path, 'rb') as f:
+                        file_content = f.read()
+                    
+                    # Add to package
+                    package['additional_files'].append({
+                        'vfs_path': vfs_path,
+                        'filename': os.path.basename(vfs_path),
+                        'data': base64.b64encode(file_content).decode('utf-8'),
+                        'size': len(file_content)
+                    })
+                    
+                    print(f"✅ Added additional file: {source_file} → {vfs_path}")
+                    
+                except Exception as e:
+                    print(f"❌ Error processing additional file {source_file}: {e}")
+                    continue
+        
         # Add app files based on type
         if app_metadata.get('type') == 'terminal_app':
             # Terminal app - add Python file
@@ -116,10 +157,20 @@ def pack_app(app_name, source_dir="user_apps_dev"):
         for filename in package['files'].keys():
             print(f"   - {filename}")
         
+        # Show additional files if any
+        if 'additional_files' in package and package['additional_files']:
+            print(f"📁 Additional VFS files:")
+            for additional_file in package['additional_files']:
+                vfs_path = additional_file['vfs_path']
+                size_kb = additional_file['size'] / 1024
+                print(f"   - {vfs_path} ({size_kb:.1f} KB)")
+        
         print(f"\n💡 Next steps:")
         print(f"   1. Share the {output_file} file")
         print(f"   2. Recipient can install it using the app installer")
         print(f"   3. Package contains all necessary files for installation")
+        if 'additional_files' in package and package['additional_files']:
+            print(f"   4. VFS files will be automatically deployed during installation")
         
         return True
         
