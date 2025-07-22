@@ -120,4 +120,4 @@ def serve_bundled_sypnex_api():
 
 if __name__ == '__main__':
     # Use SocketIO for WebSocket support
-    managers['websocket_manager'].socketio.run(app, debug=True, host='0.0.0.0', port=5000) 
+    managers['websocket_manager'].socketio.run(app, debug=False, host='0.0.0.0', port=5000, allow_unsafe_werkzeug=True) 

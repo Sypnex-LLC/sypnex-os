@@ -1,0 +1,82 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Docker files (not needed inside the container)
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Documentation (not needed inside the container)
+README.md
+CONTRIBUTING.md
+ROADMAP.md
+*.md
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Database files (these will be in the volume)
+*.db
+*.sqlite
+*.sqlite3
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+
+# Cache
+.cache/
+.pytest_cache/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Test files (optional - include if you want tests in the image)
+test/
+tests/
+*_test.py
+*test_*.py
