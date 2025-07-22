@@ -57,11 +57,10 @@ async function initNeuralNetwork() {
     try {
         // Load Three.js using SypnexAPI
         console.log('Loading Three.js...');
-        // THREE = await sypnexAPI.loadLibrary('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js', {
-        //     localName: 'THREE'
-        // });
-        THREE = await sypnexAPI.loadCommonLibrary('threejs');
-        
+        THREE = await sypnexAPI.loadLibrary('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js', {
+            localName: 'THREE'
+        });
+             
         console.log('✅ Three.js loaded successfully:', typeof THREE);
         console.log('Three.js version:', THREE.REVISION);
         
