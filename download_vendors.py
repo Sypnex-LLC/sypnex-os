@@ -13,15 +13,18 @@ from pathlib import Path
 VENDOR_DEPENDENCIES = {
     # Bootstrap CSS
     'bootstrap/css/bootstrap.min.css': 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css',
+    'bootstrap/css/bootstrap.min.css.map': 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css.map',
     
     # Font Awesome CSS
     'fontawesome/css/all.min.css': 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
     
     # Bootstrap JS
     'bootstrap/js/bootstrap.bundle.min.js': 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js',
+    'bootstrap/js/bootstrap.bundle.min.js.map': 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js.map',
     
     # Socket.IO JS
     'socket.io/socket.io.min.js': 'https://cdn.socket.io/4.7.2/socket.io.min.js',
+    'socket.io/socket.io.min.js.map': 'https://cdn.socket.io/4.7.2/socket.io.min.js.map',
 }
 
 # Font Awesome additional files (fonts)

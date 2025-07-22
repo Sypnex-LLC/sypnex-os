@@ -28,7 +28,9 @@ def main():
     files_to_check = [
         # Bootstrap files
         (vendor_dir / 'bootstrap' / 'css' / 'bootstrap.min.css', 'Bootstrap CSS'),
+        (vendor_dir / 'bootstrap' / 'css' / 'bootstrap.min.css.map', 'Bootstrap CSS Source Map'),
         (vendor_dir / 'bootstrap' / 'js' / 'bootstrap.bundle.min.js', 'Bootstrap JS'),
+        (vendor_dir / 'bootstrap' / 'js' / 'bootstrap.bundle.min.js.map', 'Bootstrap JS Source Map'),
         
         # Font Awesome files
         (vendor_dir / 'fontawesome' / 'css' / 'all.min.css', 'Font Awesome CSS'),
@@ -38,6 +40,7 @@ def main():
         
         # Socket.IO
         (vendor_dir / 'socket.io' / 'socket.io.min.js', 'Socket.IO JS'),
+        (vendor_dir / 'socket.io' / 'socket.io.min.js.map', 'Socket.IO JS Source Map'),
     ]
     
     all_good = True
