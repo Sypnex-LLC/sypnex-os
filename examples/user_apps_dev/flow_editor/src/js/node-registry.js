@@ -13,32 +13,29 @@ class NodeRegistry {
         if (this.loaded) return;
         
         try {
-            console.log('Loading nodes from VFS...');
+            console.log('Loading nodes from VFS packed file...');
             
-            // List all files in /nodes/ directory
-            const directoryData = await sypnexAPI.listVirtualFiles('/nodes/');
-            console.log('Directory data from /nodes/:', directoryData);
+            // Load the packed nodes file directly
+            const packFilePath = '/nodes/nodes-pack.json';
+            console.log(`Loading packed nodes from: ${packFilePath}`);
             
-            if (!directoryData.items) {
-                console.log('No items found in /nodes/ directory');
-                return;
-            }
+            const content = await sypnexAPI.readVirtualFileText(packFilePath);
+            const packData = JSON.parse(content);
             
-            const allFiles = directoryData.items;
-            console.log('All files in /nodes/:', allFiles);
+            console.log(`Loaded packed nodes (version ${packData.version}), total nodes: ${packData.total_nodes}`);
             
-            const nodeFiles = allFiles.filter(file => file.name && file.name.endsWith('.node'));
-            console.log(`Found ${nodeFiles.length} node files:`, nodeFiles);
-            
-            for (const file of nodeFiles) {
-                await this.loadNodeFile(`/nodes/${file.name}`);
+            // Register all nodes from the pack
+            for (const [nodeId, nodeDef] of Object.entries(packData.nodes)) {
+                this.registerNode(nodeDef);
+                console.log(`Registered node: ${nodeId}`);
             }
             
             this.loaded = true;
             console.log(`Loaded ${this.nodeTypes.size} node types:`, Array.from(this.nodeTypes.keys()));
             
         } catch (error) {
-            console.error('Failed to load nodes from VFS:', error);
+            console.error('Failed to load nodes from VFS packed file:', error);
+            throw error; // Re-throw to indicate failure
         }
     }
     

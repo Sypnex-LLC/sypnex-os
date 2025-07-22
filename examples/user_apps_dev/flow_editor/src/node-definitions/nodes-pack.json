@@ -1,0 +1,910 @@
+{
+  "version": "1.0.0",
+  "packed_at": "2025-07-21T23:42:00.836033",
+  "total_nodes": 13,
+  "nodes": {
+    "audio": {
+      "id": "audio",
+      "name": "Audio Player",
+      "description": "Play audio files and control playback",
+      "icon": "fas fa-volume-up",
+      "color": "warning",
+      "category": "media",
+      "execution_mode": "frontend_only",
+      "inputs": [
+        {
+          "id": "data",
+          "name": "Data",
+          "type": "data"
+        },
+        {
+          "id": "binary",
+          "name": "Binary",
+          "type": "binary"
+        },
+        {
+          "id": "audio_data",
+          "name": "Audio Data",
+          "type": "binary"
+        },
+        {
+          "id": "url",
+          "name": "URL",
+          "type": "text"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "data",
+          "name": "Data",
+          "type": "data"
+        },
+        {
+          "id": "binary",
+          "name": "Binary",
+          "type": "binary"
+        },
+        {
+          "id": "audio_data",
+          "name": "Audio Data",
+          "type": "binary"
+        },
+        {
+          "id": "audio_url",
+          "name": "Audio URL",
+          "type": "text"
+        },
+        {
+          "id": "duration",
+          "name": "Duration",
+          "type": "number"
+        },
+        {
+          "id": "original",
+          "name": "Original",
+          "type": "binary"
+        }
+      ],
+      "config": {
+        "autoPlay": {
+          "type": "select",
+          "label": "Auto Play",
+          "value": "false",
+          "options": [
+            "true",
+            "false"
+          ]
+        },
+        "volume": {
+          "type": "number",
+          "label": "Volume (0-1)",
+          "value": 1,
+          "min": 0,
+          "max": 1,
+          "step": 0.1
+        }
+      },
+      "executor": "audio_executor",
+      "template": "standard"
+    },
+    "condition": {
+      "id": "condition",
+      "name": "Condition",
+      "description": "Compare input value to a condition and output true/false",
+      "icon": "fas fa-question-circle",
+      "color": "warning",
+      "category": "logic",
+      "execution_mode": "both",
+      "inputs": [
+        {
+          "id": "value",
+          "name": "Value",
+          "type": "data"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "result",
+          "name": "Result",
+          "type": "boolean"
+        }
+      ],
+      "config": {
+        "operator": {
+          "type": "select",
+          "label": "Operator",
+          "value": "equals",
+          "options": [
+            "equals",
+            "not_equals",
+            "greater_than",
+            "less_than",
+            "greater_than_or_equal",
+            "less_than_or_equal",
+            "contains",
+            "not_contains",
+            "starts_with",
+            "ends_with",
+            "is_empty",
+            "is_not_empty"
+          ]
+        },
+        "compare_value": {
+          "type": "text",
+          "label": "Compare To",
+          "value": "",
+          "placeholder": "Value to compare against"
+        },
+        "case_sensitive": {
+          "type": "select",
+          "label": "Case Sensitive",
+          "value": "true",
+          "options": [
+            "true",
+            "false"
+          ]
+        }
+      },
+      "executor": "condition_executor",
+      "template": "standard"
+    },
+    "display": {
+      "id": "display",
+      "name": "Display Text",
+      "description": "Display text data in various formats",
+      "icon": "fas fa-eye",
+      "color": "success",
+      "category": "output",
+      "execution_mode": "frontend_only",
+      "inputs": [
+        {
+          "id": "data",
+          "name": "Data",
+          "type": "data"
+        },
+        {
+          "id": "text",
+          "name": "Text",
+          "type": "text"
+        },
+        {
+          "id": "json",
+          "name": "JSON",
+          "type": "json"
+        },
+        {
+          "id": "binary",
+          "name": "Binary",
+          "type": "binary"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "data",
+          "name": "Data",
+          "type": "data"
+        },
+        {
+          "id": "text",
+          "name": "Text",
+          "type": "text"
+        },
+        {
+          "id": "displayed",
+          "name": "Displayed",
+          "type": "text"
+        }
+      ],
+      "config": {
+        "input_port": {
+          "type": "select",
+          "label": "Input Port",
+          "value": "auto",
+          "options": [
+            "auto",
+            "text",
+            "json",
+            "data",
+            "binary"
+          ]
+        },
+        "format": {
+          "type": "select",
+          "label": "Format",
+          "value": "text",
+          "options": [
+            "text",
+            "json",
+            "html"
+          ]
+        },
+        "maxLength": {
+          "type": "number",
+          "label": "Max Length",
+          "value": 1000,
+          "min": 1,
+          "max": 10000,
+          "step": 100
+        }
+      },
+      "executor": "display_executor",
+      "template": "standard"
+    },
+    "http": {
+      "id": "http",
+      "name": "HTTP Request",
+      "description": "Make HTTP requests to external APIs and services",
+      "icon": "fas fa-globe",
+      "color": "primary",
+      "category": "network",
+      "execution_mode": "both",
+      "inputs": [
+        {
+          "id": "data",
+          "name": "Data",
+          "type": "data"
+        },
+        {
+          "id": "trigger",
+          "name": "Trigger",
+          "type": "data"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "data",
+          "name": "Data",
+          "type": "data"
+        },
+        {
+          "id": "text",
+          "name": "Text",
+          "type": "text"
+        },
+        {
+          "id": "json",
+          "name": "JSON",
+          "type": "json"
+        },
+        {
+          "id": "binary",
+          "name": "Binary",
+          "type": "binary"
+        },
+        {
+          "id": "status_code",
+          "name": "Status Code",
+          "type": "number"
+        },
+        {
+          "id": "headers",
+          "name": "Headers",
+          "type": "json"
+        },
+        {
+          "id": "url",
+          "name": "URL",
+          "type": "text"
+        }
+      ],
+      "config": {
+        "url": {
+          "type": "text",
+          "label": "URL",
+          "value": "https://jsonplaceholder.typicode.com/posts/1"
+        },
+        "method": {
+          "type": "select",
+          "label": "Method",
+          "value": "GET",
+          "options": [
+            "GET",
+            "POST",
+            "PUT",
+            "DELETE"
+          ]
+        },
+        "headers": {
+          "type": "textarea",
+          "label": "Headers (JSON)",
+          "value": "{\"Content-Type\": \"application/json\"}"
+        },
+        "body": {
+          "type": "textarea",
+          "label": "Body (JSON)",
+          "value": "{\"message\": \"{{VALUE}}\", \"timestamp\": \"{{JSON:timestamp}}\"}"
+        }
+      },
+      "executor": "http_executor",
+      "template": "standard"
+    },
+    "image": {
+      "id": "image",
+      "name": "Image Display",
+      "description": "Display images and control visualization",
+      "icon": "fas fa-image",
+      "color": "info",
+      "category": "media",
+      "execution_mode": "frontend_only",
+      "inputs": [
+        {
+          "id": "data",
+          "name": "Data",
+          "type": "data"
+        },
+        {
+          "id": "binary",
+          "name": "Binary",
+          "type": "binary"
+        },
+        {
+          "id": "image_data",
+          "name": "Image Data",
+          "type": "binary"
+        },
+        {
+          "id": "url",
+          "name": "URL",
+          "type": "text"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "data",
+          "name": "Data",
+          "type": "data"
+        },
+        {
+          "id": "binary",
+          "name": "Binary",
+          "type": "binary"
+        },
+        {
+          "id": "image_data",
+          "name": "Image Data",
+          "type": "binary"
+        },
+        {
+          "id": "image_url",
+          "name": "Image URL",
+          "type": "text"
+        },
+        {
+          "id": "dimensions",
+          "name": "Dimensions",
+          "type": "json"
+        },
+        {
+          "id": "original",
+          "name": "Original",
+          "type": "binary"
+        }
+      ],
+      "config": {
+        "max_preview_size": {
+          "type": "number",
+          "label": "Max Preview Size",
+          "value": 300,
+          "min": 50,
+          "max": 800,
+          "step": 50
+        },
+        "show_info": {
+          "type": "select",
+          "label": "Show Info",
+          "value": "true",
+          "options": [
+            "true",
+            "false"
+          ]
+        }
+      },
+      "executor": "image_executor",
+      "template": "standard"
+    },
+    "json_extract": {
+      "id": "json_extract",
+      "name": "JSON Extract",
+      "description": "Extract values from JSON data using dot notation",
+      "icon": "fas fa-code-branch",
+      "color": "info",
+      "category": "data",
+      "execution_mode": "both",
+      "inputs": [
+        {
+          "id": "data",
+          "name": "Data",
+          "type": "data"
+        },
+        {
+          "id": "json",
+          "name": "JSON",
+          "type": "json"
+        },
+        {
+          "id": "text",
+          "name": "Text",
+          "type": "text"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "data",
+          "name": "Data",
+          "type": "data"
+        },
+        {
+          "id": "text",
+          "name": "Text",
+          "type": "text"
+        },
+        {
+          "id": "json",
+          "name": "JSON",
+          "type": "json"
+        },
+        {
+          "id": "extracted_value",
+          "name": "Extracted Value",
+          "type": "data"
+        },
+        {
+          "id": "field_path",
+          "name": "Field Path",
+          "type": "text"
+        },
+        {
+          "id": "original",
+          "name": "Original",
+          "type": "json"
+        }
+      ],
+      "config": {
+        "field_path": {
+          "type": "text",
+          "label": "Field Path",
+          "value": "data.items",
+          "placeholder": "Use dot notation (e.g., data.items.0.name)"
+        },
+        "display_format": {
+          "type": "select",
+          "label": "Display Format",
+          "value": "text",
+          "options": [
+            "text",
+            "json"
+          ]
+        }
+      },
+      "executor": "json_extract_executor",
+      "template": "standard"
+    },
+    "llm_chat": {
+      "id": "llm_chat",
+      "name": "LLM Chat",
+      "description": "Chat with Large Language Models using Ollama",
+      "icon": "fas fa-robot",
+      "color": "info",
+      "category": "ai",
+      "execution_mode": "both",
+      "inputs": [
+        {
+          "id": "prompt",
+          "name": "Prompt",
+          "type": "text"
+        },
+        {
+          "id": "system_message",
+          "name": "System Message",
+          "type": "text"
+        },
+        {
+          "id": "context",
+          "name": "Context",
+          "type": "data"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "response",
+          "name": "Response",
+          "type": "text"
+        },
+        {
+          "id": "tokens_used",
+          "name": "Tokens Used",
+          "type": "number"
+        },
+        {
+          "id": "model_used",
+          "name": "Model Used",
+          "type": "text"
+        },
+        {
+          "id": "full_response",
+          "name": "Full Response",
+          "type": "json"
+        }
+      ],
+      "config": {
+        "endpoint": {
+          "type": "text",
+          "label": "Ollama Endpoint",
+          "value": "http://127.0.0.1:11434/v1",
+          "placeholder": "http://127.0.0.1:11434/v1"
+        },
+        "model": {
+          "type": "text",
+          "label": "Model Name",
+          "value": "HammerAI/mn-mag-mell-r1:latest",
+          "placeholder": "llama2, codellama, etc."
+        },
+        "temperature": {
+          "type": "number",
+          "label": "Temperature",
+          "value": 0.7,
+          "min": 0,
+          "max": 2,
+          "step": 0.1
+        },
+        "max_tokens": {
+          "type": "number",
+          "label": "Max Tokens",
+          "value": 2048,
+          "min": 1,
+          "max": 8192,
+          "step": 1
+        },
+        "system_prompt": {
+          "type": "textarea",
+          "label": "System Prompt",
+          "value": "You are a helpful AI assistant.",
+          "placeholder": "Define the AI's role and behavior"
+        },
+        "include_context": {
+          "type": "select",
+          "label": "Include Context",
+          "value": "true",
+          "options": [
+            "true",
+            "false"
+          ]
+        }
+      },
+      "executor": "llm_chat_executor",
+      "template": "standard"
+    },
+    "logical_gate": {
+      "id": "logical_gate",
+      "name": "Logical Gate",
+      "description": "Only continue execution if input is true",
+      "icon": "fas fa-filter",
+      "color": "info",
+      "category": "logic",
+      "execution_mode": "both",
+      "inputs": [
+        {
+          "id": "condition",
+          "name": "Condition",
+          "type": "boolean"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "trigger",
+          "name": "Trigger",
+          "type": "data"
+        }
+      ],
+      "config": {
+        "invert": {
+          "type": "select",
+          "label": "Invert Logic",
+          "value": "false",
+          "options": [
+            "true",
+            "false"
+          ]
+        },
+        "description": {
+          "type": "text",
+          "label": "Description",
+          "value": "",
+          "placeholder": "Optional description of what this gate does"
+        }
+      },
+      "executor": "logical_gate_executor",
+      "template": "standard"
+    },
+    "repeater": {
+      "id": "repeater",
+      "name": "Repeater",
+      "description": "Repeat connected workflow at intervals",
+      "icon": "fas fa-redo",
+      "color": "warning",
+      "category": "trigger",
+      "execution_mode": "both",
+      "inputs": [
+        {
+          "id": "trigger",
+          "name": "Trigger",
+          "type": "data"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "trigger",
+          "name": "Trigger",
+          "type": "data"
+        },
+        {
+          "id": "count",
+          "name": "Count",
+          "type": "number"
+        }
+      ],
+      "config": {
+        "interval": {
+          "type": "number",
+          "label": "Interval (ms)",
+          "value": 1000,
+          "min": 100,
+          "max": 300000,
+          "step": 100
+        },
+        "count": {
+          "type": "number",
+          "label": "Count (0 = infinite)",
+          "value": 0,
+          "min": 0,
+          "step": 1
+        }
+      },
+      "executor": "repeater_executor",
+      "template": "standard"
+    },
+    "text": {
+      "id": "text",
+      "name": "Text",
+      "description": "Output static text content",
+      "icon": "fas fa-font",
+      "color": "secondary",
+      "category": "data",
+      "execution_mode": "both",
+      "inputs": [
+        {
+          "id": "data",
+          "name": "Data",
+          "type": "data"
+        },
+        {
+          "id": "trigger",
+          "name": "Trigger",
+          "type": "data"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "data",
+          "name": "Data",
+          "type": "data"
+        },
+        {
+          "id": "text",
+          "name": "Text",
+          "type": "text"
+        },
+        {
+          "id": "uppercase",
+          "name": "Uppercase",
+          "type": "text"
+        },
+        {
+          "id": "lowercase",
+          "name": "Lowercase",
+          "type": "text"
+        },
+        {
+          "id": "word_count",
+          "name": "Word Count",
+          "type": "number"
+        },
+        {
+          "id": "length",
+          "name": "Length",
+          "type": "number"
+        }
+      ],
+      "config": {
+        "text_content": {
+          "type": "textarea",
+          "label": "Text Content",
+          "value": "Hello, World!"
+        }
+      },
+      "executor": "text_executor",
+      "template": "standard"
+    },
+    "timer": {
+      "id": "timer",
+      "name": "Timer",
+      "description": "Delay execution for specified milliseconds",
+      "icon": "fas fa-clock",
+      "color": "warning",
+      "category": "trigger",
+      "execution_mode": "both",
+      "inputs": [
+        {
+          "id": "data",
+          "name": "Data",
+          "type": "data"
+        },
+        {
+          "id": "trigger",
+          "name": "Trigger",
+          "type": "data"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "data",
+          "name": "Data",
+          "type": "data"
+        },
+        {
+          "id": "trigger",
+          "name": "Trigger",
+          "type": "data"
+        },
+        {
+          "id": "timestamp",
+          "name": "Timestamp",
+          "type": "number"
+        },
+        {
+          "id": "elapsed",
+          "name": "Elapsed",
+          "type": "number"
+        }
+      ],
+      "config": {
+        "interval": {
+          "type": "number",
+          "label": "Interval (ms)",
+          "value": 1000,
+          "min": 100,
+          "max": 60000,
+          "step": 100
+        },
+        "count": {
+          "type": "number",
+          "label": "Count",
+          "value": 1,
+          "min": 1,
+          "max": 100,
+          "step": 1
+        }
+      },
+      "executor": "timer_executor",
+      "template": "standard"
+    },
+    "vfs_load": {
+      "id": "vfs_load",
+      "name": "VFS Load",
+      "description": "Load data from the Virtual File System",
+      "icon": "fas fa-folder-open",
+      "color": "primary",
+      "category": "storage",
+      "execution_mode": "both",
+      "inputs": [
+        {
+          "id": "trigger",
+          "name": "Trigger",
+          "type": "data"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "data",
+          "name": "Data",
+          "type": "data"
+        },
+        {
+          "id": "file_path",
+          "name": "File Path",
+          "type": "text"
+        }
+      ],
+      "config": {
+        "file_path": {
+          "type": "text",
+          "label": "File Path",
+          "value": "/my_data.json",
+          "placeholder": "/absolute/path/in/vfs"
+        },
+        "format": {
+          "type": "select",
+          "label": "Format",
+          "value": "json",
+          "options": [
+            "json",
+            "text",
+            "binary"
+          ]
+        },
+        "auto_reload": {
+          "type": "select",
+          "label": "Auto Reload on Change",
+          "value": "false",
+          "options": [
+            "true",
+            "false"
+          ]
+        }
+      },
+      "executor": "vfs_load_executor",
+      "template": "standard"
+    },
+    "vfs_save": {
+      "id": "vfs_save",
+      "name": "VFS Save",
+      "description": "Save data to the Virtual File System",
+      "icon": "fas fa-save",
+      "color": "primary",
+      "category": "storage",
+      "execution_mode": "both",
+      "inputs": [
+        {
+          "id": "data",
+          "name": "Data",
+          "type": "data"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "success",
+          "name": "Success",
+          "type": "boolean"
+        }
+      ],
+      "config": {
+        "file_path": {
+          "type": "text",
+          "label": "File Path",
+          "value": "/my_data.json",
+          "placeholder": "/absolute/path/in/vfs"
+        },
+        "format": {
+          "type": "select",
+          "label": "Format",
+          "value": "json",
+          "options": [
+            "json",
+            "text",
+            "binary"
+          ]
+        },
+        "overwrite": {
+          "type": "select",
+          "label": "Overwrite",
+          "value": "true",
+          "options": [
+            "true",
+            "false"
+          ]
+        },
+        "append": {
+          "type": "select",
+          "label": "Append Mode",
+          "value": "false",
+          "options": [
+            "true",
+            "false"
+          ]
+        }
+      },
+      "executor": "vfs_save_executor",
+      "template": "standard"
+    }
+  }
+}
