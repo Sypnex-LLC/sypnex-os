@@ -131,6 +131,56 @@ def install_app_direct(package_file, virtual_file_manager):
         print(f"📁 VFS Location: {app_vfs_path}")
         print(f"📋 Files installed: {len(installed_files)}")
         
+        # Handle additional files (VFS files)
+        additional_files = package_data.get('additional_files', [])
+        if additional_files:
+            print(f"\n📁 Installing {len(additional_files)} additional VFS files...")
+            
+            for additional_file in additional_files:
+                vfs_path = additional_file.get('vfs_path')
+                filename = additional_file.get('filename')
+                data = additional_file.get('data')
+                
+                if not vfs_path or not data:
+                    print(f"⚠️  Warning: Invalid additional file entry: {additional_file}")
+                    continue
+                
+                try:
+                    # Ensure the directory exists for the VFS path
+                    vfs_dir = os.path.dirname(vfs_path)
+                    if vfs_dir and vfs_dir != '/':
+                        if not virtual_file_manager._path_exists(vfs_dir):
+                            print(f"📁 Creating VFS directory: {vfs_dir}")
+                            success = virtual_file_manager.create_directory(vfs_dir)
+                            if not success:
+                                print(f"❌ Error: Failed to create VFS directory {vfs_dir}")
+                                continue
+                    
+                    # Decode base64 content
+                    content = base64.b64decode(data)
+                    
+                    # Check if file already exists, delete it first
+                    if virtual_file_manager._path_exists(vfs_path):
+                        print(f"🔄 Overwriting existing VFS file: {vfs_path}")
+                        virtual_file_manager.delete_path(vfs_path)
+                    
+                    # Create file in VFS
+                    success = virtual_file_manager.create_file(vfs_path, content)
+                    
+                    if success:
+                        size_kb = len(content) / 1024
+                        print(f"✅ Installed VFS file: {vfs_path} ({size_kb:.1f} KB)")
+                    else:
+                        print(f"❌ Error: Failed to install VFS file {vfs_path}")
+                        # Don't return False here - continue with other files
+                        
+                except Exception as e:
+                    print(f"❌ Error installing VFS file {vfs_path}: {e}")
+                    # Don't return False here - continue with other files
+                    continue
+            
+            print(f"📁 Additional VFS files installation completed")
+        
         return True
         
     except Exception as e:

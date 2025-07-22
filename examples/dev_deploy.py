@@ -53,6 +53,46 @@ def pack_app_local(app_name, source_dir="user_apps_dev"):
         with open(app_file, 'rb') as f:
             package['files'][f"{app_name}.app"] = base64.b64encode(f.read()).decode('utf-8')
         
+        # Handle additional files (VFS files)
+        additional_files = app_metadata.get('additional_files', [])
+        if additional_files:
+            print(f"📁 Processing {len(additional_files)} additional files...")
+            package['additional_files'] = []
+            
+            for additional_file in additional_files:
+                vfs_path = additional_file.get('vfs_path')
+                source_file = additional_file.get('source_file')
+                
+                if not vfs_path or not source_file:
+                    print(f"⚠️  Warning: Invalid additional file entry: {additional_file}")
+                    continue
+                
+                # Build full path to source file (relative to app's src directory)
+                source_path = os.path.join(src_dir, source_file)
+                
+                if not os.path.exists(source_path):
+                    print(f"❌ Error: Additional file not found: {source_path}")
+                    continue
+                
+                try:
+                    # Read and encode the additional file
+                    with open(source_path, 'rb') as f:
+                        file_content = f.read()
+                    
+                    # Add to package
+                    package['additional_files'].append({
+                        'vfs_path': vfs_path,
+                        'filename': os.path.basename(vfs_path),
+                        'data': base64.b64encode(file_content).decode('utf-8'),
+                        'size': len(file_content)
+                    })
+                    
+                    print(f"✅ Added additional file: {source_file} → {vfs_path}")
+                    
+                except Exception as e:
+                    print(f"❌ Error processing additional file {source_file}: {e}")
+                    continue
+        
         # Add app files based on type
         if app_metadata.get('type') == 'terminal_app':
             # Terminal app - add Python file
@@ -175,7 +215,16 @@ def pack_app_local(app_name, source_dir="user_apps_dev"):
                 print(f"❌ Error: No HTML file found and no src/ directory for {app_name}")
                 return None
         
-        print(f"✅ Packed successfully ({len(package['files'])} files)")
+        # Show package summary
+        print(f"✅ Packed successfully:")
+        print(f"   📋 Files: {len(package['files'])}")
+        if 'additional_files' in package and package['additional_files']:
+            print(f"   📁 Additional VFS files: {len(package['additional_files'])}")
+            for additional_file in package['additional_files']:
+                vfs_path = additional_file['vfs_path']
+                size_kb = additional_file['size'] / 1024
+                print(f"      - {vfs_path} ({size_kb:.1f} KB)")
+        
         return package
         
     except Exception as e:
