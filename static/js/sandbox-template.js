@@ -6,25 +6,69 @@
     // Determine the correct app ID for settings (extract original app ID from settings window ID)
     const actualAppId = '${appId}'.startsWith('settings-') ? '${appId}'.replace('settings-', '') : '${appId}';
     
-    // Timer tracking for automatic cleanup
+    // Create centralized tracking system (similar to built-in app tracker)
+    if (!window.sypnexTimerTracker) {
+        window.sypnexTimerTracker = new Map(); // appId -> Set of timers
+    }
+    if (!window.sypnexEventTracker) {
+        window.sypnexEventTracker = new Map(); // appId -> Set of event listeners
+    }
+    
+    // Initialize tracking for this app
     const appTimers = new Set();
+    const appEventListeners = new Set();
+    window.sypnexTimerTracker.set(actualAppId, appTimers);
+    window.sypnexEventTracker.set(actualAppId, appEventListeners);
+    
+    // Store original functions (don't override globals)
     const originalSetInterval = setInterval;
     const originalSetTimeout = setTimeout;
     const originalClearInterval = clearInterval;
     const originalClearTimeout = clearTimeout;
-    
-    // Event listener tracking for automatic cleanup
-    const appEventListeners = new Set();
     const originalAddEventListener = EventTarget.prototype.addEventListener;
     const originalRemoveEventListener = EventTarget.prototype.removeEventListener;
     
-    // Store original global methods to restore later
-    const originalDocAddEventListener = document.addEventListener;
-    const originalDocRemoveEventListener = document.removeEventListener;
-    const originalWinAddEventListener = window.addEventListener;
-    const originalWinRemoveEventListener = window.removeEventListener;
+    // Store original global methods for restoration
+    const originalDocumentAddEventListener = document.addEventListener;
+    const originalDocumentRemoveEventListener = document.removeEventListener;
+    const originalWindowAddEventListener = window.addEventListener;
+    const originalWindowRemoveEventListener = window.removeEventListener;
     
-    // Create app-specific wrapped versions that don't modify global prototypes
+    // Create app-scoped tracking functions (no global override)
+    const trackingSetInterval = function(callback, delay, ...args) {
+        const id = originalSetInterval(callback, delay, ...args);
+        appTimers.add({type: 'interval', id: id});
+        console.log('App ${appId} created setInterval:', id);
+        return id;
+    };
+    
+    const trackingSetTimeout = function(callback, delay, ...args) {
+        const id = originalSetTimeout(callback, delay, ...args);
+        appTimers.add({type: 'timeout', id: id});
+        console.log('App ${appId} created setTimeout:', id);
+        return id;
+    };
+    
+    const trackingClearInterval = function(id) {
+        originalClearInterval(id);
+        appTimers.forEach(timer => {
+            if (timer.id === id && timer.type === 'interval') {
+                appTimers.delete(timer);
+                console.log('App ${appId} cleared setInterval:', id);
+            }
+        });
+    };
+    
+    const trackingClearTimeout = function(id) {
+        originalClearTimeout(id);
+        appTimers.forEach(timer => {
+            if (timer.id === id && timer.type === 'timeout') {
+                appTimers.delete(timer);
+                console.log('App ${appId} cleared setTimeout:', id);
+            }
+        });
+    };
+    
     const trackingAddEventListener = function(target, type, listener, options) {
         // Only track if this is a global target (document, window, or outside app container)
         const isGlobalTarget = target === document || target === window || 
@@ -55,42 +99,11 @@
         return originalRemoveEventListener.call(target, type, listener, options);
     };
     
-    // Override timer functions to track them
-    setInterval = function(callback, delay, ...args) {
-        const id = originalSetInterval(callback, delay, ...args);
-        appTimers.add({type: 'interval', id: id});
-        console.log('App ${appId} created setInterval:', id);
-        return id;
-    };
-    
-    setTimeout = function(callback, delay, ...args) {
-        const id = originalSetTimeout(callback, delay, ...args);
-        appTimers.add({type: 'timeout', id: id});
-        console.log('App ${appId} created setTimeout:', id);
-        return id;
-    };
-    
-    clearInterval = function(id) {
-        originalClearInterval(id);
-        appTimers.forEach(timer => {
-            if (timer.id === id && timer.type === 'interval') {
-                appTimers.delete(timer);
-                console.log('App ${appId} cleared setInterval:', id);
-            }
-        });
-    };
-    
-    clearTimeout = function(id) {
-        originalClearTimeout(id);
-        appTimers.forEach(timer => {
-            if (timer.id === id && timer.type === 'timeout') {
-                appTimers.delete(timer);
-                console.log('App ${appId} cleared setTimeout:', id);
-            }
-        });
-    };
-    
-    // Override global methods TEMPORARILY (will be restored on cleanup)
+    // Provide tracked versions in local scope (not global override)
+    setInterval = trackingSetInterval;
+    setTimeout = trackingSetTimeout;
+    clearInterval = trackingClearInterval;
+    // Provide document/window event listener tracking in local scope
     document.addEventListener = function(type, listener, options) {
         return trackingAddEventListener(document, type, listener, options);
     };
@@ -256,16 +269,42 @@
         },
         // Combined cleanup function
         cleanup: function() {
+            // First, try to cleanup SypnexAPI if it has a cleanup method
+            if (sypnexAPI && typeof sypnexAPI.cleanup === 'function') {
+                try {
+                    sypnexAPI.cleanup();
+                    console.log('App ${appId}: SypnexAPI cleanup completed');
+                } catch (error) {
+                    console.warn('App ${appId}: Error during SypnexAPI cleanup:', error);
+                }
+            }
+            
             const timersCleanedUp = this.cleanupTimers();
             const listenersCleanedUp = this.cleanupEventListeners();
             
             // CRITICAL: Restore original global methods to prevent cross-contamination
-            document.addEventListener = originalDocAddEventListener;
-            document.removeEventListener = originalDocRemoveEventListener;
-            window.addEventListener = originalWinAddEventListener;
-            window.removeEventListener = originalWinRemoveEventListener;
+            document.addEventListener = originalDocumentAddEventListener;
+            document.removeEventListener = originalDocumentRemoveEventListener;
+            window.addEventListener = originalWindowAddEventListener;
+            window.removeEventListener = originalWindowRemoveEventListener;
             
-            console.log('App ${appId}: Restored original global event listener methods');
+            // Also restore timer functions to prevent lingering tracking
+            setInterval = originalSetInterval;
+            setTimeout = originalSetTimeout;
+            clearInterval = originalClearInterval;
+            clearTimeout = originalClearTimeout;
+            
+            console.log('App ${appId}: Restored original global methods');
+            
+            // Clean up centralized tracking for this app
+            if (window.sypnexTimerTracker) {
+                window.sypnexTimerTracker.delete(actualAppId);
+            }
+            if (window.sypnexEventTracker) {
+                window.sypnexEventTracker.delete(actualAppId);
+            }
+            
+            console.log('App ${appId}: Cleaned up centralized tracking');
             
             return { timers: timersCleanedUp, listeners: listenersCleanedUp };
         }
