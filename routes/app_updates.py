@@ -54,7 +54,7 @@ def register_app_updates_routes(app, managers):
             app_details = {}
             for app_id, version in versions_data.items():
                 app_info = {
-                    'version': version,
+                    'app_info': version,
                     'download_url': None,
                     'filename': None
                 }
