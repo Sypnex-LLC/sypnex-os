@@ -16,20 +16,20 @@
     justify-content: center;
     opacity: 0;
     pointer-events: none;
-    transform: scale(0.95);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: opacity 0.08s ease-out;
+    /* Force the blur to be pre-calculated */
+    will-change: opacity;
+    transform: translateZ(0);
 }
 
 .spotlight-hidden {
     opacity: 0 !important;
     pointer-events: none !important;
-    transform: scale(0.95) !important;
 }
 
 .spotlight-visible {
     opacity: 1 !important;
     pointer-events: all !important;
-    transform: scale(1) !important;
 }
 
 .spotlight-container {
