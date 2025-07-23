@@ -10,6 +10,13 @@ from pathlib import Path
 import time
 import hashlib
 
+try:
+    from jsmin import jsmin
+    JSMIN_AVAILABLE = True
+except ImportError:
+    JSMIN_AVAILABLE = False
+    print("Warning: jsmin not available. Install with: pip install jsmin")
+
 # Create Flask application
 app = create_app()
 
@@ -104,6 +111,13 @@ def serve_bundled_os():
         else:
             bundle_content += f"// MISSING: {js_file}\n\n"
     
+    # Minify the bundle if jsmin is available
+    if JSMIN_AVAILABLE:
+        try:
+            bundle_content = jsmin(bundle_content, quote_chars="'\"`")
+        except Exception as e:
+            print(f"Warning: Minification failed: {e}")
+    
     response = Response(bundle_content, mimetype='application/javascript')
     
     # Add aggressive no-cache headers
@@ -148,6 +162,13 @@ def serve_bundled_sypnex_api():
                 bundle_content += f"// ERROR loading {js_file}: {str(e)}\n\n"
         else:
             bundle_content += f"// MISSING: {js_file}\n\n"
+    
+    # Minify the bundle if jsmin is available
+    if JSMIN_AVAILABLE:
+        try:
+            bundle_content = jsmin(bundle_content, quote_chars="'\"`")
+        except Exception as e:
+            print(f"Warning: Minification failed: {e}")
     
     response = Response(bundle_content, mimetype='application/javascript')
     
