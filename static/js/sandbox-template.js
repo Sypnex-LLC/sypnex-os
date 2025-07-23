@@ -192,6 +192,20 @@
         showNotification: showNotification,
         windowElement: windowElement,
         appContainer: appContainer,
+        // Expose tracking data for resource monitoring
+        getTimerCount: function() {
+            return appTimers.size;
+        },
+        getEventListenerCount: function() {
+            return appEventListeners.size;
+        },
+        getTrackingStats: function() {
+            return {
+                timers: appTimers.size,
+                globalEventListeners: appEventListeners.size,
+                domNodes: appContainer ? appContainer.querySelectorAll('*').length : 0
+            };
+        },
         // Timer cleanup function
         cleanupTimers: function() {
             let cleanedCount = 0;

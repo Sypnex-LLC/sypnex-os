@@ -1,8 +1,12 @@
 Object.assign(SypnexOS.prototype, {
     setupResourceManager(windowElement) {
+        const appId = windowElement.dataset.appId;
         const systemOverview = windowElement.querySelector('.system-overview');
         const resourceTableBody = windowElement.querySelector('.resource-table-body');
         const refreshBtn = windowElement.querySelector('.refresh-resources');
+
+        // Get built-in app tracker if available
+        const tracker = window.sypnexApps && window.sypnexApps[appId] ? window.sypnexApps[appId] : null;
 
         // Resource monitoring data
         let resourceData = {
@@ -15,32 +19,6 @@ Object.assign(SypnexOS.prototype, {
             }
         };
 
-        // Helper function to format bytes
-        const formatBytes = (bytes) => {
-            if (bytes === 0) return '0 B';
-            const k = 1024;
-            const sizes = ['B', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-        };
-
-        // Helper function to get memory usage (estimated)
-        const getMemoryUsage = () => {
-            if (performance.memory) {
-                return {
-                    used: performance.memory.usedJSHeapSize,
-                    total: performance.memory.totalJSHeapSize,
-                    limit: performance.memory.jsHeapSizeLimit
-                };
-            }
-            // Fallback estimation
-            return {
-                used: window.performance.now() * 1000, // Rough estimation
-                total: 100 * 1024 * 1024, // Assume 100MB
-                limit: 100 * 1024 * 1024
-            };
-        };
-
         // Helper function to get DOM node count for an app
         const getAppDOMNodes = (appId) => {
             const appWindow = document.querySelector(`[data-app-id="${appId}"]`);
@@ -50,73 +28,114 @@ Object.assign(SypnexOS.prototype, {
             return 0;
         };
 
-        // Helper function to get event listener count (estimated)
+        // Helper function to get real event listener count from sandbox
         const getEventListeners = (appId) => {
-            // This is a rough estimation since we can't directly count event listeners
-            const appWindow = document.querySelector(`[data-app-id="${appId}"]`);
-            if (appWindow) {
-                // Count elements that might have event listeners
-                const interactiveElements = appWindow.querySelectorAll('button, input, select, textarea, a, [onclick], [onchange], [oninput]');
-                return interactiveElements.length;
+            if (window.sypnexApps && window.sypnexApps[appId]) {
+                // Check if it's a user app with sandbox tracking
+                if (window.sypnexApps[appId].getEventListenerCount) {
+                    return window.sypnexApps[appId].getEventListenerCount();
+                }
+                // For built-in apps, count interactive elements
+                const appWindow = document.querySelector(`[data-app-id="${appId}"]`);
+                if (appWindow) {
+                    const interactiveElements = appWindow.querySelectorAll('button, input, select, textarea, a, [onclick], [onchange], [oninput]');
+                    return interactiveElements.length;
+                }
             }
             return 0;
         };
 
-        // Helper function to get network activity (estimated)
-        const getNetworkActivity = (appId) => {
-            // This would need to be tracked by intercepting fetch/XMLHttpRequest
-            // For now, return a placeholder
-            return {
-                requests: Math.floor(Math.random() * 10), // Placeholder
-                bytes: Math.floor(Math.random() * 1024 * 100) // Placeholder
-            };
+        // Helper function to get timer count from sandbox  
+        const getActiveTimers = (appId) => {
+            if (window.sypnexApps && window.sypnexApps[appId] && window.sypnexApps[appId].getTimerCount) {
+                return window.sypnexApps[appId].getTimerCount();
+            }
+            return 0;
         };
 
-        // Helper function to get CPU usage (estimated based on execution time)
-        const getCPUUsage = (appId) => {
-            // This is a very rough estimation
-            return Math.floor(Math.random() * 100); // Placeholder
+        // Helper function to get network activity (WebSocket connections)
+        const getNetworkActivity = (appId) => {
+            let connections = 0;
+            let status = 'none';
+            
+            if (window.sypnexApps && window.sypnexApps[appId] && window.sypnexApps[appId].sypnexAPI) {
+                const api = window.sypnexApps[appId].sypnexAPI;
+                if (api.socket && api.socket.connected) {
+                    connections = 1;
+                    status = 'connected';
+                } else if (api.socket) {
+                    status = 'disconnected';
+                }
+            }
+            
+            return { connections, status };
         };
 
         // Function to update system overview
-        const updateSystemOverview = () => {
-            const memory = getMemoryUsage();
+        const updateSystemOverview = (appMetrics) => {
+            const apps = Array.from(this.apps.entries());
+            console.log('📊 Overview apps:', apps.map(([id]) => id));
+            
             const runningApps = Array.from(this.apps.values()).filter(app =>
                 app.dataset.minimized !== 'true'
             ).length;
             const totalApps = this.apps.size;
 
+            // Use pre-calculated metrics to avoid DOM counting after modifications
+            let totalDOMNodes = 0;
+            let totalTimers = 0;
+            let totalGlobalEvents = 0;
+            let activeConnections = 0;
+
+            for (const [appId, appWindow] of apps) {
+                const metrics = appMetrics.get(appId);
+                if (metrics) {
+                    console.log(`📊 Overview ${appId}: DOM=${metrics.domNodes}`);
+                    
+                    totalDOMNodes += metrics.domNodes;
+                    totalTimers += metrics.timers;
+                    totalGlobalEvents += metrics.events;
+                    
+                    if (metrics.network.connections > 0) {
+                        activeConnections += metrics.network.connections;
+                    }
+                }
+            }
+
+            console.log('📊 Overview TOTAL:', totalDOMNodes);
+
             if (systemOverview) {
                 systemOverview.innerHTML = `
-                    <div class="overview-item">
-                        <span class="overview-label">Memory Usage</span>
-                        <span class="overview-value">${formatBytes(memory.used)}</span>
-                        <span class="overview-unit">of ${formatBytes(memory.total)}</span>
-                    </div>
                     <div class="overview-item">
                         <span class="overview-label">Running Apps</span>
                         <span class="overview-value">${runningApps}</span>
                         <span class="overview-unit">of ${totalApps} total</span>
                     </div>
                     <div class="overview-item">
-                        <span class="overview-label">System Load</span>
-                        <span class="overview-value">${Math.floor((memory.used / memory.total) * 100)}%</span>
-                        <span class="overview-unit">estimated</span>
+                        <span class="overview-label">Total DOM Nodes</span>
+                        <span class="overview-value">${totalDOMNodes}</span>
+                        <span class="overview-unit">across all apps</span>
                     </div>
                     <div class="overview-item">
-                        <span class="overview-label">Active Connections</span>
-                        <span class="overview-value">${window.sypnexApps ? Object.keys(window.sypnexApps).length : 0}</span>
-                        <span class="overview-unit">websockets</span>
+                        <span class="overview-label">Active Timers</span>
+                        <span class="overview-value">${totalTimers}</span>
+                        <span class="overview-unit">system-wide</span>
+                    </div>
+                    <div class="overview-item">
+                        <span class="overview-label">Global Events</span>
+                        <span class="overview-value">${totalGlobalEvents}</span>
+                        <span class="overview-unit">tracked listeners</span>
                     </div>
                 `;
             }
         };
 
         // Function to update resource table
-        const updateResourceTable = async () => {
+        const updateResourceTable = async (appMetrics) => {
             if (!resourceTableBody) return;
 
             const apps = Array.from(this.apps.entries());
+            console.log('📋 Table apps:', apps.map(([id]) => id));
 
             if (apps.length === 0) {
                 resourceTableBody.innerHTML = `
@@ -128,24 +147,38 @@ Object.assign(SypnexOS.prototype, {
             }
 
             resourceTableBody.innerHTML = '';
+            let tableTotalDOM = 0;
 
             for (const [appId, appWindow] of apps) {
                 try {
                     // Get app metadata
                     const appData = await this.getAppData(appId);
-                    if (!appData) continue;
+                    if (!appData) {
+                        console.log('📋 Table skipping (no appData):', appId);
+                        continue;
+                    }
 
-                    // Get resource metrics
-                    const domNodes = getAppDOMNodes(appId);
-                    const eventListeners = getEventListeners(appId);
-                    const network = getNetworkActivity(appId);
-                    const cpuUsage = getCPUUsage(appId);
-                    const memoryUsage = domNodes * 100; // Rough estimation based on DOM nodes
+                    // Use pre-calculated metrics
+                    const metrics = appMetrics.get(appId);
+                    if (!metrics) continue;
+                    
+                    const domNodes = metrics.domNodes;
+                    const activeTimers = metrics.timers;
+                    const globalEvents = metrics.events;
+                    const network = metrics.network;
+
+                    console.log(`📋 Table ${appId}: DOM=${domNodes}`);
+                    tableTotalDOM += domNodes;
 
                     // Determine status
                     const isMinimized = appWindow.dataset.minimized === 'true';
                     const status = isMinimized ? 'minimized' : 'running';
                     const statusClass = isMinimized ? 'status-minimized' : 'status-running';
+
+                    // Create performance indicators
+                    const domNodesClass = domNodes > 500 ? 'high' : domNodes > 200 ? 'medium' : 'low';
+                    const timersClass = activeTimers > 5 ? 'high' : activeTimers > 2 ? 'medium' : 'low';
+                    const eventsClass = globalEvents > 10 ? 'high' : globalEvents > 5 ? 'medium' : 'low';
 
                     // Create table row
                     const row = document.createElement('tr');
@@ -160,25 +193,29 @@ Object.assign(SypnexOS.prototype, {
                             <span class="status-badge ${statusClass}">${status}</span>
                         </td>
                         <td>
-                            <div class="metric-value">${formatBytes(memoryUsage)}</div>
+                            <div class="metric-value">${domNodes}</div>
                             <div class="metric-bar">
-                                <div class="metric-fill ${memoryUsage > 1000000 ? 'high' : memoryUsage > 500000 ? 'medium' : 'low'}" 
-                                     style="width: ${Math.min((memoryUsage / 2000000) * 100, 100)}%"></div>
+                                <div class="metric-fill ${domNodesClass}" 
+                                     style="width: ${Math.min((domNodes / 1000) * 100, 100)}%"></div>
                             </div>
                         </td>
                         <td>
-                            <div class="metric-value">${cpuUsage}%</div>
+                            <div class="metric-value">${activeTimers}</div>
                             <div class="metric-bar">
-                                <div class="metric-fill ${cpuUsage > 80 ? 'high' : cpuUsage > 50 ? 'medium' : 'low'}" 
-                                     style="width: ${cpuUsage}%"></div>
+                                <div class="metric-fill ${timersClass}" 
+                                     style="width: ${Math.min((activeTimers / 10) * 100, 100)}%"></div>
                             </div>
                         </td>
                         <td>
-                            <div class="metric-value">${network.requests} req</div>
-                            <div class="metric-value" style="font-size: 0.8em; color: var(--text-secondary);">${formatBytes(network.bytes)}</div>
+                            <div class="metric-value">${network.connections}</div>
+                            <div class="metric-value" style="font-size: 0.8em; color: var(--text-secondary);">${network.status}</div>
                         </td>
                         <td>
-                            <div class="metric-value">${eventListeners}</div>
+                            <div class="metric-value">${globalEvents}</div>
+                            <div class="metric-bar">
+                                <div class="metric-fill ${eventsClass}" 
+                                     style="width: ${Math.min((globalEvents / 20) * 100, 100)}%"></div>
+                            </div>
                         </td>
                         <td>
                             <div class="app-actions">
@@ -198,28 +235,71 @@ Object.assign(SypnexOS.prototype, {
                     console.error(`Error getting data for app ${appId}:`, error);
                 }
             }
+            
+            console.log('📋 Table TOTAL:', tableTotalDOM);
         };
 
         // Function to refresh all data
+        let isRefreshing = false;
         const refreshResources = async () => {
-            updateSystemOverview();
-            await updateResourceTable();
+            if (isRefreshing) {
+                console.log('⏸️ Refresh already in progress, skipping...');
+                return;
+            }
+            
+            isRefreshing = true;
+            try {
+                // Get measurements for both BEFORE any DOM changes
+                const apps = Array.from(this.apps.entries());
+                const appMetrics = new Map();
+                
+                // Collect all metrics first to prevent DOM modification affecting counts
+                for (const [appId, appWindow] of apps) {
+                    appMetrics.set(appId, {
+                        domNodes: getAppDOMNodes(appId),
+                        timers: getActiveTimers(appId),
+                        events: getEventListeners(appId),
+                        network: getNetworkActivity(appId)
+                    });
+                }
+                
+                // Now update both displays with the same data
+                await updateResourceTable(appMetrics);
+                updateSystemOverview(appMetrics);
+            } finally {
+                isRefreshing = false;
+            }
         };
 
         // Set up event listeners
         if (refreshBtn) {
             refreshBtn.addEventListener('click', refreshResources);
+            // Track this event listener if tracker is available
+            if (tracker && tracker.trackEventListener) {
+                tracker.trackEventListener(refreshBtn, 'click', refreshResources);
+            }
         }
 
         // Load initial data
         refreshResources();
 
-        // Auto-refresh every 5 seconds
-        const autoRefreshInterval = setInterval(refreshResources, 5000);
+        // Auto-refresh every 5 seconds using tracked timer
+        let autoRefreshInterval;
+        if (tracker && tracker.isBuiltinApp) {
+            // Use tracked timer for built-in apps
+            autoRefreshInterval = this.createTrackedTimer(appId, refreshResources, 5000, true);
+        } else {
+            // Fallback to regular timer
+            autoRefreshInterval = setInterval(refreshResources, 5000);
+        }
 
-        // Clean up interval when window is closed
+        // Clean up interval when window is closed (cleanup is now handled automatically)
         windowElement.addEventListener('close', () => {
-            clearInterval(autoRefreshInterval);
+            if (tracker && tracker.isBuiltinApp) {
+                this.clearTrackedTimer(appId, autoRefreshInterval, true);
+            } else {
+                clearInterval(autoRefreshInterval);
+            }
         });
     }
 }); 

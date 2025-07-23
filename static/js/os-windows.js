@@ -735,6 +735,9 @@ Object.assign(SypnexOS.prototype, {
     },
 
     setupAppFunctionality(appId, windowElement) {
+        // Initialize built-in app tracking for all system apps
+        this.initBuiltinAppTracking(appId);
+        
         switch (appId) {
             case 'terminal':
                 this.setupTerminalCore(windowElement);

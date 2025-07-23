@@ -48,6 +48,7 @@ def serve_bundled_os():
     load_order = [
         "os-core.js",
         "os-spotlight.js", 
+        "os-builtin-app-tracker.js",  # Must be before windows.js
         "os-windows.js",
         "os-taskbar.js",
         "os-status.js",
