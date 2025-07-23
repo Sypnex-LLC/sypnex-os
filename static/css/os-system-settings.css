@@ -373,17 +373,59 @@ input:checked + .toggle-slider:before {
     background: var(--glass-bg);
     border: 1px solid var(--glass-border);
     border-radius: 8px;
-    max-width: 200px;
+    width: 200px;
+    height: 120px;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.wallpaper-preview.clickable {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.wallpaper-preview.clickable:hover {
+    background: var(--glass-hover-bg);
+    border-color: var(--accent-primary);
+    transform: translateY(-1px);
+}
+
+.wallpaper-preview-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    height: 100%;
+}
+
+.wallpaper-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+.wallpaper-placeholder i {
+    font-size: 2em;
+    opacity: 0.6;
+}
+
+.wallpaper-placeholder span {
+    font-size: 0.8em;
+    font-style: italic;
 }
 
 .wallpaper-preview img {
-    max-width: 100%;
-    max-height: 100px;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
     border-radius: 4px;
-    border: 1px solid var(--glass-border);
 }
 
-.wallpaper-preview span {
+.wallpaper-preview #wallpaper-name {
     font-size: 0.8em;
     color: var(--text-secondary);
     text-align: center;

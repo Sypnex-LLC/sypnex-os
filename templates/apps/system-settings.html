@@ -1,14 +1,6 @@
-<link href="{{ url_for('static', filename='css/os-system-settings.css') }}" rel="stylesheet">
+<link href="{{ cache_bust_url('static', filename='css/os-system-settings.css') }}" rel="stylesheet">
 
-<div class="app-container">
-    <div class="app-header">
-        <h2><i class="fas fa-cog"></i> System Settings</h2>
-        <p>Configure system preferences and manage OS settings</p>
-        <button class="app-btn primary refresh-system-settings">
-            <i class="fas fa-sync-alt"></i> Refresh
-        </button>
-    </div>
-    
+<div class="app-container">   
     <div class="app-content">
         <div class="app-section">
             <h3>System Preferences</h3>
@@ -22,11 +14,6 @@
                         <div class="display-name-controls">
                             <div class="display-name-input-container">
                                 <input type="text" id="display-name-input" class="display-name-input" placeholder="Enter display name" maxlength="50">
-                            </div>
-                            <div class="display-name-actions">
-                                <button id="change-display-name-btn" class="app-btn secondary" disabled>
-                                    <i class="fas fa-user-edit"></i> Change
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -66,15 +53,11 @@
                     </div>
                     <div class="preference-control">
                         <div class="wallpaper-controls">
-                            <button id="select-wallpaper-btn" class="app-btn secondary">
-                                <i class="fas fa-image"></i> Select Wallpaper
-                            </button>
                             <button id="remove-wallpaper-btn" class="app-btn outline">
                                 <i class="fas fa-times"></i> Remove
                             </button>
                         </div>
                         <div class="wallpaper-sizing-controls">
-                            <label for="wallpaper-sizing-select" class="setting-label">Wallpaper Sizing:</label>
                             <select id="wallpaper-sizing-select" class="app-select">
                                 <option value="cover">Cover (Fill screen, may crop)</option>
                                 <option value="contain">Fit (Show entire image)</option>
@@ -82,9 +65,14 @@
                                 <option value="stretch">Stretch (May distort)</option>
                             </select>
                         </div>
-                        <div id="current-wallpaper-preview" class="wallpaper-preview" style="display: none;">
-                            <img id="wallpaper-preview-img" src="" alt="Current wallpaper">
-                            <span id="wallpaper-name">No wallpaper selected</span>
+                        <div id="current-wallpaper-preview" class="wallpaper-preview clickable" style="display: block;">
+                            <div class="wallpaper-preview-content">
+                                <img id="wallpaper-preview-img" src="" alt="Current wallpaper" style="display: none;">
+                                <div class="wallpaper-placeholder">
+                                    <i class="fas fa-image"></i>
+                                    <span>Click to select wallpaper</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -36,10 +36,10 @@ Object.assign(SypnexOS.prototype, {
             });
         }
 
-        // Wallpaper selection button
-        const selectWallpaperBtn = windowElement.querySelector('#select-wallpaper-btn');
-        if (selectWallpaperBtn) {
-            selectWallpaperBtn.addEventListener('click', () => {
+        // Wallpaper preview click (replaces select wallpaper button)
+        const wallpaperPreview = windowElement.querySelector('#current-wallpaper-preview');
+        if (wallpaperPreview) {
+            wallpaperPreview.addEventListener('click', () => {
                 this.selectWallpaper();
             });
         }
@@ -90,24 +90,17 @@ Object.assign(SypnexOS.prototype, {
             });
         }
 
-        // Display name input and change button
+        // Display name input
         const displayNameInput = windowElement.querySelector('#display-name-input');
-        const changeDisplayNameBtn = windowElement.querySelector('#change-display-name-btn');
         
         if (displayNameInput) {
             displayNameInput.addEventListener('input', (e) => {
-                this.handleDisplayNameInput(e, changeDisplayNameBtn);
+                this.handleDisplayNameInput(e);
             });
             displayNameInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter' && !changeDisplayNameBtn.disabled) {
+                if (e.key === 'Enter') {
                     this.changeDisplayName(windowElement);
                 }
-            });
-        }
-        
-        if (changeDisplayNameBtn) {
-            changeDisplayNameBtn.addEventListener('click', () => {
-                this.changeDisplayName(windowElement);
             });
         }
     },
@@ -384,19 +377,19 @@ Object.assign(SypnexOS.prototype, {
     updateWallpaperPreview(windowElement, wallpaperPath) {
         const preview = windowElement.querySelector('#current-wallpaper-preview');
         const previewImg = windowElement.querySelector('#wallpaper-preview-img');
-        const wallpaperName = windowElement.querySelector('#wallpaper-name');
+        const placeholder = windowElement.querySelector('.wallpaper-placeholder');
 
         if (wallpaperPath) {
-            // Show preview using correct VFS API endpoint
-            preview.style.display = 'flex';
+            // Show image, hide placeholder
+            previewImg.style.display = 'block';
+            if (placeholder) placeholder.style.display = 'none';
             // Create temporary API instance to get the correct file URL
             const tempAPI = new window.SypnexAPI();
             previewImg.src = tempAPI.getVirtualFileUrl(wallpaperPath);
-            wallpaperName.textContent = wallpaperPath.split('/').pop();
         } else {
-            // Hide preview
-            preview.style.display = 'none';
-            wallpaperName.textContent = 'No wallpaper selected';
+            // Show placeholder, hide image
+            previewImg.style.display = 'none';
+            if (placeholder) placeholder.style.display = 'flex';
         }
     },
 
@@ -775,29 +768,19 @@ Object.assign(SypnexOS.prototype, {
     // Display Name Management Functions
     loadDisplayName(windowElement, displayName) {
         const displayNameInput = windowElement.querySelector('#display-name-input');
-        const changeBtn = windowElement.querySelector('#change-display-name-btn');
         
         if (displayNameInput) {
             displayNameInput.value = displayName === 'Not set' ? '' : displayName;
             displayNameInput.setAttribute('data-original', displayName);
         }
-        
-        if (changeBtn) {
-            changeBtn.disabled = true;
-        }
     },
 
-    handleDisplayNameInput(event, changeBtn) {
+    handleDisplayNameInput(event) {
         const input = event.target;
         const originalValue = input.getAttribute('data-original') || '';
         const currentValue = input.value.trim();
         const isValid = currentValue.length >= 1 && currentValue.length <= 50;
         const hasChanged = currentValue !== originalValue && currentValue !== '';
-        
-        // Enable/disable change button
-        if (changeBtn) {
-            changeBtn.disabled = !isValid || !hasChanged;
-        }
         
         // Visual feedback
         if (currentValue.length > 0) {
@@ -819,7 +802,6 @@ Object.assign(SypnexOS.prototype, {
 
     async changeDisplayName(windowElement) {
         const displayNameInput = windowElement.querySelector('#display-name-input');
-        const changeBtn = windowElement.querySelector('#change-display-name-btn');
         
         if (!displayNameInput) return;
         
@@ -830,10 +812,11 @@ Object.assign(SypnexOS.prototype, {
             return;
         }
         
-        // Show loading state
-        if (changeBtn) {
-            changeBtn.disabled = true;
-            changeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Changing...';
+        // Check if actually changed
+        const originalValue = displayNameInput.getAttribute('data-original') || '';
+        if (newDisplayName === originalValue) {
+            this.showNotification('Display name is already set to that value', 'info');
+            return;
         }
         
         try {
@@ -861,12 +844,6 @@ Object.assign(SypnexOS.prototype, {
         } catch (error) {
             console.error('Error changing display name:', error);
             this.showNotification('Failed to change display name. Please try again.', 'error');
-        } finally {
-            // Reset button state
-            if (changeBtn) {
-                changeBtn.innerHTML = '<i class="fas fa-user-edit"></i> Change';
-                changeBtn.disabled = true;
-            }
         }
     }
 });
