@@ -4,12 +4,15 @@
 // Extend SypnexOS class with terminal methods
 Object.assign(SypnexOS.prototype, {
     setupTerminalCore(windowElement) {
+        const container = windowElement.querySelector('#terminalContainer');
         const output = windowElement.querySelector('#terminalOutput');
+        const inputLine = windowElement.querySelector('#terminalInputLine');
         const input = windowElement.querySelector('#terminalInput');
+        const prompt = windowElement.querySelector('#terminalPrompt');
         const history = windowElement.querySelector('#commandHistory');
         const suggestions = windowElement.querySelector('#commandSuggestions');
         
-        if (!output || !input || !history) {
+        if (!output || !input || !prompt || !inputLine) {
             console.warn('Terminal Core elements not found');
             return;
         }
@@ -19,9 +22,93 @@ Object.assign(SypnexOS.prototype, {
         let availableCommands = [];
         let currentVfsDirectory = '/';  // Track current virtual file system directory
 
-        function focusInput() {
-            input.focus();
+        // Update prompt based on current directory
+        function updatePrompt() {
+            const displayPath = currentVfsDirectory === '/' ? '~' : `~${currentVfsDirectory}`;
+            prompt.textContent = `${displayPath}$`;
         }
+
+        function focusInput() {
+            // Find the current active input (the last one that's not disabled)
+            const activeInput = container.querySelector('.terminal-live-input:not([disabled])');
+            if (activeInput) {
+                activeInput.focus();
+            } else {
+                input.focus();
+            }
+        }
+        
+        // Auto-focus the terminal input when clicking anywhere in the container
+        container.addEventListener('click', (e) => {
+            // Find the current active input (the last one that's not disabled)
+            const activeInput = container.querySelector('.terminal-live-input:not([disabled])');
+            if (activeInput) {
+                activeInput.focus();
+            }
+        });
+
+        // Initialize with focus and updated prompt
+        updatePrompt();
+        setTimeout(() => focusInput(), 100);
+
+        // Create a new input line (like a real terminal)
+        function createNewInputLine() {
+            const newInputLine = document.createElement('div');
+            newInputLine.className = 'terminal-input-line';
+            newInputLine.innerHTML = `
+                <span class="terminal-prompt">${prompt.textContent}</span>
+                <input type="text" class="terminal-live-input" autocomplete="off" spellcheck="false">
+            `;
+            
+            output.appendChild(newInputLine);
+            
+            // Get reference to the new input element
+            const newInput = newInputLine.querySelector('.terminal-live-input');
+            
+            // Setup event listeners for the new input BEFORE focusing
+            setupInputEventListeners(newInput);
+            
+            // Focus the new input
+            setTimeout(() => {
+                newInput.focus();
+            }, 10);
+            
+            // Scroll to bottom
+            output.scrollTop = output.scrollHeight;
+            
+            return newInput;
+        }
+
+        function setupInputEventListeners(inputElement) {
+            // Event listeners for the input
+            inputElement.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    executeCommand(inputElement);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    navigateHistory(-1, inputElement);
+                } else if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    navigateHistory(1, inputElement);
+                } else if (e.key === 'Tab') {
+                    e.preventDefault();
+                    showHistory(inputElement);
+                }
+            });
+            
+            // Copy/paste shortcuts
+            inputElement.addEventListener('keydown', (e) => {
+                if (e.ctrlKey || e.metaKey) {
+                    if (e.key === 'a') {
+                        e.preventDefault();
+                        inputElement.select();
+                    }
+                }
+            });
+        }
+        
+        // Setup initial input event listeners
+        setupInputEventListeners(input);
         
         function addToHistory(command) {
             if (command.trim() && !commandHistory.includes(command.trim())) {
@@ -33,7 +120,7 @@ Object.assign(SypnexOS.prototype, {
             currentHistoryIndex = -1;
         }
         
-        function navigateHistory(direction) {
+        function navigateHistory(direction, inputElement) {
             if (commandHistory.length === 0) return;
             currentHistoryIndex += direction;
             if (currentHistoryIndex >= commandHistory.length) {
@@ -42,13 +129,13 @@ Object.assign(SypnexOS.prototype, {
                 currentHistoryIndex = -1;
             }
             if (currentHistoryIndex === -1) {
-                input.value = '';
+                inputElement.value = '';
             } else {
-                input.value = commandHistory[currentHistoryIndex];
+                inputElement.value = commandHistory[currentHistoryIndex];
             }
         }
         
-        function showHistory() {
+        function showHistory(inputElement) {
             if (commandHistory.length === 0) return;
             history.innerHTML = '';
             commandHistory.forEach(cmd => {
@@ -56,9 +143,9 @@ Object.assign(SypnexOS.prototype, {
                 item.className = 'history-item';
                 item.textContent = cmd;
                 item.addEventListener('click', () => {
-                    input.value = cmd;
+                    inputElement.value = cmd;
                     hideHistory();
-                    input.focus();
+                    inputElement.focus();
                 });
                 history.appendChild(item);
             });
@@ -67,43 +154,6 @@ Object.assign(SypnexOS.prototype, {
         
         function hideHistory() {
             history.style.display = 'none';
-        }
-
-        function showSuggestions(partialCommand) {
-            if (!partialCommand || partialCommand.length < 1) {
-                hideSuggestions();
-                return;
-            }
-
-            const matchingCommands = availableCommands.filter(cmd => 
-                cmd.name.toLowerCase().startsWith(partialCommand.toLowerCase())
-            );
-
-            if (matchingCommands.length === 0) {
-                hideSuggestions();
-                return;
-            }
-
-            suggestions.innerHTML = '';
-            matchingCommands.slice(0, 5).forEach(cmd => {
-                const item = document.createElement('div');
-                item.className = 'suggestion-item';
-                item.innerHTML = `
-                    <span class="suggestion-name">${cmd.name}</span>
-                    <span class="suggestion-help">${cmd.help}</span>
-                `;
-                item.addEventListener('click', () => {
-                    input.value = cmd.name;
-                    hideSuggestions();
-                    input.focus();
-                });
-                suggestions.appendChild(item);
-            });
-            suggestions.style.display = 'block';
-        }
-
-        function hideSuggestions() {
-            suggestions.style.display = 'none';
         }
         
         function appendOutput(text, className = '') {
@@ -207,14 +257,15 @@ Object.assign(SypnexOS.prototype, {
             output.scrollTop = output.scrollHeight;
         }
         
-        async function executeCommand() {
-            const command = input.value.trim();
+        async function executeCommand(inputElement) {
+            const command = inputElement.value.trim();
             if (!command) return;
+
+            // Disable the current input
+            inputElement.disabled = true;
             
-            appendOutput(`${currentVfsDirectory}$ ${command}`, 'terminal-success');
             addToHistory(command);
-            input.value = '';
-            hideSuggestions();
+            hideHistory();
             
             try {
                 const response = await fetch('/api/terminal/execute', {
@@ -228,35 +279,28 @@ Object.assign(SypnexOS.prototype, {
                     // Handle clear screen command
                     if (data.clear_screen) {
                         output.innerHTML = '';
-                        appendOutput('', 'terminal-success');
-                        focusInput();
+                        updatePrompt();
+                        createNewInputLine();
                         return;
                     }
                     
+                    // Add command output to terminal
                     if (data.output) {
                         appendOutput(data.output);
                     } else if (data.error) {
                         appendOutput(`Error: ${data.error}`, 'terminal-error');
-                    } else {
-                        appendOutput('No output.', 'terminal-info');
-                    }
-                    
-                    // If this is a background Python execution, track it
-                    if (data.background && data.execution_id) {
-                        activePythonExecutions.add(data.execution_id);
-                        console.log(`Terminal: Started tracking Python execution: ${data.execution_id}`);
                     }
                     
                     // Update current directory if cd command was successful
                     if (command.startsWith('cd ') && !data.error) {
-                        // Extract the new path from the output
                         const match = data.output.match(/Changed to directory: (.+)/);
                         if (match) {
                             currentVfsDirectory = match[1];
+                            updatePrompt();
                         }
                     } else if (command === 'cd' && !data.error) {
-                        // cd without args goes to root
                         currentVfsDirectory = '/';
+                        updatePrompt();
                     }
                 } else {
                     appendOutput(`Error: ${data.error}`, 'terminal-error');
@@ -265,8 +309,8 @@ Object.assign(SypnexOS.prototype, {
                 appendOutput(`Error: ${error.message}`, 'terminal-error');
             }
             
-            appendOutput('', 'terminal-success');
-            focusInput();
+            // Create new input line for next command
+            createNewInputLine();
         }
 
         async function loadAvailableCommands() {
@@ -280,54 +324,6 @@ Object.assign(SypnexOS.prototype, {
             }
         }
         
-        // Event listeners
-        input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                executeCommand();
-            } else if (e.key === 'ArrowUp') {
-                e.preventDefault();
-                navigateHistory(-1);
-                hideSuggestions();
-            } else if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                navigateHistory(1);
-                hideSuggestions();
-            } else if (e.key === 'Tab') {
-                e.preventDefault();
-                if (suggestions.style.display === 'block') {
-                    // Select first suggestion
-                    const firstSuggestion = suggestions.querySelector('.suggestion-item');
-                    if (firstSuggestion) {
-                        input.value = firstSuggestion.querySelector('.suggestion-name').textContent;
-                        hideSuggestions();
-                        input.focus();
-                    }
-                } else {
-                    showHistory();
-                }
-            }
-        });
-        
-        input.addEventListener('input', () => {
-            hideHistory();
-            const partialCommand = input.value.trim();
-            showSuggestions(partialCommand);
-        });
-        
-        // Add keyboard shortcuts for copy/paste
-        input.addEventListener('keydown', (e) => {
-            if (e.ctrlKey || e.metaKey) {
-                if (e.key === 'c') {
-                    // Copy is handled by browser
-                } else if (e.key === 'v') {
-                    // Paste is handled by browser
-                } else if (e.key === 'a') {
-                    e.preventDefault();
-                    input.select();
-                }
-            }
-        });
-        
         // Add context menu and copy/paste support to terminal output
         output.addEventListener('contextmenu', (e) => {
             e.preventDefault();
@@ -339,25 +335,27 @@ Object.assign(SypnexOS.prototype, {
                 position: fixed;
                 top: ${e.clientY}px;
                 left: ${e.clientX}px;
-                background: #2d2d2d;
-                border: 1px solid #444;
-                border-radius: 4px;
+                background: var(--glass-bg);
+                border: 1px solid var(--glass-border);
+                border-radius: 8px;
+                backdrop-filter: blur(20px);
                 padding: 4px 0;
                 z-index: 10000;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
             `;
             
             // Copy button
             const copyBtn = document.createElement('div');
             copyBtn.textContent = 'Copy';
             copyBtn.style.cssText = `
-                padding: 8px 16px;
+                padding: 12px 16px;
                 cursor: pointer;
-                color: #ffffff;
+                color: var(--text-primary);
                 font-size: 14px;
+                transition: background-color 0.2s ease;
             `;
             copyBtn.addEventListener('mouseenter', () => {
-                copyBtn.style.backgroundColor = '#3d3d3d';
+                copyBtn.style.backgroundColor = 'rgba(0, 212, 255, 0.1)';
             });
             copyBtn.addEventListener('mouseleave', () => {
                 copyBtn.style.backgroundColor = 'transparent';
@@ -378,14 +376,15 @@ Object.assign(SypnexOS.prototype, {
             const selectAllBtn = document.createElement('div');
             selectAllBtn.textContent = 'Select All';
             selectAllBtn.style.cssText = `
-                padding: 8px 16px;
+                padding: 12px 16px;
                 cursor: pointer;
-                color: #ffffff;
+                color: var(--text-primary);
                 font-size: 14px;
-                border-top: 1px solid #444;
+                border-top: 1px solid var(--glass-border);
+                transition: background-color 0.2s ease;
             `;
             selectAllBtn.addEventListener('mouseenter', () => {
-                selectAllBtn.style.backgroundColor = '#3d3d3d';
+                selectAllBtn.style.backgroundColor = 'rgba(0, 212, 255, 0.1)';
             });
             selectAllBtn.addEventListener('mouseleave', () => {
                 selectAllBtn.style.backgroundColor = 'transparent';
@@ -443,9 +442,8 @@ Object.assign(SypnexOS.prototype, {
         output.setAttribute('tabindex', '0');
         
         document.addEventListener('click', (e) => {
-            if (!e.target.closest('.input-container')) {
+            if (!e.target.closest('.terminal-container')) {
                 hideHistory();
-                hideSuggestions();
             }
         });
         
