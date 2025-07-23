@@ -5,8 +5,10 @@ This is the refactored version that uses modular route organization
 from app_config import create_app, initialize_managers, initialize_system, BUILTIN_APPS
 from routes import register_all_routes
 from swagger_config import setup_auto_swagger
-from flask import Response
+from flask import Response, url_for
 from pathlib import Path
+import time
+import hashlib
 
 # Create Flask application
 app = create_app()
@@ -35,6 +37,30 @@ register_all_routes(app, managers, BUILTIN_APPS)
 setup_auto_swagger(app)
 
 
+# Cache-busting helper function
+@app.template_global()
+def cache_bust_url(endpoint, **values):
+    """
+    Generate URLs with cache-busting parameters
+    Uses timestamp for dynamic content and file hash for static content
+    """
+    if endpoint in ['serve_bundled_os', 'serve_bundled_sypnex_api']:
+        # For dynamic JS bundles, use timestamp
+        values['v'] = str(int(time.time()))
+    elif 'filename' in values:
+        # For static files, try to use file modification time
+        try:
+            static_path = Path(app.static_folder) / values['filename']
+            if static_path.exists():
+                values['v'] = str(int(static_path.stat().st_mtime))
+            else:
+                values['v'] = str(int(time.time()))
+        except:
+            values['v'] = str(int(time.time()))
+    else:
+        values['v'] = str(int(time.time()))
+    
+    return url_for(endpoint, **values)
 
 @app.route('/static/js/os.js')
 def serve_bundled_os():
@@ -78,7 +104,15 @@ def serve_bundled_os():
         else:
             bundle_content += f"// MISSING: {js_file}\n\n"
     
-    return Response(bundle_content, mimetype='application/javascript')
+    response = Response(bundle_content, mimetype='application/javascript')
+    
+    # Add aggressive no-cache headers
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    response.headers['Last-Modified'] = __import__('datetime').datetime.now().strftime('%a, %d %b %Y %H:%M:%S GMT')
+    
+    return response
 
 @app.route('/static/js/sypnex-api.js')
 def serve_bundled_sypnex_api():
@@ -115,7 +149,15 @@ def serve_bundled_sypnex_api():
         else:
             bundle_content += f"// MISSING: {js_file}\n\n"
     
-    return Response(bundle_content, mimetype='application/javascript')
+    response = Response(bundle_content, mimetype='application/javascript')
+    
+    # Add aggressive no-cache headers
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    response.headers['Last-Modified'] = __import__('datetime').datetime.now().strftime('%a, %d %b %Y %H:%M:%S GMT')
+    
+    return response
 
 # Register terminal manager routes
 

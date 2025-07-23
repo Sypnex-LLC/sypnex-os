@@ -200,8 +200,8 @@
     <script src="{{ url_for('static', filename='vendor/socket.io/socket.io.min.js') }}"></script>
 
     <!-- Sypnex OS Modules - Load in dependency order -->
-    <script src="{{ url_for('static', filename='js/sypnex-api.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/os.js') }}"></script>
+    <script src="{{ cache_bust_url('serve_bundled_sypnex_api') }}"></script>
+    <script src="{{ cache_bust_url('serve_bundled_os') }}"></script>
 </body>
 
 </html>
