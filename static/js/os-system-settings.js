@@ -89,6 +89,27 @@ Object.assign(SypnexOS.prototype, {
                 this.removeSystemPin(windowElement);
             });
         }
+
+        // Display name input and change button
+        const displayNameInput = windowElement.querySelector('#display-name-input');
+        const changeDisplayNameBtn = windowElement.querySelector('#change-display-name-btn');
+        
+        if (displayNameInput) {
+            displayNameInput.addEventListener('input', (e) => {
+                this.handleDisplayNameInput(e, changeDisplayNameBtn);
+            });
+            displayNameInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !changeDisplayNameBtn.disabled) {
+                    this.changeDisplayName(windowElement);
+                }
+            });
+        }
+        
+        if (changeDisplayNameBtn) {
+            changeDisplayNameBtn.addEventListener('click', () => {
+                this.changeDisplayName(windowElement);
+            });
+        }
     },
     
     async loadSystemPreferences(windowElement) {
@@ -131,6 +152,12 @@ Object.assign(SypnexOS.prototype, {
             const pinData = await pinResponse.json();
             
             this.updatePinStatus(windowElement, pinData.value ? true : false);
+
+            // Load display name setting
+            const displayNameResponse = await fetch('/api/preferences/user/display_name');
+            const displayNameData = await displayNameResponse.json();
+            
+            this.loadDisplayName(windowElement, displayNameData.value || 'Not set');
             
         } catch (error) {
             console.error('Error loading system preferences:', error);
@@ -668,15 +695,11 @@ Object.assign(SypnexOS.prototype, {
     },
 
     updatePinStatus(windowElement, hasPinSet) {
-        const pinStatus = windowElement.querySelector('#pin-status');
-        const pinStatusText = windowElement.querySelector('.pin-status-text');
         const setPinBtn = windowElement.querySelector('#set-pin-btn');
         const removePinBtn = windowElement.querySelector('#remove-pin-btn');
         const pinInputs = windowElement.querySelectorAll('.pin-input');
 
         if (hasPinSet) {
-            pinStatus.className = 'pin-status pin-set';
-            pinStatusText.innerHTML = '<i class="fas fa-check-circle"></i> PIN code is set';
             setPinBtn.style.display = 'none';
             removePinBtn.style.display = 'inline-flex';
             
@@ -686,8 +709,6 @@ Object.assign(SypnexOS.prototype, {
             // Enable remove button when PIN is complete
             this.checkPinCompleteForRemoval(pinInputs, removePinBtn);
         } else {
-            pinStatus.className = 'pin-status no-pin';
-            pinStatusText.innerHTML = '<i class="fas fa-exclamation-circle"></i> No PIN code set';
             setPinBtn.style.display = 'inline-flex';
             removePinBtn.style.display = 'none';
             
@@ -748,6 +769,104 @@ Object.assign(SypnexOS.prototype, {
             }
         } catch (error) {
             console.error('System Settings: Error refreshing lock button visibility:', error);
+        }
+    },
+
+    // Display Name Management Functions
+    loadDisplayName(windowElement, displayName) {
+        const displayNameInput = windowElement.querySelector('#display-name-input');
+        const changeBtn = windowElement.querySelector('#change-display-name-btn');
+        
+        if (displayNameInput) {
+            displayNameInput.value = displayName === 'Not set' ? '' : displayName;
+            displayNameInput.setAttribute('data-original', displayName);
+        }
+        
+        if (changeBtn) {
+            changeBtn.disabled = true;
+        }
+    },
+
+    handleDisplayNameInput(event, changeBtn) {
+        const input = event.target;
+        const originalValue = input.getAttribute('data-original') || '';
+        const currentValue = input.value.trim();
+        const isValid = currentValue.length >= 1 && currentValue.length <= 50;
+        const hasChanged = currentValue !== originalValue && currentValue !== '';
+        
+        // Enable/disable change button
+        if (changeBtn) {
+            changeBtn.disabled = !isValid || !hasChanged;
+        }
+        
+        // Visual feedback
+        if (currentValue.length > 0) {
+            if (hasChanged && isValid) {
+                input.classList.add('changed');
+                input.style.borderColor = 'var(--accent-color)';
+            } else if (!isValid) {
+                input.classList.remove('changed');
+                input.style.borderColor = '#ff4757';
+            } else {
+                input.classList.remove('changed');
+                input.style.borderColor = 'var(--glass-border)';
+            }
+        } else {
+            input.classList.remove('changed');
+            input.style.borderColor = 'var(--glass-border)';
+        }
+    },
+
+    async changeDisplayName(windowElement) {
+        const displayNameInput = windowElement.querySelector('#display-name-input');
+        const changeBtn = windowElement.querySelector('#change-display-name-btn');
+        
+        if (!displayNameInput) return;
+        
+        const newDisplayName = displayNameInput.value.trim();
+        
+        if (!newDisplayName || newDisplayName.length > 50) {
+            this.showNotification('Please enter a valid display name (1-50 characters)', 'error');
+            return;
+        }
+        
+        // Show loading state
+        if (changeBtn) {
+            changeBtn.disabled = true;
+            changeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Changing...';
+        }
+        
+        try {
+            const response = await fetch('/api/preferences/user/display_name', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    value: newDisplayName
+                })
+            });
+            
+            if (response.ok) {
+                // Update the original value
+                displayNameInput.setAttribute('data-original', newDisplayName);
+                displayNameInput.classList.remove('changed');
+                displayNameInput.style.borderColor = 'var(--glass-border)';
+                
+                this.showNotification(`Display name changed to "${newDisplayName}"`, 'success');
+            } else {
+                throw new Error('Failed to save display name');
+            }
+            
+        } catch (error) {
+            console.error('Error changing display name:', error);
+            this.showNotification('Failed to change display name. Please try again.', 'error');
+        } finally {
+            // Reset button state
+            if (changeBtn) {
+                changeBtn.innerHTML = '<i class="fas fa-user-edit"></i> Change';
+                changeBtn.disabled = true;
+            }
         }
     }
 });

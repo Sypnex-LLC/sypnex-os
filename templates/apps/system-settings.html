@@ -15,14 +15,20 @@
             <div class="system-preferences">
                 <div class="preference-item">
                     <div class="preference-info">
-                        <div class="preference-label">Developer Mode</div>
-                        <div class="preference-description">Enable advanced developer features like app reload buttons and debugging tools</div>
+                        <div class="preference-label">Display Name</div>
+                        <div class="preference-description">Your preferred name displayed throughout the system</div>
                     </div>
                     <div class="preference-control">
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="developer-mode-toggle">
-                            <span class="toggle-slider"></span>
-                        </label>
+                        <div class="display-name-controls">
+                            <div class="display-name-input-container">
+                                <input type="text" id="display-name-input" class="display-name-input" placeholder="Enter display name" maxlength="50">
+                            </div>
+                            <div class="display-name-actions">
+                                <button id="change-display-name-btn" class="app-btn secondary" disabled>
+                                    <i class="fas fa-user-edit"></i> Change
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
@@ -55,34 +61,6 @@
 
                 <div class="preference-item">
                     <div class="preference-info">
-                        <div class="preference-label">System PIN Code</div>
-                        <div class="preference-description">Set a 4-digit PIN code for enhanced security</div>
-                    </div>
-                    <div class="preference-control">
-                        <div class="pin-controls">
-                            <div class="pin-input-container">
-                                <input type="text" id="pin-digit-1" class="pin-input" maxlength="1" pattern="[0-9]" data-index="0">
-                                <input type="text" id="pin-digit-2" class="pin-input" maxlength="1" pattern="[0-9]" data-index="1">
-                                <input type="text" id="pin-digit-3" class="pin-input" maxlength="1" pattern="[0-9]" data-index="2">
-                                <input type="text" id="pin-digit-4" class="pin-input" maxlength="1" pattern="[0-9]" data-index="3">
-                            </div>
-                            <div class="pin-actions">
-                                <button id="set-pin-btn" class="app-btn secondary">
-                                    <i class="fas fa-lock"></i> Set PIN
-                                </button>
-                                <button id="remove-pin-btn" class="app-btn outline" style="display: none;">
-                                    <i class="fas fa-unlock"></i> Remove PIN
-                                </button>
-                            </div>
-                            <div id="pin-status" class="pin-status">
-                                <span class="pin-status-text">No PIN code set</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="preference-item">
-                    <div class="preference-info">
                         <div class="preference-label">Desktop Wallpaper</div>
                         <div class="preference-description">Choose a wallpaper from your Virtual File System</div>
                     </div>
@@ -108,6 +86,44 @@
                             <img id="wallpaper-preview-img" src="" alt="Current wallpaper">
                             <span id="wallpaper-name">No wallpaper selected</span>
                         </div>
+                    </div>
+                </div>
+
+                <div class="preference-item">
+                    <div class="preference-info">
+                        <div class="preference-label">System PIN Code</div>
+                        <div class="preference-description">Set a 4-digit PIN code for enhanced security</div>
+                    </div>
+                    <div class="preference-control">
+                        <div class="pin-controls">
+                            <div class="pin-input-container">
+                                <input type="text" id="pin-digit-1" class="pin-input" maxlength="1" pattern="[0-9]" data-index="0">
+                                <input type="text" id="pin-digit-2" class="pin-input" maxlength="1" pattern="[0-9]" data-index="1">
+                                <input type="text" id="pin-digit-3" class="pin-input" maxlength="1" pattern="[0-9]" data-index="2">
+                                <input type="text" id="pin-digit-4" class="pin-input" maxlength="1" pattern="[0-9]" data-index="3">
+                            </div>
+                            <div class="pin-actions">
+                                <button id="set-pin-btn" class="app-btn secondary">
+                                    <i class="fas fa-lock"></i> Set PIN
+                                </button>
+                                <button id="remove-pin-btn" class="app-btn outline" style="display: none;">
+                                    <i class="fas fa-unlock"></i> Remove PIN
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="preference-item">
+                    <div class="preference-info">
+                        <div class="preference-label">Developer Mode</div>
+                        <div class="preference-description">Enable advanced developer features like app reload buttons and debugging tools</div>
+                    </div>
+                    <div class="preference-control">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="developer-mode-toggle">
+                            <span class="toggle-slider"></span>
+                        </label>
                     </div>
                 </div>
             </div>
