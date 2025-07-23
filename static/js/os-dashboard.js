@@ -3,7 +3,7 @@
 
 // Extend SypnexOS class with dashboard methods
 Object.assign(SypnexOS.prototype, {
-    showDashboard() {
+    async showDashboard() {
         const overlay = document.getElementById('dashboard-overlay');
         
         if (!overlay) {
@@ -17,8 +17,14 @@ Object.assign(SypnexOS.prototype, {
         // Force a repaint
         overlay.offsetHeight;
         
-        // Populate dashboard with apps
-        this.populateDashboard();
+        // Get the last selected category from preferences
+        const lastCategory = await this.getDashboardCategory();
+        
+        // Update UI to show the correct active button
+        this.setActiveCategoryButton(lastCategory);
+        
+        // Populate dashboard with apps using the saved category
+        this.populateDashboard(lastCategory);
         
         // Setup category filtering
         this.setupDashboardCategories();
@@ -109,13 +115,16 @@ Object.assign(SypnexOS.prototype, {
 
         // Add fresh event listeners
         document.querySelectorAll('.category-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', async () => {
                 // Update active button
                 document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
 
-                // Filter apps
+                // Get the category and save it to preferences
                 const category = btn.dataset.category;
+                await this.saveDashboardCategory(category);
+
+                // Filter apps
                 this.populateDashboard(category);
             });
         });
@@ -129,6 +138,52 @@ Object.assign(SypnexOS.prototype, {
                     this.hideDashboard();
                 }
             });
+        }
+    },
+
+    async getDashboardCategory() {
+        try {
+            const response = await fetch('/api/preferences/ui/dashboard_category');
+            if (response.ok) {
+                const data = await response.json();
+                return data.value || 'all'; // Default to 'all' if no preference set
+            }
+        } catch (error) {
+            console.error('Error getting dashboard category preference:', error);
+        }
+        return 'all'; // Fallback to 'all'
+    },
+
+    async saveDashboardCategory(category) {
+        try {
+            const response = await fetch('/api/preferences/ui/dashboard_category', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    value: category
+                })
+            });
+            
+            if (!response.ok) {
+                console.error('Failed to save dashboard category preference');
+            }
+        } catch (error) {
+            console.error('Error saving dashboard category:', error);
+        }
+    },
+
+    setActiveCategoryButton(category) {
+        // Remove active class from all buttons
+        document.querySelectorAll('.category-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        // Set active class on the correct button
+        const activeButton = document.querySelector(`[data-category="${category}"]`);
+        if (activeButton) {
+            activeButton.classList.add('active');
         }
     }
 }); 
