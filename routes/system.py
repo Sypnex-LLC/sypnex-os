@@ -88,13 +88,28 @@ def register_system_routes(app, managers):
             # Force garbage collection to close any lingering connections
             gc.collect()
             
+            # Try to explicitly close VFS manager if it exists
+            try:
+                from virtual_file_manager import virtual_file_manager_instance
+                if virtual_file_manager_instance is not None:
+                    print("    - Detected active VFS manager instance")
+                    # Force cleanup of the global instance
+                    virtual_file_manager_instance = None
+                    gc.collect()
+                    print("    ✅ VFS manager instance cleared")
+            except Exception as e:
+                print(f"    Warning: Could not clear VFS instance: {e}")
+            
             # Try to connect and immediately close to flush any WAL files
             for db_file in ['data/user_preferences.db', 'data/virtual_files.db']:
                 if os.path.exists(db_file):
                     try:
+                        print(f"    - Checkpointing {db_file}...")
                         conn = sqlite3.connect(db_file)
                         conn.execute('PRAGMA wal_checkpoint(FULL);')
+                        conn.execute('PRAGMA wal_checkpoint(TRUNCATE);')  # More aggressive cleanup
                         conn.close()
+                        print(f"    ✅ {db_file} checkpointed")
                     except Exception as e:
                         print(f"    Warning: Could not checkpoint {db_file}: {e}")
             
@@ -138,19 +153,6 @@ def register_system_routes(app, managers):
                 else:
                     raise Exception("Template files not found")
                     
-            except (OSError, IOError, PermissionError) as e:
-                print(f"❌ Reset attempt {attempt + 1} failed: {e}")
-                if attempt < max_retries - 1:
-                    print(f"   Retrying in {retry_delay}s...")
-                    time.sleep(retry_delay)
-                    continue
-                else:
-                    print(f"💥 All {max_retries} attempts failed!")
-                    return jsonify({
-                        'success': False, 
-                        'error': f'Reset failed after {max_retries} attempts: {str(e)}'
-                    }), 500
-                
             except (OSError, IOError, PermissionError) as e:
                 print(f"❌ Reset attempt {attempt + 1} failed: {e}")
                 if attempt < max_retries - 1:
