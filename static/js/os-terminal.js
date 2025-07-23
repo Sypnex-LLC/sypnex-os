@@ -198,6 +198,7 @@ Object.assign(SypnexOS.prototype, {
         // Track active Python executions
         let activePythonExecutions = new Set();
         let socket = null;
+        let waitingForPythonCompletion = false;
         
         // Initialize WebSocket connection for Python output
         async function initializeWebSocket() {
@@ -246,8 +247,15 @@ Object.assign(SypnexOS.prototype, {
                 className = 'terminal-error';
             } else if (type === 'completion') {
                 className = 'terminal-info';
+                // Python execution completed, create new input line
+                waitingForPythonCompletion = false;
+                setTimeout(() => createNewInputLine(), 100);
+                return; // Don't append the completion message
             } else if (type === 'error') {
                 className = 'terminal-error';
+                // Python execution completed with error, create new input line
+                waitingForPythonCompletion = false;
+                setTimeout(() => createNewInputLine(), 100);
             }
             
             // Append the output
@@ -266,6 +274,9 @@ Object.assign(SypnexOS.prototype, {
             
             addToHistory(command);
             hideHistory();
+            
+            // Check if this is a Python command
+            const isPythonCommand = command.startsWith('python ') || command.startsWith('python3 ') || command === 'python' || command === 'python3';
             
             try {
                 const response = await fetch('/api/terminal/execute', {
@@ -302,6 +313,13 @@ Object.assign(SypnexOS.prototype, {
                         currentVfsDirectory = '/';
                         updatePrompt();
                     }
+                    
+                    // Check if this is a Python execution that will have async output
+                    if (isPythonCommand && data.execution_id) {
+                        // Wait for Python completion before creating new input line
+                        waitingForPythonCompletion = true;
+                        return;
+                    }
                 } else {
                     appendOutput(`Error: ${data.error}`, 'terminal-error');
                 }
@@ -309,8 +327,10 @@ Object.assign(SypnexOS.prototype, {
                 appendOutput(`Error: ${error.message}`, 'terminal-error');
             }
             
-            // Create new input line for next command
-            createNewInputLine();
+            // Create new input line for next command (only if not waiting for Python)
+            if (!waitingForPythonCompletion) {
+                createNewInputLine();
+            }
         }
 
         async function loadAvailableCommands() {
