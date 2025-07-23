@@ -283,6 +283,27 @@ class SypnexOS {
         }, 3000);
     }
 
+    /**
+     * Report an app error for debugging purposes
+     * Called by the sandbox error boundary when an app encounters an error
+     * @param {string} appId - ID of the app that encountered the error
+     * @param {Error} error - The error object
+     */
+    reportAppError(appId, error) {
+        console.group(`🐛 App Error Report: ${appId}`);
+        console.error('Error message:', error.message);
+        console.error('Stack trace:', error.stack);
+        console.error('App ID:', appId);
+        console.error('Timestamp:', new Date().toISOString());
+        console.groupEnd();
+        
+        // You could extend this to:
+        // - Send error reports to a logging service
+        // - Track error patterns
+        // - Show debugging info in developer mode
+        // - Store errors for later analysis
+    }
+
     toggleHeartbeatEndpoint() {
         this.useHeartbeat = !this.useHeartbeat;
         console.log(`Switched to ${this.useHeartbeat ? 'heartbeat' : 'time'} endpoint`);

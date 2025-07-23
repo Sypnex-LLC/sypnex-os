@@ -161,8 +161,18 @@
     
     console.log('SypnexAPI loaded and ready for app: ' + actualAppId);
     
-    // Execute the app script with local variables in scope
-    ${scriptContent}
+    // Execute the app script with error boundary for containment
+    try {
+        ${scriptContent}
+    } catch (error) {
+        console.error(`App ${actualAppId} encountered an error:`, error);
+        showNotification(`App "${actualAppId}" encountered an error but was contained`, 'warning');
+        
+        // Optionally report error to OS for debugging if method exists
+        if (typeof window !== 'undefined' && window.sypnexOS && typeof window.sypnexOS.reportAppError === 'function') {
+            window.sypnexOS.reportAppError(actualAppId, error);
+        }
+    }
     
     // Dynamically expose detected functions to the app's local scope only
     // This allows onclick handlers and other references within the app to work
