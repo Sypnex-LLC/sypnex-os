@@ -8,16 +8,8 @@
     <!-- Local Vendor Dependencies for Offline Support -->
     <link href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='vendor/fontawesome/css/all.min.css') }}" rel="stylesheet">
-    <!-- Sypnex OS CSS Modules - Load in dependency order -->
-    <link href="{{ url_for('static', filename='css/os-base.css') }}" rel="stylesheet">
-    <link href="{{ url_for('static', filename='css/os-lock.css') }}" rel="stylesheet">
-    <link href="{{ url_for('static', filename='css/os-spotlight.css') }}" rel="stylesheet">
-    <link href="{{ url_for('static', filename='css/os-status.css') }}" rel="stylesheet">
-    <link href="{{ url_for('static', filename='css/os-desktop.css') }}" rel="stylesheet">
-    <link href="{{ url_for('static', filename='css/os-windows.css') }}" rel="stylesheet">
-    <link href="{{ url_for('static', filename='css/os-dashboard.css') }}" rel="stylesheet">
-    <link href="{{ url_for('static', filename='css/os-taskbar.css') }}" rel="stylesheet">
-    <link href="{{ url_for('static', filename='css/app-standards.css') }}" rel="stylesheet">
+    <!-- Sypnex OS CSS Bundle - All OS styles in dependency order -->
+    <link href="{{ cache_bust_url('serve_bundled_css') }}" rel="stylesheet">
 </head>
 
 <body>

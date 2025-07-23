@@ -51,8 +51,8 @@ def cache_bust_url(endpoint, **values):
     Generate URLs with cache-busting parameters
     Uses timestamp for dynamic content and file hash for static content
     """
-    if endpoint in ['serve_bundled_os', 'serve_bundled_sypnex_api']:
-        # For dynamic JS bundles, use timestamp
+    if endpoint in ['serve_bundled_os', 'serve_bundled_sypnex_api', 'serve_bundled_css']:
+        # For dynamic bundles, use timestamp
         values['v'] = str(int(time.time()))
     elif 'filename' in values:
         # For static files, try to use file modification time
@@ -173,6 +173,52 @@ def serve_bundled_sypnex_api():
     response = Response(bundle_content, mimetype='application/javascript')
     
     # Add aggressive no-cache headers
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    response.headers['Last-Modified'] = __import__('datetime').datetime.now().strftime('%a, %d %b %Y %H:%M:%S GMT')
+    
+    return response
+
+@app.route('/static/css/os.css')
+def serve_bundled_css():
+    """
+    Dynamically bundle all OS CSS files in the correct load order
+    This replaces loading 9+ individual CSS files
+    """
+    css_dir = Path(app.static_folder) / 'css'
+    
+    # Define load order (same as in index.html)
+    css_load_order = [
+        "os-base.css",
+        "os-lock.css", 
+        "os-spotlight.css",
+        "os-status.css",
+        "os-desktop.css",
+        "os-windows.css",
+        "os-dashboard.css",
+        "os-taskbar.css",
+        "app-standards.css"
+    ]
+    
+    bundle_content = "/* SYPNEX OS - Dynamically Bundled CSS */\n"
+    bundle_content += f"/* Generated: {__import__('datetime').datetime.now()} */\n\n"
+    
+    for css_file in css_load_order:
+        file_path = css_dir / css_file
+        if file_path.exists():
+            try:
+                bundle_content += f"/* === {css_file} === */\n"
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    bundle_content += f.read() + "\n\n"
+            except Exception as e:
+                bundle_content += f"/* ERROR loading {css_file}: {str(e)} */\n\n"
+        else:
+            bundle_content += f"/* MISSING: {css_file} */\n\n"
+    
+    response = Response(bundle_content, mimetype='text/css')
+    
+    # Add aggressive no-cache headers for CSS too
     response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'
