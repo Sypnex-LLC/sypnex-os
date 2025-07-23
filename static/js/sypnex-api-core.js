@@ -216,6 +216,177 @@ class SypnexAPI {
             return false;
         }
     }
+
+    /**
+     * Show a confirmation dialog with standard OS styling
+     * @async
+     * @param {string} title - Dialog title
+     * @param {string} message - Dialog message
+     * @param {object} [options={}] - Configuration options
+     * @param {string} [options.confirmText='Yes'] - Text for confirm button
+     * @param {string} [options.cancelText='No'] - Text for cancel button
+     * @param {string} [options.type='warning'] - Dialog type: 'warning', 'danger', 'info'
+     * @param {string} [options.icon='fas fa-exclamation-triangle'] - FontAwesome icon class
+     * @returns {Promise<boolean>} True if confirmed, false if cancelled
+     */
+    async showConfirmation(title, message, options = {}) {
+        const {
+            confirmText = 'Yes',
+            cancelText = 'No',
+            type = 'warning',
+            icon = 'fas fa-exclamation-triangle'
+        } = options;
+
+        return new Promise((resolve) => {
+            // Remove any existing confirmation modal
+            const existingModal = document.getElementById('sypnex-confirmation-modal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+            
+            // Create the modal with proper OS styling
+            const modal = document.createElement('div');
+            modal.id = 'sypnex-confirmation-modal';
+            modal.style.cssText = `
+                display: block;
+                position: fixed;
+                z-index: 1000;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.5);
+            `;
+            
+            // Create modal content with proper structure
+            const modalContent = document.createElement('div');
+            modalContent.style.cssText = `
+                background-color: var(--glass-bg);
+                margin: 5% auto;
+                padding: 0;
+                border: 1px solid var(--glass-border);
+                border-radius: 12px;
+                width: 90%;
+                max-width: 500px;
+                backdrop-filter: blur(10px);
+            `;
+            
+            // Modal header
+            const modalHeader = document.createElement('div');
+            modalHeader.style.cssText = `
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 20px;
+                border-bottom: 1px solid var(--glass-border);
+            `;
+            
+            const headerTitle = document.createElement('h3');
+            headerTitle.style.cssText = `
+                margin: 0;
+                color: var(--text-primary);
+            `;
+            headerTitle.innerHTML = `<i class="${icon}"></i> ${title}`;
+            
+            const closeBtn = document.createElement('button');
+            closeBtn.innerHTML = '&times;';
+            closeBtn.style.cssText = `
+                background: none;
+                border: none;
+                font-size: 24px;
+                cursor: pointer;
+                color: var(--text-secondary);
+            `;
+            closeBtn.onmouseover = () => closeBtn.style.color = 'var(--text-primary)';
+            closeBtn.onmouseout = () => closeBtn.style.color = 'var(--text-secondary)';
+            
+            modalHeader.appendChild(headerTitle);
+            modalHeader.appendChild(closeBtn);
+            
+            // Modal body
+            const modalBody = document.createElement('div');
+            modalBody.style.cssText = `padding: 20px;`;
+            
+            const messageP = document.createElement('p');
+            messageP.style.cssText = `
+                color: var(--text-primary);
+                margin: 0 0 15px 0;
+                line-height: 1.5;
+            `;
+            messageP.textContent = message;
+            modalBody.appendChild(messageP);
+            
+            // Add warning text for danger type
+            if (type === 'danger') {
+                const warningP = document.createElement('p');
+                warningP.style.cssText = `
+                    color: var(--danger-color, #ff4444);
+                    margin: 10px 0 0 0;
+                    font-size: 14px;
+                    font-style: italic;
+                `;
+                warningP.textContent = 'This action cannot be undone.';
+                modalBody.appendChild(warningP);
+            }
+            
+            // Modal footer
+            const modalFooter = document.createElement('div');
+            modalFooter.style.cssText = `
+                display: flex;
+                justify-content: flex-end;
+                gap: 10px;
+                padding: 20px;
+                border-top: 1px solid var(--glass-border);
+            `;
+            
+            const cancelBtn = document.createElement('button');
+            cancelBtn.textContent = cancelText;
+            cancelBtn.className = 'app-btn secondary';
+            
+            const confirmBtn = document.createElement('button');
+            confirmBtn.textContent = confirmText;
+            confirmBtn.className = `app-btn ${type === 'danger' ? 'danger' : 'primary'}`;
+            
+            modalFooter.appendChild(cancelBtn);
+            modalFooter.appendChild(confirmBtn);
+            
+            // Assemble modal
+            modalContent.appendChild(modalHeader);
+            modalContent.appendChild(modalBody);
+            modalContent.appendChild(modalFooter);
+            modal.appendChild(modalContent);
+            
+            // Add to document
+            document.body.appendChild(modal);
+
+            // Setup event handlers
+            const closeModal = (confirmed) => {
+                modal.remove();
+                resolve(confirmed);
+                document.removeEventListener('keydown', escapeHandler);
+            };
+
+            // Event listeners
+            closeBtn.addEventListener('click', () => closeModal(false));
+            cancelBtn.addEventListener('click', () => closeModal(false));
+            confirmBtn.addEventListener('click', () => closeModal(true));
+
+            // Click outside to close
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    closeModal(false);
+                }
+            });
+
+            // Escape key to close
+            const escapeHandler = (e) => {
+                if (e.key === 'Escape') {
+                    closeModal(false);
+                }
+            };
+            document.addEventListener('keydown', escapeHandler);
+        });
+    }
 }
 
 // Export for use in modules (if supported)

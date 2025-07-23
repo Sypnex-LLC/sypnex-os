@@ -28,6 +28,14 @@ Object.assign(SypnexOS.prototype, {
             });
         }
         
+        // Reset OS button
+        const resetOsBtn = windowElement.querySelector('#reset-os-btn');
+        if (resetOsBtn) {
+            resetOsBtn.addEventListener('click', () => {
+                this.handleResetOS();
+            });
+        }
+        
         // App scale select
         const appScaleSelect = windowElement.querySelector('#app-scale-select');
         if (appScaleSelect) {
@@ -844,6 +852,35 @@ Object.assign(SypnexOS.prototype, {
         } catch (error) {
             console.error('Error changing display name:', error);
             this.showNotification('Failed to change display name. Please try again.', 'error');
+        }
+    },
+
+    async handleResetOS() {
+        try {
+            // Create a temporary SypnexAPI instance to use the confirmation dialog
+            const tempAPI = new window.SypnexAPI('system-settings');
+            
+            const confirmed = await tempAPI.showConfirmation(
+                'Reset Operating System',
+                'This will reset the entire operating system to its default state. All user data, settings, and installed apps will be lost.',
+                {
+                    type: 'danger',
+                    confirmText: 'Reset OS',
+                    cancelText: 'Cancel',
+                    icon: 'fas fa-exclamation-triangle'
+                }
+            );
+
+            if (confirmed) {
+                // Placeholder for actual reset functionality
+                this.showNotification('OS Reset functionality not yet implemented - this is just a test!', 'info');
+                console.log('User confirmed OS reset - would reset system here');
+            } else {
+                console.log('User cancelled OS reset');
+            }
+        } catch (error) {
+            console.error('Error showing reset confirmation:', error);
+            this.showNotification('Error showing confirmation dialog', 'error');
         }
     }
 });
