@@ -179,30 +179,6 @@ input:checked + .toggle-slider:before {
     border-color: var(--accent-color);
 }
 
-/* Scale Select Styles */
-.scale-select {
-    padding: 8px 12px;
-    border: 1px solid var(--glass-border);
-    border-radius: 6px;
-    background: var(--glass-bg);
-    color: var(--text-primary);
-    font-size: 0.9em;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    min-width: 100px;
-}
-
-.scale-select:focus {
-    outline: none;
-    border-color: var(--accent-color);
-    box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.2);
-}
-
-.scale-select:hover {
-    border-color: var(--accent-color);
-    background: rgba(0, 212, 255, 0.05);
-}
-
 /* PIN Code Styles */
 .pin-controls {
     display: flex;
