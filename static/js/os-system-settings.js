@@ -872,9 +872,34 @@ Object.assign(SypnexOS.prototype, {
             );
 
             if (confirmed) {
-                // Placeholder for actual reset functionality
-                this.showNotification('OS Reset functionality not yet implemented - this is just a test!', 'info');
-                console.log('User confirmed OS reset - would reset system here');
+                this.showNotification('Resetting system...', 'info');
+                
+                try {
+                    // Call the reset endpoint
+                    const response = await fetch('/api/system/reset', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        this.showNotification('System reset complete - reloading...', 'success');
+                        
+                        // Wait a moment for the user to see the success message
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1500);
+                    } else {
+                        this.showNotification(`Reset failed: ${result.error}`, 'error');
+                        console.error('Reset failed:', result.error);
+                    }
+                } catch (error) {
+                    this.showNotification('Network error during reset', 'error');
+                    console.error('Reset network error:', error);
+                }
             } else {
                 console.log('User cancelled OS reset');
             }
