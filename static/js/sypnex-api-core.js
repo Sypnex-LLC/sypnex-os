@@ -1,7 +1,20 @@
 // SypnexAPI Core - Main class and initialization
 // This file contains the core SypnexAPI class that gets injected into user app sandboxes
 
+/**
+ * SypnexAPI - Main API class for user applications
+ * Provides access to OS features and services in a sandboxed environment
+ * @class
+ */
 class SypnexAPI {
+    /**
+     * Create a new SypnexAPI instance
+     * @param {string} appId - Unique identifier for the application
+     * @param {object} helpers - Helper functions provided by the OS environment
+     * @param {function} [helpers.getAppSetting] - Function to get app settings
+     * @param {function} [helpers.getAllAppSettings] - Function to get all app settings
+     * @param {function} [helpers.showNotification] - Function to show notifications
+     */
     constructor(appId, helpers = {}) {
         this.appId = appId;
         this.baseUrl = '/api';
@@ -15,6 +28,12 @@ class SypnexAPI {
         this.init();
     }
     
+    /**
+     * Initialize the SypnexAPI instance
+     * Checks for required helper functions and sets up the API
+     * @async
+     * @returns {Promise<void>}
+     */
     async init() {
         try {
             // Check if we have the required helper functions
@@ -29,6 +48,14 @@ class SypnexAPI {
         }
     }
     
+    /**
+     * Default implementation for getting app settings via direct API calls
+     * @private
+     * @async
+     * @param {string} key - Setting key to retrieve
+     * @param {*} [defaultValue=null] - Default value if setting not found
+     * @returns {Promise<*>} The setting value or default value
+     */
     // Default implementations that fall back to direct API calls
     async _defaultGetAppSetting(key, defaultValue = null) {
         try {
@@ -44,6 +71,12 @@ class SypnexAPI {
         }
     }
     
+    /**
+     * Default implementation for getting all app settings via direct API calls
+     * @private
+     * @async
+     * @returns {Promise<object>} Object containing all app settings
+     */
     async _defaultGetAllAppSettings() {
         try {
             const response = await fetch(`${this.baseUrl}/app-settings/${this.appId}`);
@@ -58,6 +91,12 @@ class SypnexAPI {
         }
     }
     
+    /**
+     * Default implementation for showing notifications via console
+     * @private
+     * @param {string} message - Notification message
+     * @param {string} [type='info'] - Notification type (info, error, warn, etc.)
+     */
     _defaultShowNotification(message, type = 'info') {
         console.log(`[${type.toUpperCase()}] ${message}`);
         if (type === 'error') {
@@ -65,6 +104,11 @@ class SypnexAPI {
         }
     }
     
+    /**
+     * Get metadata for this application
+     * @async
+     * @returns {Promise<object|null>} Application metadata or null if error
+     */
     async getAppMetadata() {
         try {
             const response = await fetch(`${this.baseUrl}/app-metadata/${this.appId}`);
@@ -79,14 +123,27 @@ class SypnexAPI {
         }
     }
     
+    /**
+     * Check if the SypnexAPI has been initialized
+     * @returns {boolean} True if initialized, false otherwise
+     */
     isInitialized() {
         return this.initialized;
     }
     
+    /**
+     * Get the application ID
+     * @returns {string} The application identifier
+     */
     getAppId() {
         return this.appId;
     }
     
+    /**
+     * Get the saved window state for this application
+     * @async
+     * @returns {Promise<object|null>} Window state object or null if not found
+     */
     async getWindowState() {
         try {
             const response = await fetch(`${this.baseUrl}/window-state/${this.appId}`);
@@ -101,6 +158,12 @@ class SypnexAPI {
         }
     }
     
+    /**
+     * Save the window state for this application
+     * @async
+     * @param {object} state - Window state object to save
+     * @returns {Promise<boolean>} True if saved successfully, false otherwise
+     */
     async saveWindowState(state) {
         try {
             const response = await fetch(`${this.baseUrl}/window-state/${this.appId}`, {

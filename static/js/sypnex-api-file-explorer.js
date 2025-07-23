@@ -3,6 +3,10 @@
 
 // Scale compensation utilities for file explorer
 const fileExplorerUtils = {
+    /**
+     * Detect the current app scale from CSS transform
+     * @returns {number} Scale factor (1.0 = 100%, 0.8 = 80%, etc.)
+     */
     // Detect the current app scale from CSS transform
     detectAppScale() {
         try {
@@ -48,6 +52,12 @@ const fileExplorerUtils = {
         }
     },
 
+    /**
+     * Convert screen coordinates to app coordinates accounting for scale
+     * @param {number} screenX - Screen X coordinate
+     * @param {number} screenY - Screen Y coordinate
+     * @returns {object} Object with x and y properties in app coordinates
+     */
     // Convert screen coordinates to app coordinates
     screenToAppCoords(screenX, screenY) {
         const scale = this.detectAppScale();
@@ -57,6 +67,11 @@ const fileExplorerUtils = {
         };
     },
 
+    /**
+     * Get scaled element bounding rectangle (compensates for app scaling)
+     * @param {Element} element - DOM element to get bounds for
+     * @returns {object} DOMRect-like object with scaled coordinates
+     */
     // Get scaled element rect (compensates for app scaling)
     getScaledBoundingClientRect(element) {
         const rect = element.getBoundingClientRect();

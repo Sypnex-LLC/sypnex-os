@@ -8,6 +8,21 @@ Object.assign(SypnexOS.prototype, {
         const statusSummary = windowElement.querySelector('.status-summary');
         const installModal = windowElement.querySelector('#installAppModal');
 
+        // Helper method to refresh backend registry
+        const refreshBackendRegistry = async (showFeedback = false) => {
+            try {
+                const response = await fetch('/api/user-apps/refresh', { method: 'POST' });
+                if (showFeedback) {
+                    const data = await response.json();
+                    this.showNotification(data.message, 'success');
+                    return data;
+                }
+            } catch (error) {
+                console.error('Error refreshing backend registry:', error);
+                throw error;
+            }
+        };
+
         const loadUserApps = async () => {
             try {
                 const response = await fetch('/api/user-apps');
@@ -145,6 +160,8 @@ Object.assign(SypnexOS.prototype, {
                         if (response.ok) {
                             this.showNotification(`App installed successfully: ${result.app_name}`, 'success');
                             installModal.style.display = 'none';
+                            // Auto-refresh backend registry and UI after install
+                            await refreshBackendRegistry();
                             loadUserApps(); // Reload apps to show the new one
                         } else {
                             this.showNotification(result.error || 'Failed to install app', 'error');
@@ -184,6 +201,8 @@ Object.assign(SypnexOS.prototype, {
 
                 if (response.ok) {
                     this.showNotification(`App uninstalled successfully: ${appName}`, 'success');
+                    // Auto-refresh backend registry and UI after uninstall
+                    await refreshBackendRegistry();
                     loadUserApps(); // Reload apps
                 } else {
                     this.showNotification(result.error || 'Failed to uninstall app', 'error');
@@ -204,9 +223,7 @@ Object.assign(SypnexOS.prototype, {
         if (refreshBtn) {
             refreshBtn.addEventListener('click', async () => {
                 try {
-                    const response = await fetch('/api/user-apps/refresh', { method: 'POST' });
-                    const data = await response.json();
-                    this.showNotification(data.message, 'success');
+                    await refreshBackendRegistry(true); // Show feedback for manual refresh
                     loadUserApps();
                 } catch (error) {
                     this.showNotification('Error refreshing user apps', 'error');
