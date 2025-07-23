@@ -20,6 +20,7 @@ class SypnexOS {
     init() {
         this.setupEventListeners();
         this.updateTime();
+        this.checkWelcomeScreen(); // Check if welcome screen should be shown
         this.loadWallpaper();
         
         // Setup page unload cleanup
@@ -555,5 +556,29 @@ class SypnexOS {
             return this.latestVersions[appId];
         }
         return null;
+    }
+
+    async checkWelcomeScreen() {
+        /**
+         * Check if the welcome screen should be shown for first-time users
+         */
+        try {
+            // Check if welcome screen exists
+            if (!window.sypnexWelcomeScreen) {
+                return;
+            }
+
+            // Check if user has completed welcome
+            const shouldShow = await window.sypnexWelcomeScreen.checkShouldShow();
+            
+            if (shouldShow) {
+                // Show welcome screen
+                setTimeout(() => {
+                    window.sypnexWelcomeScreen.show();
+                }, 500); // Small delay to ensure OS is fully loaded
+            }
+        } catch (error) {
+            console.error('Error checking welcome screen:', error);
+        }
     }
 }

@@ -93,6 +93,7 @@ def serve_bundled_os():
         "os-app-manager.js",
         "os-system-settings.js",
         "os-lock.js",
+        "os-welcome.js",
         "os-init.js"  # Must be last!
     ]
     
@@ -191,7 +192,8 @@ def serve_bundled_css():
     # Define load order (same as in index.html)
     css_load_order = [
         "os-base.css",
-        "os-lock.css", 
+        "os-lock.css",
+        "os-welcome.css",
         "os-spotlight.css",
         "os-status.css",
         "os-desktop.css",

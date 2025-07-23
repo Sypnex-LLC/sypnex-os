@@ -85,6 +85,40 @@
             </div>
         </div>
 
+        <!-- Welcome Screen Overlay -->
+        <div id="welcome-screen-overlay" class="welcome-screen-hidden">
+            <div class="welcome-container">
+                <div class="welcome-header">
+                    <i class="fas fa-rocket welcome-icon"></i>
+                    <h1>Sypnex OS</h1>
+                    <p>Your personal web-based operating system</p>
+                </div>
+                <div class="welcome-content">
+                    <div class="welcome-form">
+                        <label for="display-name-input" class="welcome-label">What would you like to be called?</label>
+                        <input type="text" id="display-name-input" class="welcome-input" placeholder="Enter your display name" maxlength="50">
+                        <button id="start-button" class="welcome-start-btn" disabled>
+                            <i class="fas fa-arrow-right"></i> Let's Start
+                        </button>
+                    </div>
+                    <div class="welcome-features">
+                        <div class="welcome-feature">
+                            <i class="fas fa-desktop"></i>
+                            <span>Desktop UI</span>
+                        </div>
+                        <div class="welcome-feature">
+                            <i class="fas fa-folder"></i>
+                            <span>File Management</span>
+                        </div>
+                        <div class="welcome-feature">
+                            <i class="fas fa-puzzle-piece"></i>
+                            <span>App Ecosystem</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- App Windows Container -->
         <div id="app-windows">
             <!-- Apps will be loaded here -->
