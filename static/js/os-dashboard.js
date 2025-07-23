@@ -11,17 +11,17 @@ Object.assign(SypnexOS.prototype, {
             return;
         }
         
+        // Get the last selected category from preferences FIRST
+        const lastCategory = await this.getDashboardCategory();
+        
+        // Update UI to show the correct active button BEFORE showing dashboard
+        this.setActiveCategoryButton(lastCategory);
+        
         overlay.classList.remove('dashboard-hidden');
         overlay.classList.add('dashboard-visible');
         
         // Force a repaint
         overlay.offsetHeight;
-        
-        // Get the last selected category from preferences
-        const lastCategory = await this.getDashboardCategory();
-        
-        // Update UI to show the correct active button
-        this.setActiveCategoryButton(lastCategory);
         
         // Populate dashboard with apps using the saved category
         this.populateDashboard(lastCategory);
