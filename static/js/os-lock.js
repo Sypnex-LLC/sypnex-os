@@ -284,6 +284,11 @@ class SystemLock {
                 document.body.style.overflow = '';
                 this.clearPinInputs();
                 console.log('System unlocked');
+                
+                // Reload wallpaper after unlock
+                if (window.sypnexOS && window.sypnexOS.loadWallpaper) {
+                    window.sypnexOS.loadWallpaper();
+                }
             } else {
                 // PIN is incorrect
                 this.showError();

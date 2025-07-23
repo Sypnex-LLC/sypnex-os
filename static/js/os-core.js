@@ -162,6 +162,16 @@ class SypnexOS {
 
     async loadWallpaper() {
         try {
+            // Check if system is locked before loading wallpaper to prevent flicker
+            const lockResponse = await fetch('/api/system/lock-status');
+            if (lockResponse.ok) {
+                const lockData = await lockResponse.json();
+                if (lockData.locked) {
+                    // System is locked, don't load wallpaper
+                    return;
+                }
+            }
+            
             const response = await fetch('/api/preferences/ui/wallpaper');
             const data = await response.json();
             
