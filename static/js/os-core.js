@@ -357,11 +357,107 @@ class SypnexOS {
 
     async cacheLatestVersions() {
         /**
-         * Fetch latest app versions and cache them for the session
-         * This runs once on OS startup to avoid repeated API calls
+         * Fetch latest app versions and cache them in VFS with timestamp checking
+         * Uses 5-minute cache expiration to avoid excessive API calls
          */
         try {
-            console.log('Caching latest app versions...');
+            const CACHE_FILE_PATH = '/system/cache/latest_versions.json';
+            const CACHE_DURATION_MS = 5 * 60 * 1000; // 5 minutes
+            
+            console.log('Checking app version cache...');
+            
+            // Initialize VFS API access
+            const tempAPI = new window.SypnexAPI();
+            
+            // Try to read cached data
+            let useCache = false;
+            let cachedData = null;
+            
+            try {
+                const cacheExists = await tempAPI.virtualItemExists(CACHE_FILE_PATH);
+                if (cacheExists) {
+                    cachedData = await tempAPI.readVirtualFileJSON(CACHE_FILE_PATH);
+                    
+                    // Check if cache is still valid
+                    const cacheAge = Date.now() - cachedData.timestamp;
+                    if (cacheAge < CACHE_DURATION_MS) {
+                        useCache = true;
+                        console.log(`📋 Using cached app versions (${Math.round(cacheAge / 1000)}s old)`);
+                    } else {
+                        console.log(`⏰ Cache expired (${Math.round(cacheAge / 60000)}m old), fetching fresh data...`);
+                    }
+                }
+            } catch (cacheError) {
+                console.log('📋 No valid cache found, fetching fresh data...');
+            }
+            
+            if (useCache && cachedData) {
+                // Use cached data
+                this.latestVersions = cachedData.apps;
+                console.log('✅ Latest app versions loaded from cache');
+            } else {
+                // Fetch fresh data from API
+                console.log('🌐 Fetching latest app versions from API...');
+                
+                const response = await fetch('/api/updates/latest');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.apps) {
+                        // Store comprehensive app data in memory for quick access
+                        this.latestVersions = data.apps;
+                        console.log('✅ Latest app versions fetched successfully');
+                        
+                        // Cache the data in VFS with timestamp
+                        try {
+                            const cacheData = {
+                                timestamp: Date.now(),
+                                apps: data.apps,
+                                cached_at: new Date().toISOString()
+                            };
+                            
+                            // Ensure system and cache directories exist
+                            console.log('🗂️ Creating system cache directory structure...');
+                            await tempAPI.createVirtualDirectoryStructure('/system/cache');
+                            
+                            // Write cache file
+                            await tempAPI.writeVirtualFileJSON(CACHE_FILE_PATH, cacheData);
+                            console.log('💾 App versions cached to VFS');
+                        } catch (cacheWriteError) {
+                            console.warn('⚠️ Failed to cache app versions to VFS:', cacheWriteError);
+                            // Continue anyway - caching failure shouldn't break functionality
+                        }
+                    } else {
+                        console.warn('⚠️ Failed to get latest versions:', data.error || 'Unknown error');
+                        this.latestVersions = null;
+                    }
+                } else {
+                    console.warn('⚠️ Failed to fetch latest versions: HTTP', response.status);
+                    this.latestVersions = null;
+                }
+            }
+            
+            // Update any currently open windows
+            if (this.updateUpdateButtonsForAllWindows) {
+                this.updateUpdateButtonsForAllWindows();
+            }
+            
+        } catch (error) {
+            // Network error, offline, or server unreachable - fail silently
+            console.warn('⚠️ Unable to check for updates (offline or network error):', error.message);
+            this.latestVersions = null;
+        }
+    }
+
+    async refreshLatestVersionsCache() {
+        /**
+         * Force refresh the app versions cache (ignores existing cache)
+         * Useful after app install/uninstall operations
+         */
+        try {
+            const CACHE_FILE_PATH = '/system/cache/latest_versions.json';
+            const tempAPI = new window.SypnexAPI();
+            
+            console.log('🔄 Force refreshing app versions cache...');
             
             const response = await fetch('/api/updates/latest');
             if (response.ok) {
@@ -369,24 +465,44 @@ class SypnexOS {
                 if (data.success && data.apps) {
                     // Store comprehensive app data in memory for quick access
                     this.latestVersions = data.apps;
-                    console.log('✅ Latest app versions cached successfully');
+                    console.log('✅ App versions cache force-refreshed');
+                    
+                    // Update cache in VFS with fresh timestamp
+                    try {
+                        const cacheData = {
+                            timestamp: Date.now(),
+                            apps: data.apps,
+                            cached_at: new Date().toISOString()
+                        };
+                        
+                        // Ensure system and cache directories exist
+                        console.log('🗂️ Creating system cache directory structure...');
+                        await tempAPI.createVirtualDirectoryStructure('/system/cache');
+                        
+                        // Write cache file
+                        await tempAPI.writeVirtualFileJSON(CACHE_FILE_PATH, cacheData);
+                        console.log('💾 Fresh app versions cached to VFS');
+                    } catch (cacheWriteError) {
+                        console.warn('⚠️ Failed to cache app versions to VFS:', cacheWriteError);
+                    }
                     
                     // Update any currently open windows
                     if (this.updateUpdateButtonsForAllWindows) {
                         this.updateUpdateButtonsForAllWindows();
                     }
+                    
+                    return true;
                 } else {
-                    console.warn('⚠️ Failed to get latest versions:', data.error || 'Unknown error');
-                    this.latestVersions = null;
+                    console.warn('⚠️ Failed to refresh versions cache:', data.error || 'Unknown error');
+                    return false;
                 }
             } else {
                 console.warn('⚠️ Failed to fetch latest versions: HTTP', response.status);
-                this.latestVersions = null;
+                return false;
             }
         } catch (error) {
-            // Network error, offline, or server unreachable - fail silently
-            console.warn('⚠️ Unable to check for updates (offline or network error):', error.message);
-            this.latestVersions = null;
+            console.warn('⚠️ Unable to refresh cache (offline or network error):', error.message);
+            return false;
         }
     }
 

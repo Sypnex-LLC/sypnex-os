@@ -162,6 +162,10 @@ Object.assign(SypnexOS.prototype, {
                             installModal.style.display = 'none';
                             // Auto-refresh backend registry and UI after install
                             await refreshBackendRegistry();
+                            // Also refresh the latest versions cache to reflect new app
+                            if (window.sypnexOS && window.sypnexOS.refreshLatestVersionsCache) {
+                                await window.sypnexOS.refreshLatestVersionsCache();
+                            }
                             loadUserApps(); // Reload apps to show the new one
                         } else {
                             this.showNotification(result.error || 'Failed to install app', 'error');
@@ -203,6 +207,10 @@ Object.assign(SypnexOS.prototype, {
                     this.showNotification(`App uninstalled successfully: ${appName}`, 'success');
                     // Auto-refresh backend registry and UI after uninstall
                     await refreshBackendRegistry();
+                    // Also refresh the latest versions cache since app was removed
+                    if (window.sypnexOS && window.sypnexOS.refreshLatestVersionsCache) {
+                        await window.sypnexOS.refreshLatestVersionsCache();
+                    }
                     loadUserApps(); // Reload apps
                 } else {
                     this.showNotification(result.error || 'Failed to uninstall app', 'error');
