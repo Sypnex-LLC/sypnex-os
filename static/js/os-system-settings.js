@@ -889,7 +889,20 @@ Object.assign(SypnexOS.prototype, {
                         this.showNotification('System reset complete - reloading...', 'success');
                         
                         // Wait a moment for the user to see the success message
-                        setTimeout(() => {
+                        setTimeout(async () => {
+                            // Refresh apps and cache before reloading
+                            try {
+                                // Refresh backend registry
+                                await fetch('/api/user-apps/refresh', { method: 'POST' });
+                                
+                                // Also refresh the latest versions cache
+                                if (window.sypnexOS && window.sypnexOS.refreshLatestVersionsCache) {
+                                    await window.sypnexOS.refreshLatestVersionsCache();
+                                }
+                            } catch (error) {
+                                console.error('Error refreshing apps before reload:', error);
+                            }
+                            
                             window.location.reload();
                         }, 1500);
                     } else {
