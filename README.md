@@ -13,7 +13,7 @@ A web-based operating system interface built with Flask and vanilla JavaScript, 
 
 Here's a quick demo of Sypnex OS:
 
-[![View Sypnex OS Gallery](demos/desktop.png)](https://sypnex-llc.github.io/sypnex-os/demos/)
+[![View Sypnex OS Gallery](demo/desktop.png)](https://sypnex-llc.github.io/sypnex-os/demo/)
 
 
 ## 🚀 Quick Start
