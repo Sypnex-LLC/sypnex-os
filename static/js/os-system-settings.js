@@ -896,8 +896,8 @@ Object.assign(SypnexOS.prototype, {
                                 await fetch('/api/user-apps/refresh', { method: 'POST' });
                                 
                                 // Also refresh the latest versions cache
-                                if (window.sypnexOS && window.sypnexOS.refreshLatestVersionsCache) {
-                                    await window.sypnexOS.refreshLatestVersionsCache();
+                                if (this.refreshLatestVersionsCache) {
+                                    await this.refreshLatestVersionsCache();
                                 }
                             } catch (error) {
                                 console.error('Error refreshing apps before reload:', error);

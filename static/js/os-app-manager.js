@@ -163,8 +163,8 @@ Object.assign(SypnexOS.prototype, {
                             // Auto-refresh backend registry and UI after install
                             await refreshBackendRegistry();
                             // Also refresh the latest versions cache to reflect new app
-                            if (window.sypnexOS && window.sypnexOS.refreshLatestVersionsCache) {
-                                await window.sypnexOS.refreshLatestVersionsCache();
+                            if (this.refreshLatestVersionsCache) {
+                                await this.refreshLatestVersionsCache();
                             }
                             loadUserApps(); // Reload apps to show the new one
                         } else {
@@ -208,8 +208,8 @@ Object.assign(SypnexOS.prototype, {
                     // Auto-refresh backend registry and UI after uninstall
                     await refreshBackendRegistry();
                     // Also refresh the latest versions cache since app was removed
-                    if (window.sypnexOS && window.sypnexOS.refreshLatestVersionsCache) {
-                        await window.sypnexOS.refreshLatestVersionsCache();
+                    if (this.refreshLatestVersionsCache) {
+                        await this.refreshLatestVersionsCache();
                     }
                     loadUserApps(); // Reload apps
                 } else {
