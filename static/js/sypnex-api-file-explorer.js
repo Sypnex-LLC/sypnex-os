@@ -121,14 +121,13 @@ Object.assign(SypnexAPI.prototype, {
             const modal = document.createElement('div');
             modal.className = 'sypnex-file-explorer-modal';
             modal.innerHTML = `
-                <div class="sypnex-file-explorer-overlay">
-                    <div class="sypnex-file-explorer-container">
-                        <div class="sypnex-file-explorer-header">
-                            <h3>${title}</h3>
-                            <button class="sypnex-file-explorer-close">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
+                <div class="sypnex-file-explorer-container">
+                    <div class="sypnex-file-explorer-header">
+                        <h3><i class="fas fa-folder-open" style="color: var(--accent-color);"></i> ${title}</h3>
+                        <button class="sypnex-file-explorer-close">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
                         
                         <div class="sypnex-file-explorer-toolbar">
                             <div class="sypnex-file-explorer-path">
@@ -149,21 +148,6 @@ Object.assign(SypnexAPI.prototype, {
                         </div>
                         
                         <div class="sypnex-file-explorer-content">
-                            <div class="sypnex-file-explorer-sidebar">
-                                <div class="sypnex-file-explorer-quick-access">
-                                    <h4>Quick Access</h4>
-                                    <div class="sypnex-file-explorer-quick-item" data-path="/">
-                                        <i class="fas fa-home"></i> Root
-                                    </div>
-                                    <div class="sypnex-file-explorer-quick-item" data-path="/documents">
-                                        <i class="fas fa-file-alt"></i> Documents
-                                    </div>
-                                    <div class="sypnex-file-explorer-quick-item" data-path="/downloads">
-                                        <i class="fas fa-download"></i> Downloads
-                                    </div>
-                                </div>
-                            </div>
-                            
                             <div class="sypnex-file-explorer-main">
                                 <div class="sypnex-file-explorer-breadcrumb">
                                     <span class="sypnex-file-explorer-breadcrumb-item" data-path="/">Root</span>
@@ -197,59 +181,8 @@ Object.assign(SypnexAPI.prototype, {
                 </div>
             `;
 
-            // Add dragging functionality to the modal
-            const makeModalDraggable = (modalElement) => {
-                const header = modalElement.querySelector('.sypnex-file-explorer-header');
-                const container = modalElement.querySelector('.sypnex-file-explorer-container');
-                let isDragging = false;
-                let dragOffset = { x: 0, y: 0 };
-
-                header.addEventListener('mousedown', (e) => {
-                    // Don't start dragging if clicking on the close button
-                    if (e.target.closest('.sypnex-file-explorer-close')) return;
-                    
-                    isDragging = true;
-                    // Use scaled coordinates for accurate positioning
-                    const rect = fileExplorerUtils.getScaledBoundingClientRect(container);
-                    const mouseCoords = fileExplorerUtils.screenToAppCoords(e.clientX, e.clientY);
-                    dragOffset.x = mouseCoords.x - rect.left;
-                    dragOffset.y = mouseCoords.y - rect.top;
-                    e.preventDefault();
-                });
-
-                document.addEventListener('mousemove', (e) => {
-                    if (!isDragging) return;
-                    
-                    // Use scaled coordinates for accurate positioning
-                    const mouseCoords = fileExplorerUtils.screenToAppCoords(e.clientX, e.clientY);
-                    const x = mouseCoords.x - dragOffset.x;
-                    const y = mouseCoords.y - dragOffset.y;
-                    
-                    // Keep modal within viewport bounds (use scaled viewport dimensions)
-                    const scale = fileExplorerUtils.detectAppScale();
-                    const scaledViewportWidth = window.innerWidth / scale;
-                    const scaledViewportHeight = window.innerHeight / scale;
-                    const scaledContainerWidth = container.offsetWidth / scale;
-                    const scaledContainerHeight = container.offsetHeight / scale;
-                    
-                    const maxX = scaledViewportWidth - scaledContainerWidth;
-                    const maxY = scaledViewportHeight - scaledContainerHeight;
-                    const boundedX = Math.max(0, Math.min(x, maxX));
-                    const boundedY = Math.max(0, Math.min(y, maxY));
-                    
-                    // Convert back to screen coordinates for CSS positioning
-                    const screenX = boundedX * scale;
-                    const screenY = boundedY * scale;
-                    
-                    container.style.left = `${screenX}px`;
-                    container.style.top = `${screenY}px`;
-                    container.style.transform = 'none';
-                });
-
-                document.addEventListener('mouseup', () => {
-                    isDragging = false;
-                });
-            };
+            // Add modal to DOM
+            document.body.appendChild(modal);
 
             // Add styles if not already added
             if (!document.getElementById('sypnex-file-explorer-styles')) {
@@ -262,71 +195,74 @@ Object.assign(SypnexAPI.prototype, {
                         left: 0;
                         width: 100vw;
                         height: 100vh;
-                        z-index: 10000;
+                        z-index: 1000;
                         display: flex;
                         align-items: center;
                         justify-content: center;
                         padding: 20px;
                         box-sizing: border-box;
+                        background: rgba(0, 0, 0, 0.5);
+                        backdrop-filter: blur(4px);
                     }
                     
                     .sypnex-file-explorer-overlay {
-                        position: absolute;
-                        top: 0;
-                        left: 0;
-                        width: 100%;
-                        height: 100%;
-                        background: rgba(0, 0, 0, 0.8);
-                        backdrop-filter: blur(10px);
+                        display: none;
                     }
                     
                     .sypnex-file-explorer-container {
-                        background: var(--primary-bg, #0a0a0a);
-                        border: 1px solid var(--border-color, #333333);
+                        background: var(--glass-bg);
+                        border: 1px solid var(--glass-border);
                         border-radius: 12px;
-                        width: 800px;
-                        max-width: 90vw;
-                        max-height: 85vh;
+                        width: 100%;
+                        max-width: 800px;
+                        max-height: 90vh;
                         display: flex;
                         flex-direction: column;
-                        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+                        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+                        backdrop-filter: blur(10px);
+                        margin: 5% auto;
                         position: relative;
-                        transform: translate(-50%, -50%);
-                        left: 50%;
-                        top: 50%;
-                        overflow: hidden;
                     }
                     
                     .sypnex-file-explorer-header {
                         display: flex;
                         align-items: center;
                         justify-content: space-between;
-                        padding: 20px;
-                        border-bottom: 1px solid var(--border-color, #333333);
-                        cursor: move;
-                        user-select: none;
+                        padding: 15px 20px;
+                        border-bottom: 1px solid var(--glass-border);
+                        background: var(--glass-bg);
+                        border-radius: 12px 12px 0 0;
                     }
                     
                     .sypnex-file-explorer-header h3 {
                         margin: 0;
-                        color: var(--accent-color, #00d4ff);
-                        font-size: 1.2em;
+                        color: var(--text-primary);
+                        font-size: 1.1em;
+                        font-weight: 500;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
                     }
                     
                     .sypnex-file-explorer-close {
                         background: none;
                         border: none;
-                        color: var(--text-secondary, #b0b0b0);
-                        font-size: 18px;
+                        color: var(--text-secondary);
+                        font-size: 20px;
                         cursor: pointer;
-                        padding: 5px;
+                        padding: 0;
+                        width: 30px;
+                        height: 30px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
                         border-radius: 4px;
                         transition: all 0.2s ease;
                     }
                     
                     .sypnex-file-explorer-close:hover {
-                        background: rgba(255, 255, 255, 0.1);
-                        color: var(--text-primary, #ffffff);
+                        background: rgba(255, 71, 87, 0.1);
+                        color: #ff4757;
                     }
                     
                     .sypnex-file-explorer-toolbar {
@@ -334,104 +270,97 @@ Object.assign(SypnexAPI.prototype, {
                         align-items: center;
                         justify-content: space-between;
                         padding: 15px 20px;
-                        border-bottom: 1px solid var(--border-color, #333333);
-                        background: var(--glass-bg, rgba(26, 26, 26, 0.8));
+                        border-bottom: 1px solid var(--glass-border);
+                        background: var(--glass-bg);
+                        min-height: 60px;
                     }
                     
                     .sypnex-file-explorer-hint {
-                        color: var(--text-secondary, #b0b0b0);
+                        color: var(--text-secondary);
                         font-size: 12px;
                         display: flex;
                         align-items: center;
                         gap: 5px;
+                        flex: 1;
+                        justify-content: center;
+                        white-space: nowrap;
                     }
                     
                     .sypnex-file-explorer-path {
                         display: flex;
                         align-items: center;
                         gap: 10px;
-                        color: var(--text-secondary, #b0b0b0);
+                        color: var(--text-secondary);
                         font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
                         font-size: 14px;
+                        flex-shrink: 0;
                     }
                     
                     .sypnex-file-explorer-actions {
                         display: flex;
                         gap: 10px;
+                        flex-shrink: 0;
                     }
                     
                     .sypnex-file-explorer-btn {
                         display: flex;
                         align-items: center;
                         gap: 8px;
-                        background: var(--glass-bg, rgba(26, 26, 26, 0.8));
-                        border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
-                        color: var(--text-primary, #ffffff);
+                        background: var(--glass-bg);
+                        border: 1px solid var(--glass-border);
+                        color: var(--text-primary);
                         padding: 8px 16px;
                         border-radius: 6px;
                         cursor: pointer;
                         transition: all 0.2s ease;
                         font-size: 14px;
+                        font-weight: 500;
+                        min-width: 120px;
+                        justify-content: center;
                     }
                     
                     .sypnex-file-explorer-btn:hover {
                         background: rgba(0, 212, 255, 0.1);
-                        border-color: var(--accent-color, #00d4ff);
+                        border-color: var(--accent-color);
+                        box-shadow: 0 2px 8px rgba(0, 212, 255, 0.2);
+                    }
+                    
+                    .sypnex-file-explorer-btn:active {
+                        background: rgba(0, 212, 255, 0.15);
+                        box-shadow: 0 1px 4px rgba(0, 212, 255, 0.3);
                     }
                     
                     .sypnex-file-explorer-btn:disabled {
                         opacity: 0.5;
                         cursor: not-allowed;
+                        box-shadow: none;
                     }
                     
                     .sypnex-file-explorer-btn-primary {
-                        background: var(--accent-color, #00d4ff);
-                        color: var(--primary-bg, #0a0a0a);
+                        background: var(--accent-color);
+                        color: var(--primary-bg);
                         font-weight: 600;
                     }
                     
                     .sypnex-file-explorer-btn-primary:hover:not(:disabled) {
-                        background: var(--accent-hover, #00b8e6);
+                        background: var(--accent-hover);
+                    }
+                    
+                    .sypnex-file-explorer-btn-secondary {
+                        background: rgba(255, 255, 255, 0.1);
+                        border-color: rgba(255, 255, 255, 0.2);
+                    }
+                    
+                    .sypnex-file-explorer-btn-secondary:hover:not(:disabled) {
+                        background: rgba(255, 255, 255, 0.2);
                     }
                     
                     .sypnex-file-explorer-content {
                         display: flex;
                         flex: 1;
                         min-height: 300px;
-                        max-height: calc(85vh - 200px);
+                        max-height: calc(90vh - 200px);
                         overflow: hidden;
-                    }
-                    
-                    .sypnex-file-explorer-sidebar {
-                        width: 200px;
-                        border-right: 1px solid var(--border-color, #333333);
-                        background: var(--glass-bg, rgba(26, 26, 26, 0.8));
-                    }
-                    
-                    .sypnex-file-explorer-quick-access {
-                        padding: 20px;
-                    }
-                    
-                    .sypnex-file-explorer-quick-access h4 {
-                        margin: 0 0 15px 0;
-                        color: var(--accent-color, #00d4ff);
-                        font-size: 1em;
-                    }
-                    
-                    .sypnex-file-explorer-quick-item {
-                        display: flex;
-                        align-items: center;
-                        gap: 10px;
-                        padding: 10px;
-                        cursor: pointer;
-                        border-radius: 6px;
-                        transition: all 0.2s ease;
-                        color: var(--text-secondary, #b0b0b0);
-                    }
-                    
-                    .sypnex-file-explorer-quick-item:hover {
-                        background: rgba(0, 212, 255, 0.1);
-                        color: var(--text-primary, #ffffff);
                     }
                     
                     .sypnex-file-explorer-main {
@@ -442,18 +371,18 @@ Object.assign(SypnexAPI.prototype, {
                     
                     .sypnex-file-explorer-breadcrumb {
                         padding: 15px 20px;
-                        border-bottom: 1px solid var(--border-color, #333333);
-                        background: var(--glass-bg, rgba(26, 26, 26, 0.8));
+                        border-bottom: 1px solid var(--glass-border);
+                        background: var(--glass-bg);
                     }
                     
                     .sypnex-file-explorer-breadcrumb-item {
-                        color: var(--accent-color, #00d4ff);
+                        color: var(--accent-color);
                         cursor: pointer;
                         transition: color 0.2s ease;
                     }
                     
                     .sypnex-file-explorer-breadcrumb-item:hover {
-                        color: var(--accent-hover, #00b8e6);
+                        color: var(--accent-hover);
                     }
                     
                     .sypnex-file-explorer-list {
@@ -468,7 +397,7 @@ Object.assign(SypnexAPI.prototype, {
                         align-items: center;
                         justify-content: center;
                         gap: 10px;
-                        color: var(--text-secondary, #b0b0b0);
+                        color: var(--text-secondary);
                         padding: 40px;
                     }
                     
@@ -489,15 +418,7 @@ Object.assign(SypnexAPI.prototype, {
                     
                     .sypnex-file-explorer-item.selected {
                         background: rgba(0, 212, 255, 0.2);
-                        border: 1px solid var(--accent-color, #00d4ff);
-                    }
-                    
-                    .sypnex-file-explorer-item[data-type="directory"] {
-                        background: rgba(255, 215, 0, 0.05);
-                    }
-                    
-                    .sypnex-file-explorer-item[data-type="directory"]:hover {
-                        background: rgba(255, 215, 0, 0.15);
+                        border: 1px solid var(--accent-color);
                     }
                     
                     .sypnex-file-explorer-item[data-type="directory"] .sypnex-file-explorer-item-icon {
@@ -507,11 +428,11 @@ Object.assign(SypnexAPI.prototype, {
                     .sypnex-file-explorer-item-icon {
                         width: 20px;
                         text-align: center;
-                        color: var(--accent-color, #00d4ff);
+                        color: var(--accent-color);
                     }
                     
                     .sypnex-file-explorer-item-arrow {
-                        color: var(--text-secondary, #b0b0b0);
+                        color: var(--text-secondary);
                         font-size: 12px;
                         opacity: 0.7;
                     }
@@ -523,44 +444,46 @@ Object.assign(SypnexAPI.prototype, {
                     
                     .sypnex-file-explorer-item-name {
                         flex: 1;
-                        color: var(--text-primary, #ffffff);
+                        color: var(--text-primary);
                         font-size: 14px;
                     }
                     
                     .sypnex-file-explorer-item-size {
-                        color: var(--text-secondary, #b0b0b0);
+                        color: var(--text-secondary);
                         font-size: 12px;
                         font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
                     }
                     
                     .sypnex-file-explorer-save-section {
                         padding: 20px;
-                        border-top: 1px solid var(--border-color, #333333);
-                        background: var(--glass-bg, rgba(26, 26, 26, 0.8));
+                        border-top: 1px solid var(--glass-border);
+                        background: var(--glass-bg);
                         flex-shrink: 0;
                     }
                     
                     .sypnex-file-explorer-save-section label {
                         display: block;
                         margin-bottom: 10px;
-                        color: var(--text-primary, #ffffff);
+                        color: var(--text-primary);
                         font-weight: 500;
                     }
                     
                     .sypnex-file-explorer-input {
                         width: 100%;
-                        background: var(--glass-bg, rgba(26, 26, 26, 0.8));
-                        border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
-                        color: var(--text-primary, #ffffff);
+                        background: var(--glass-bg);
+                        border: 1px solid var(--glass-border);
+                        color: var(--text-primary);
                         padding: 10px 15px;
                         border-radius: 6px;
                         font-size: 14px;
                         font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+                        transition: all 0.2s ease;
+                        outline: none;
                     }
                     
                     .sypnex-file-explorer-input:focus {
-                        border-color: var(--accent-color, #00d4ff);
-                        outline: none;
+                        border-color: var(--accent-color);
+                        background: rgba(0, 212, 255, 0.05);
                     }
                     
                     .sypnex-file-explorer-footer {
@@ -568,8 +491,9 @@ Object.assign(SypnexAPI.prototype, {
                         justify-content: flex-end;
                         gap: 10px;
                         padding: 20px;
-                        border-top: 1px solid var(--border-color, #333333);
-                        background: var(--glass-bg, rgba(26, 26, 26, 0.8));
+                        border-top: 1px solid var(--glass-border);
+                        background: var(--glass-bg);
+                        border-radius: 0 0 12px 12px;
                         flex-shrink: 0;
                     }
                     
@@ -577,9 +501,67 @@ Object.assign(SypnexAPI.prototype, {
                         display: flex;
                         align-items: center;
                         justify-content: center;
-                        color: var(--text-secondary, #b0b0b0);
+                        color: var(--text-secondary);
                         padding: 40px;
                         font-style: italic;
+                    }
+                    
+                    /* Responsive Design */
+                    @media (max-width: 768px) {
+                        .sypnex-file-explorer-modal {
+                            padding: 10px;
+                            align-items: flex-start;
+                            padding-top: 20px;
+                        }
+                        
+                        .sypnex-file-explorer-container {
+                            max-width: 100%;
+                            max-height: calc(100vh - 40px);
+                            margin: 0;
+                        }
+                        
+                        .sypnex-file-explorer-header {
+                            padding: 12px 15px;
+                        }
+                        
+                        .sypnex-file-explorer-header h3 {
+                            font-size: 1em;
+                        }
+                        
+                        .sypnex-file-explorer-toolbar {
+                            flex-direction: column;
+                            gap: 10px;
+                            padding: 12px 15px;
+                        }
+                        
+                        .sypnex-file-explorer-hint {
+                            order: -1;
+                            font-size: 11px;
+                        }
+                        
+                        .sypnex-file-explorer-actions {
+                            justify-content: center;
+                        }
+                        
+                        .sypnex-file-explorer-btn {
+                            padding: 6px 12px;
+                            font-size: 13px;
+                        }
+                        
+                        .sypnex-file-explorer-breadcrumb,
+                        .sypnex-file-explorer-save-section {
+                            padding: 12px 15px;
+                        }
+                        
+                        .sypnex-file-explorer-footer {
+                            padding: 15px;
+                            flex-direction: column;
+                            gap: 8px;
+                        }
+                        
+                        .sypnex-file-explorer-footer button {
+                            width: 100%;
+                        }
                     }
                 `;
                 document.head.appendChild(style);
@@ -587,9 +569,6 @@ Object.assign(SypnexAPI.prototype, {
 
             // Add modal to DOM
             document.body.appendChild(modal);
-
-            // Make modal draggable
-            makeModalDraggable(modal);
 
             // Get references to elements
             const pathText = modal.querySelector('.sypnex-file-explorer-path-text');
@@ -605,9 +584,41 @@ Object.assign(SypnexAPI.prototype, {
             let selectedItem = null;
 
             // Load directory contents
-            async function loadDirectory(path) {
+            async function loadDirectory(path, isRefresh = false) {
                 try {
-                    fileList.innerHTML = '<div class="sypnex-file-explorer-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+                    // For refresh operations, add a subtle loading indicator instead of clearing content
+                    if (isRefresh) {
+                        // Add a subtle loading overlay to existing content
+                        const existingContent = fileList.innerHTML;
+                        if (!fileList.querySelector('.sypnex-file-explorer-refresh-overlay')) {
+                            const overlay = document.createElement('div');
+                            overlay.className = 'sypnex-file-explorer-refresh-overlay';
+                            overlay.style.cssText = `
+                                position: absolute;
+                                top: 0;
+                                left: 0;
+                                right: 0;
+                                bottom: 0;
+                                background: rgba(0, 0, 0, 0.1);
+                                backdrop-filter: blur(1px);
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                z-index: 10;
+                                opacity: 0;
+                                transition: opacity 0.2s ease;
+                            `;
+                            overlay.innerHTML = '<div style="color: var(--text-secondary); font-size: 12px;"><i class="fas fa-sync-alt fa-spin"></i> Updating...</div>';
+                            fileList.style.position = 'relative';
+                            fileList.appendChild(overlay);
+                            
+                            // Fade in the overlay
+                            setTimeout(() => overlay.style.opacity = '1', 10);
+                        }
+                    } else {
+                        // For initial loads, show the loading spinner
+                        fileList.innerHTML = '<div class="sypnex-file-explorer-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+                    }
                     
                     const response = await this.listVirtualFiles(path);
                     
@@ -625,6 +636,7 @@ Object.assign(SypnexAPI.prototype, {
                     
                     if (!items || items.length === 0) {
                         fileList.innerHTML = '<div class="sypnex-file-explorer-empty">This directory is empty</div>';
+                        fileList.style.position = '';
                         return;
                     }
 
@@ -632,6 +644,7 @@ Object.assign(SypnexAPI.prototype, {
                     if (!Array.isArray(items)) {
                         console.error('Items is not an array:', items);
                         fileList.innerHTML = '<div class="sypnex-file-explorer-empty">Error: Invalid response format</div>';
+                        fileList.style.position = '';
                         return;
                     }
 
@@ -665,12 +678,16 @@ Object.assign(SypnexAPI.prototype, {
                         `;
                     }).join('');
 
+                    // Reset fileList position in case it was modified for overlay
+                    fileList.style.position = '';
+
                     // Update breadcrumb
                     updateBreadcrumb(path);
                     
                 } catch (error) {
                     console.error('Error loading directory:', error);
                     fileList.innerHTML = '<div class="sypnex-file-explorer-empty">Error loading directory</div>';
+                    fileList.style.position = '';
                 }
             }
 
@@ -740,24 +757,40 @@ Object.assign(SypnexAPI.prototype, {
                 });
             }
 
-            modal.querySelectorAll('.sypnex-file-explorer-quick-item').forEach(item => {
-                item.addEventListener('click', async () => {
-                    const path = item.dataset.path;
-                    currentPath = path;
-                    if (pathText) pathText.textContent = currentPath;
-                    await loadDirectory.call(this, currentPath);
-                });
-            });
-
             if (refreshBtn) {
                 refreshBtn.addEventListener('click', async () => {
-                    await loadDirectory.call(this, currentPath);
+                    // Add visual loading state without changing button content
+                    const icon = refreshBtn.querySelector('i');
+                    const originalClasses = icon.className;
+                    
+                    // Just change the icon class, don't touch innerHTML
+                    icon.className = 'fas fa-sync-alt fa-spin';
+                    refreshBtn.disabled = true;
+                    refreshBtn.style.opacity = '0.7';
+                    
+                    try {
+                        await loadDirectory.call(this, currentPath, true); // true = isRefresh
+                    } finally {
+                        // Restore button state
+                        icon.className = originalClasses;
+                        refreshBtn.disabled = false;
+                        refreshBtn.style.opacity = '';
+                    }
                 });
             }
 
             if (newFolderBtn) {
                 newFolderBtn.addEventListener('click', async () => {
-                    const folderName = prompt('Enter folder name:');
+                    const folderName = await this.showInputModal(
+                        'Create New Folder',
+                        'Enter folder name:',
+                        {
+                            placeholder: 'e.g., My Documents',
+                            confirmText: 'Create',
+                            icon: 'fas fa-folder-plus'
+                        }
+                    );
+                    
                     if (!folderName) return;
 
                     try {
@@ -822,6 +855,15 @@ Object.assign(SypnexAPI.prototype, {
                     modal.remove();
                 });
             }
+
+            // Click outside to close
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    if (onCancel) onCancel();
+                    resolve(null);
+                    modal.remove();
+                }
+            });
 
             // Handle filename input for save mode
             if (filenameInput && selectBtn) {

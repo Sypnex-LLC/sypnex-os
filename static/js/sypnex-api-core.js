@@ -419,7 +419,7 @@ class SypnexAPI {
             modal.style.cssText = `
                 display: block;
                 position: fixed;
-                z-index: 1000;
+                z-index: 11000;
                 left: 0;
                 top: 0;
                 width: 100%;
