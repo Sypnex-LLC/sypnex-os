@@ -525,7 +525,8 @@ class SypnexOS {
          * Get the latest cached version for an app
          */
         if (this.latestVersions && this.latestVersions[appId]) {
-            return this.latestVersions[appId].version;
+            // Access version from app_info structure to match API format
+            return this.latestVersions[appId].app_info?.version || this.latestVersions[appId].version;
         }
         return null;
     }
