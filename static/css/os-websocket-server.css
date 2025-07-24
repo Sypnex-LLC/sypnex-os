@@ -1,33 +1,4 @@
 /* WebSocket Server App Styles */
-.app-container {
-    padding: 20px;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    overflow-y: auto;
-}
-
-.app-header {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 10px;
-}
-
-.app-header h2 {
-    margin: 0;
-    color: var(--text-color);
-    font-size: 24px;
-}
-
-.app-header p {
-    margin: 0;
-    color: var(--muted-text);
-    font-size: 14px;
-    flex: 1;
-}
-
 .refresh-websocket-stats {
     margin-left: auto;
 }
@@ -40,7 +11,7 @@
 }
 
 .stat-card {
-    background: var(--window-bg);
+    background: var(--secondary-bg);
     border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 15px;
@@ -51,7 +22,7 @@
 }
 
 .stat-card:hover {
-    border-color: var(--accent-border);
+    border-color: var(--accent-color);
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
@@ -62,8 +33,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--accent-bg);
+    background: rgba(0, 212, 255, 0.2);
     border-radius: 8px;
+    color: var(--accent-color);
 }
 
 .stat-content {
@@ -73,13 +45,13 @@
 .stat-value {
     font-size: 20px;
     font-weight: bold;
-    color: var(--text-color);
+    color: var(--text-primary);
     margin-bottom: 2px;
 }
 
 .stat-label {
     font-size: 12px;
-    color: var(--muted-text);
+    color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
@@ -92,7 +64,7 @@
 }
 
 .details-section {
-    background: var(--window-bg);
+    background: var(--secondary-bg);
     border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 15px;
@@ -108,13 +80,13 @@
 
 .details-header h3 {
     margin: 0;
-    color: var(--text-color);
+    color: var(--text-primary);
     font-size: 16px;
 }
 
 .last-updated {
     font-size: 12px;
-    color: var(--muted-text);
+    color: var(--text-secondary);
 }
 
 .details-content {
@@ -137,16 +109,16 @@
 
 .detail-label {
     font-weight: 500;
-    color: var(--text-color);
+    color: var(--text-primary);
 }
 
 .detail-value {
-    color: var(--accent-text);
+    color: var(--accent-color);
     font-family: monospace;
 }
 
 .log-section {
-    background: var(--window-bg);
+    background: var(--secondary-bg);
     border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 15px;
@@ -165,12 +137,12 @@
 
 .log-header h3 {
     margin: 0;
-    color: var(--text-color);
+    color: var(--text-primary);
     font-size: 16px;
 }
 
 .log-content {
-    background: var(--code-bg);
+    background: var(--primary-bg);
     border: 1px solid var(--border-color);
     border-radius: 4px;
     padding: 12px;
@@ -178,7 +150,7 @@
     overflow-y: auto;
     font-family: 'Courier New', monospace;
     font-size: 12px;
-    color: var(--code-text);
+    color: var(--text-primary);
 }
 
 .log-entry {
@@ -192,7 +164,7 @@
 }
 
 .log-time {
-    color: var(--muted-text);
+    color: var(--text-secondary);
     font-size: 11px;
 }
 

@@ -331,4 +331,34 @@
         opacity: 1;
         transform: translateX(0);
     }
+}
+
+/* Standard Status Summary Components */
+.status-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.status-item {
+    text-align: center;
+    padding: 15px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+}
+
+.status-label {
+    display: block;
+    font-size: 0.9em;
+    color: var(--text-secondary);
+    margin-bottom: 5px;
+}
+
+.status-value {
+    display: block;
+    font-size: 1.5em;
+    font-weight: bold;
+    color: var(--accent-color);
 } 

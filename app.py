@@ -205,9 +205,20 @@ def serve_bundled_css():
         "app-standards.css"
     ]
     
+    # System Apps CSS with their app IDs for scoping
+    system_app_css = [
+        ("os-resource-manager.css", "resource-manager"),
+        ("os-websocket-server.css", "websocket-server"),
+        ("os-virtual-file-system.css", "virtual-file-system"),
+        ("os-user-app-manager.css", "user-app-manager"),
+        ("os-terminal.css", "terminal"),
+        ("os-system-settings.css", "system-settings")
+    ]
+    
     bundle_content = "/* SYPNEX OS - Dynamically Bundled CSS */\n"
     bundle_content += f"/* Generated: {__import__('datetime').datetime.now()} */\n\n"
     
+    # Load main OS CSS files (unscoped)
     for css_file in css_load_order:
         file_path = css_dir / css_file
         if file_path.exists():
@@ -215,6 +226,25 @@ def serve_bundled_css():
                 bundle_content += f"/* === {css_file} === */\n"
                 with open(file_path, 'r', encoding='utf-8') as f:
                     bundle_content += f.read() + "\n\n"
+            except Exception as e:
+                bundle_content += f"/* ERROR loading {css_file}: {str(e)} */\n\n"
+        else:
+            bundle_content += f"/* MISSING: {css_file} */\n\n"
+    
+    # Load and scope system app CSS files
+    from app_utils import scope_system_app_css
+    
+    for css_file, app_id in system_app_css:
+        file_path = css_dir / css_file
+        if file_path.exists():
+            try:
+                bundle_content += f"/* === {css_file} (scoped to {app_id}) === */\n"
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    css_content = f.read()
+                
+                # Apply CSS scoping to prevent conflicts
+                scoped_css = scope_system_app_css(css_content, app_id)
+                bundle_content += scoped_css + "\n\n"
             except Exception as e:
                 bundle_content += f"/* ERROR loading {css_file}: {str(e)} */\n\n"
         else:

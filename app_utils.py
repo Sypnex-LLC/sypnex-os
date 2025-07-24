@@ -298,6 +298,71 @@ def get_current_time_info():
 
 
 
+def scope_system_app_css(css_content: str, app_id: str) -> str:
+    """Scope system app CSS using data-appid attribute (CSS-only version)"""
+    if not css_content or not app_id:
+        return css_content
+
+    try:
+        # Parse the CSS content
+        sheet = cssutils.parseString(css_content, validate=False)
+        
+        prefix = f'[data-appid="{app_id}"]'
+        keyframes_map = {}
+
+        # First pass: handle keyframes
+        for rule in list(sheet.cssRules):
+            # KEYFRAMES_RULE is type 7
+            if rule.type == 7:
+                original_name = rule.name
+                new_name = f"{app_id}-{original_name}"
+                keyframes_map[original_name] = new_name
+                rule.name = new_name
+
+        # Second pass: prefix selectors and update animation properties
+        for rule in list(sheet.cssRules):
+            # STYLE_RULE is type 1
+            if rule.type == 1:
+                # Skip if already scoped to avoid double-scoping
+                if f'[data-appid="{app_id}"]' in rule.selectorText:
+                    continue
+                    
+                # Rewrite selectors to be scoped under the appid attribute
+                selectors = rule.selectorText.split(',')
+                scoped_selectors = []
+                for s in selectors:
+                    s_stripped = s.strip()
+                    if not s_stripped:
+                        continue
+                    
+                    # Handle special 'root' selectors by targeting the container
+                    if s_stripped.lower() in ['html', 'body', ':root']:
+                        scoped_selectors.append(prefix)
+                    else:
+                        # Prepend the prefix to all other selectors
+                        scoped_selectors.append(f"{prefix} {s_stripped}")
+                rule.selectorText = ', '.join(scoped_selectors)
+
+                # If we renamed any keyframes, update animation/animation-name properties
+                if keyframes_map and rule.style.animationName:
+                    for old_name, new_name in keyframes_map.items():
+                        # Replace animation names in the style declaration
+                        current_animation_names = rule.style.animationName.split(',')
+                        new_animation_names = [
+                            new_name if name.strip() == old_name else name
+                            for name in current_animation_names
+                        ]
+                        rule.style.animationName = ', '.join(new_animation_names)
+        
+        # Return the scoped CSS
+        return sheet.cssText.decode('utf-8') if sheet.cssText else css_content
+
+    except Exception as e:
+        logging.error(f"Failed to scope CSS for app {app_id}: {e}", exc_info=True)
+        # Return original CSS if scoping fails
+        return css_content
+
+
 def scope_app_styles(payload: str, appid: str) -> str:
     if not payload or not appid:
         return payload
