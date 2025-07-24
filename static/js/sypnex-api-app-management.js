@@ -59,11 +59,8 @@ Object.assign(SypnexAPI.prototype, {
                 download_url: downloadUrl
             };
             
-            console.log(`SypnexAPI [${this.appId}]: Updating app ${appId} with URL:`, downloadUrl);
             
             const fullUrl = `${this.baseUrl}/user-apps/update/${appId}`;
-            console.log(`SypnexAPI [${this.appId}]: Making request to:`, fullUrl);
-            console.log(`SypnexAPI [${this.appId}]: Request body:`, requestBody);
             
             const response = await fetch(fullUrl, {
                 method: 'POST',
@@ -75,7 +72,6 @@ Object.assign(SypnexAPI.prototype, {
             
             if (response.ok) {
                 const result = await response.json();
-                console.log(`SypnexAPI [${this.appId}]: App ${appId} updated successfully`);
                 return result;
             } else {
                 const errorData = await response.json();
@@ -103,7 +99,6 @@ Object.assign(SypnexAPI.prototype, {
             
             if (response.ok) {
                 const result = await response.json();
-                console.log(`SypnexAPI [${this.appId}]: App registry refreshed successfully`);
                 return result;
             } else {
                 const errorData = await response.json();
@@ -141,7 +136,6 @@ Object.assign(SypnexAPI.prototype, {
             
             if (response.ok) {
                 const result = await response.json();
-                console.log(`SypnexAPI [${this.appId}]: App ${appId} installed successfully`);
                 return result;
             } else {
                 const errorData = await response.json();
@@ -170,7 +164,6 @@ Object.assign(SypnexAPI.prototype, {
             
             if (response.ok) {
                 const result = await response.json();
-                console.log(`SypnexAPI [${this.appId}]: App ${appId} uninstalled successfully`);
                 return result;
             } else {
                 const errorData = await response.json();

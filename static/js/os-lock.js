@@ -190,12 +190,10 @@ class SystemLock {
                 // Update internal state
                 this.hasPin = newHasPin;
                 
-                console.log('Lock: PIN check result:', { hasPin: this.hasPin, pinValue: data.value ? '[HIDDEN]' : null });
                 
                 // Show/hide lock button based on PIN existence
                 if (this.lockButton) {
                     this.lockButton.style.display = this.hasPin ? 'block' : 'none';
-                    console.log('Lock: Button visibility and hasPin state updated to:', this.hasPin ? 'visible/true' : 'hidden/false');
                 } else {
                     console.warn('Lock: Lock button element not found');
                 }
@@ -235,7 +233,6 @@ class SystemLock {
         // Disable browser shortcuts and prevent page interaction
         document.body.style.overflow = 'hidden';
         
-        console.log('Lock overlay shown');
     }
 
     lockSystem() {
@@ -283,7 +280,6 @@ class SystemLock {
                 this.lockOverlay.classList.add('system-lock-hidden');
                 document.body.style.overflow = '';
                 this.clearPinInputs();
-                console.log('System unlocked');
                 
                 // Reload wallpaper after unlock
                 if (window.sypnexOS && window.sypnexOS.loadWallpaper) {

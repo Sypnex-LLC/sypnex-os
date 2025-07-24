@@ -21,7 +21,6 @@ Object.assign(SypnexOS.prototype, {
             // Additional data from heartbeat endpoint
             if (data.status) {
                 // Could use this for system health indicators
-                console.log('System status:', data.status);
             }
         } catch (error) {
             console.error('Error updating time:', error);

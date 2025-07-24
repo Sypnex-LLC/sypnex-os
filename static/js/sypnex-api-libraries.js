@@ -16,7 +16,6 @@ Object.assign(SypnexAPI.prototype, {
             timeout = 10000
         } = options;
         
-        console.log(`SypnexAPI [${this.appId}]: Loading library from ${url}`);
         
         return new Promise((resolve, reject) => {
             const timeoutId = setTimeout(() => {
@@ -30,10 +29,8 @@ Object.assign(SypnexAPI.prototype, {
                 clearTimeout(timeoutId);
                 
                 if (localName && window[localName]) {
-                    console.log(`SypnexAPI [${this.appId}]: Library loaded, found global '${localName}'`);
                     resolve(window[localName]);
                 } else {
-                    console.log(`SypnexAPI [${this.appId}]: Library loaded successfully`);
                     resolve(true);
                 }
             };

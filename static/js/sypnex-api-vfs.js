@@ -324,7 +324,6 @@ Object.assign(SypnexAPI.prototype, {
                     // Create the directory
                     const parentPath = currentPath;
                     await this.createVirtualFolder(part, parentPath);
-                    console.log(`SypnexAPI [${this.appId}]: Created directory: ${fullPath}`);
                 }
                 
                 currentPath = fullPath;

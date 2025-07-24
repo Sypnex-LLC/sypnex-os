@@ -74,7 +74,6 @@ Object.assign(SypnexOS.prototype, {
         // Function to update system overview
         const updateSystemOverview = (appMetrics) => {
             const apps = Array.from(this.apps.entries());
-            console.log('📊 Overview apps:', apps.map(([id]) => id));
             
             const runningApps = Array.from(this.apps.values()).filter(app =>
                 app.dataset.minimized !== 'true'
@@ -90,7 +89,6 @@ Object.assign(SypnexOS.prototype, {
             for (const [appId, appWindow] of apps) {
                 const metrics = appMetrics.get(appId);
                 if (metrics) {
-                    console.log(`📊 Overview ${appId}: DOM=${metrics.domNodes}`);
                     
                     totalDOMNodes += metrics.domNodes;
                     totalTimers += metrics.timers;
@@ -102,7 +100,6 @@ Object.assign(SypnexOS.prototype, {
                 }
             }
 
-            console.log('📊 Overview TOTAL:', totalDOMNodes);
 
             if (systemOverview) {
                 systemOverview.innerHTML = `
@@ -135,7 +132,6 @@ Object.assign(SypnexOS.prototype, {
             if (!resourceTableBody) return;
 
             const apps = Array.from(this.apps.entries());
-            console.log('📋 Table apps:', apps.map(([id]) => id));
 
             if (apps.length === 0) {
                 resourceTableBody.innerHTML = `
@@ -154,7 +150,6 @@ Object.assign(SypnexOS.prototype, {
                     // Get app metadata
                     const appData = await this.getAppData(appId);
                     if (!appData) {
-                        console.log('📋 Table skipping (no appData):', appId);
                         continue;
                     }
 
@@ -167,7 +162,6 @@ Object.assign(SypnexOS.prototype, {
                     const globalEvents = metrics.events;
                     const network = metrics.network;
 
-                    console.log(`📋 Table ${appId}: DOM=${domNodes}`);
                     tableTotalDOM += domNodes;
 
                     // Determine status
@@ -236,14 +230,12 @@ Object.assign(SypnexOS.prototype, {
                 }
             }
             
-            console.log('📋 Table TOTAL:', tableTotalDOM);
         };
 
         // Function to refresh all data
         let isRefreshing = false;
         const refreshResources = async () => {
             if (isRefreshing) {
-                console.log('⏸️ Refresh already in progress, skipping...');
                 return;
             }
             

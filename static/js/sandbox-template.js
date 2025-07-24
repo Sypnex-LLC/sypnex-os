@@ -38,14 +38,12 @@
     const trackingSetInterval = function(callback, delay, ...args) {
         const id = originalSetInterval(callback, delay, ...args);
         appTimers.add({type: 'interval', id: id});
-        console.log('App ${appId} created setInterval:', id);
         return id;
     };
     
     const trackingSetTimeout = function(callback, delay, ...args) {
         const id = originalSetTimeout(callback, delay, ...args);
         appTimers.add({type: 'timeout', id: id});
-        console.log('App ${appId} created setTimeout:', id);
         return id;
     };
     
@@ -54,7 +52,6 @@
         appTimers.forEach(timer => {
             if (timer.id === id && timer.type === 'interval') {
                 appTimers.delete(timer);
-                console.log('App ${appId} cleared setInterval:', id);
             }
         });
     };
@@ -64,7 +61,6 @@
         appTimers.forEach(timer => {
             if (timer.id === id && timer.type === 'timeout') {
                 appTimers.delete(timer);
-                console.log('App ${appId} cleared setTimeout:', id);
             }
         });
     };
@@ -81,7 +77,6 @@
                 listener: listener,
                 options: options
             });
-            console.log('App ${appId} added global event listener:', type, 'on', target.constructor.name);
         }
         
         return originalAddEventListener.call(target, type, listener, options);
@@ -92,7 +87,6 @@
         appEventListeners.forEach(item => {
             if (item.target === target && item.type === type && item.listener === listener) {
                 appEventListeners.delete(item);
-                console.log('App ${appId} removed global event listener:', type, 'from', target.constructor.name);
             }
         });
         
@@ -154,7 +148,6 @@
         if (typeof window.sypnexOS !== 'undefined' && window.sypnexOS.showNotification) {
             window.sypnexOS.showNotification(message, type);
         } else {
-            console.log(`[${type.toUpperCase()}] ${message}`);
             if (type === 'error') {
                 console.error(message);
             }
@@ -172,7 +165,6 @@
         showNotification: showNotification
     });
     
-    console.log('SypnexAPI loaded and ready for app: ' + actualAppId);
     
     // Execute the app script with error boundary for containment
     try {
@@ -236,16 +228,13 @@
                 if (timer.type === 'interval') {
                     originalClearInterval(timer.id);
                     cleanedCount++;
-                    console.log('Cleaned up setInterval:', timer.id);
                 } else if (timer.type === 'timeout') {
                     originalClearTimeout(timer.id);
                     cleanedCount++;
-                    console.log('Cleaned up setTimeout:', timer.id);
                 }
             });
             appTimers.clear();
             if (cleanedCount > 0) {
-                console.log('App ${appId}: Cleaned up', cleanedCount, 'timers');
             }
             return cleanedCount;
         },
@@ -256,14 +245,12 @@
                 try {
                     originalRemoveEventListener.call(item.target, item.type, item.listener, item.options);
                     cleanedCount++;
-                    console.log('Cleaned up event listener:', item.type, 'from', item.target.constructor.name);
                 } catch (error) {
                     console.warn('Error cleaning up event listener:', error);
                 }
             });
             appEventListeners.clear();
             if (cleanedCount > 0) {
-                console.log('App ${appId}: Cleaned up', cleanedCount, 'event listeners');
             }
             return cleanedCount;
         },
@@ -273,7 +260,6 @@
             if (sypnexAPI && typeof sypnexAPI.cleanup === 'function') {
                 try {
                     sypnexAPI.cleanup();
-                    console.log('App ${appId}: SypnexAPI cleanup completed');
                 } catch (error) {
                     console.warn('App ${appId}: Error during SypnexAPI cleanup:', error);
                 }
@@ -294,7 +280,6 @@
             clearInterval = originalClearInterval;
             clearTimeout = originalClearTimeout;
             
-            console.log('App ${appId}: Restored original global methods');
             
             // Clean up centralized tracking for this app
             if (window.sypnexTimerTracker) {
@@ -304,11 +289,9 @@
                 window.sypnexEventTracker.delete(actualAppId);
             }
             
-            console.log('App ${appId}: Cleaned up centralized tracking');
             
             return { timers: timersCleanedUp, listeners: listenersCleanedUp };
         }
     };
     
-    console.log('App sandbox created for: ' + actualAppId);
 })();

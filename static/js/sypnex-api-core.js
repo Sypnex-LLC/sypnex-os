@@ -39,7 +39,6 @@ class SypnexAPI {
             // Check if we have the required helper functions
             if (typeof this.getAppSetting === 'function' && typeof this.getAllAppSettings === 'function') {
                 this.initialized = true;
-                console.log(`SypnexAPI initialized for app: ${this.appId}`);
             } else {
                 console.warn('SypnexAPI: Running outside OS environment, some features may not work');
             }
@@ -98,7 +97,6 @@ class SypnexAPI {
      * @param {string} [type='info'] - Notification type (info, error, warn, etc.)
      */
     _defaultShowNotification(message, type = 'info') {
-        console.log(`[${type.toUpperCase()}] ${message}`);
         if (type === 'error') {
             console.error(message);
         }
@@ -175,7 +173,6 @@ class SypnexAPI {
             });
             
             if (response.ok) {
-                console.log('SypnexAPI: Window state saved successfully');
                 return true;
             } else {
                 console.error('SypnexAPI: Failed to save window state');
@@ -197,11 +194,9 @@ class SypnexAPI {
         try {
             // Call the global OS method if available
             if (typeof window !== 'undefined' && window.sypnexOS && window.sypnexOS.refreshLatestVersionsCache) {
-                console.log(`SypnexAPI [${this.appId}]: Requesting app versions cache refresh...`);
                 const result = await window.sypnexOS.refreshLatestVersionsCache();
                 
                 if (result) {
-                    console.log(`SypnexAPI [${this.appId}]: App versions cache refreshed successfully`);
                     return true;
                 } else {
                     console.warn(`SypnexAPI [${this.appId}]: App versions cache refresh failed`);

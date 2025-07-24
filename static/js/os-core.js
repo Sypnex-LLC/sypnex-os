@@ -317,7 +317,6 @@ class SypnexOS {
 
     toggleHeartbeatEndpoint() {
         this.useHeartbeat = !this.useHeartbeat;
-        console.log(`Switched to ${this.useHeartbeat ? 'heartbeat' : 'time'} endpoint`);
         
         // Update immediately
         this.updateTime();
@@ -330,12 +329,10 @@ class SypnexOS {
         
         try {
             // Load bundled SypnexAPI from single endpoint
-            console.log('Loading bundled SypnexAPI...');
             const response = await fetch('/static/js/sypnex-api.js');
             
             if (response.ok) {
                 this.sypnexAPIContent = await response.text();
-                console.log('SypnexAPI bundle loaded successfully');
                 return this.sypnexAPIContent;
             } else {
                 console.error('Failed to load SypnexAPI bundle');
@@ -360,7 +357,6 @@ class SypnexOS {
                 Object.keys(window.sypnexApps).forEach(appId => {
                     const sypnexAPI = window.sypnexApps[appId].sypnexAPI;
                     if (sypnexAPI && sypnexAPI.isSocketConnected()) {
-                        console.log(`Disconnecting WebSocket for app: ${appId} (page unload)`);
                         sypnexAPI.disconnectSocket();
                     }
                 });
@@ -377,7 +373,6 @@ class SypnexOS {
                     Object.keys(window.sypnexApps).forEach(appId => {
                         const sypnexAPI = window.sypnexApps[appId].sypnexAPI;
                         if (sypnexAPI && sypnexAPI.isSocketConnected()) {
-                            console.log(`Disconnecting WebSocket for app: ${appId} (tab hidden)`);
                             sypnexAPI.disconnectSocket();
                         }
                     });
@@ -396,7 +391,6 @@ class SypnexOS {
             const CACHE_FILE_PATH = '/system/cache/latest_versions.json';
             const CACHE_DURATION_MS = 5 * 60 * 1000; // 5 minutes
             
-            console.log('Checking app version cache...');
             
             // Initialize VFS API access
             const tempAPI = new window.SypnexAPI();
@@ -414,22 +408,17 @@ class SypnexOS {
                     const cacheAge = Date.now() - cachedData.timestamp;
                     if (cacheAge < CACHE_DURATION_MS) {
                         useCache = true;
-                        console.log(`📋 Using cached app versions (${Math.round(cacheAge / 1000)}s old)`);
                     } else {
-                        console.log(`⏰ Cache expired (${Math.round(cacheAge / 60000)}m old), fetching fresh data...`);
                     }
                 }
             } catch (cacheError) {
-                console.log('📋 No valid cache found, fetching fresh data...');
             }
             
             if (useCache && cachedData) {
                 // Use cached data
                 this.latestVersions = cachedData.apps;
-                console.log('✅ Latest app versions loaded from cache');
             } else {
                 // Fetch fresh data from API
-                console.log('🌐 Fetching latest app versions from API...');
                 
                 const response = await fetch('/api/updates/latest');
                 if (response.ok) {
@@ -437,7 +426,6 @@ class SypnexOS {
                     if (data.success && data.apps) {
                         // Store comprehensive app data in memory for quick access
                         this.latestVersions = data.apps;
-                        console.log('✅ Latest app versions fetched successfully');
                         
                         // Cache the data in VFS with timestamp
                         try {
@@ -448,12 +436,10 @@ class SypnexOS {
                             };
                             
                             // Ensure system and cache directories exist
-                            console.log('🗂️ Creating system cache directory structure...');
                             await tempAPI.createVirtualDirectoryStructure('/system/cache');
                             
                             // Write cache file
                             await tempAPI.writeVirtualFileJSON(CACHE_FILE_PATH, cacheData);
-                            console.log('💾 App versions cached to VFS');
                         } catch (cacheWriteError) {
                             console.warn('⚠️ Failed to cache app versions to VFS:', cacheWriteError);
                             // Continue anyway - caching failure shouldn't break functionality
@@ -489,7 +475,6 @@ class SypnexOS {
             const CACHE_FILE_PATH = '/system/cache/latest_versions.json';
             const tempAPI = new window.SypnexAPI();
             
-            console.log('🔄 Force refreshing app versions cache...');
             
             const response = await fetch('/api/updates/latest');
             if (response.ok) {
@@ -497,7 +482,6 @@ class SypnexOS {
                 if (data.success && data.apps) {
                     // Store comprehensive app data in memory for quick access
                     this.latestVersions = data.apps;
-                    console.log('✅ App versions cache force-refreshed');
                     
                     // Update cache in VFS with fresh timestamp
                     try {
@@ -508,12 +492,10 @@ class SypnexOS {
                         };
                         
                         // Ensure system and cache directories exist
-                        console.log('🗂️ Creating system cache directory structure...');
                         await tempAPI.createVirtualDirectoryStructure('/system/cache');
                         
                         // Write cache file
                         await tempAPI.writeVirtualFileJSON(CACHE_FILE_PATH, cacheData);
-                        console.log('💾 Fresh app versions cached to VFS');
                     } catch (cacheWriteError) {
                         console.warn('⚠️ Failed to cache app versions to VFS:', cacheWriteError);
                     }

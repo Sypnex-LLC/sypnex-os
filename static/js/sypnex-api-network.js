@@ -44,7 +44,6 @@ Object.assign(SypnexAPI.prototype, {
                 proxyRequest.body = body;
             }
             
-            console.log(`SypnexAPI [${this.appId}]: Proxying ${method} request to ${url}`);
             
             const response = await fetch(`${this.baseUrl}/proxy/http`, {
                 method: 'POST',
@@ -56,7 +55,6 @@ Object.assign(SypnexAPI.prototype, {
             
             if (response.ok) {
                 const result = await response.json();
-                console.log(`SypnexAPI [${this.appId}]: HTTP proxy request completed with status ${result.status}`);
                 return result;
             } else {
                 const errorData = await response.json();

@@ -23,7 +23,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (window.sypnexOS.showNotification) Object.freeze(window.sypnexOS.showNotification);
             if (window.sypnexOS.reportAppError) Object.freeze(window.sypnexOS.reportAppError);
             
-            console.log('Critical OS methods protected (properties remain writable)');
         }
     }, 100); // Small delay to ensure OS is fully initialized
 }); 

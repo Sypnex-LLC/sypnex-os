@@ -26,9 +26,7 @@ Object.assign(SypnexOS.prototype, {
                 const allApps = await appDataResponse.json();
                 const appData = allApps.find(app => app.id === appId);
 
-                console.log(appData);
                 if (appData.type == "System_Service") {
-                    console.log("cant open directly");
                     this.showNotification(`app cannot be open directly`, 'success');
                     return;
                 }
@@ -545,7 +543,6 @@ Object.assign(SypnexOS.prototype, {
                             // Update available - show the red download icon
                             updateBtn.style.display = 'flex';
                             updateBtn.title = `Update available: v${latestVersion} (current: v${currentVersion})`;
-                            console.log(`🔄 Update available for ${appId}: ${currentVersion} → ${latestVersion}`);
                         } else {
                             updateBtn.style.display = 'none';
                         }
@@ -826,7 +823,6 @@ Object.assign(SypnexOS.prototype, {
                 const cleanupResult = window.sypnexApps[appId].cleanup();
                 const totalCleaned = cleanupResult.timers + cleanupResult.listeners;
                 if (totalCleaned > 0) {
-                    console.log(`App ${appId}: Automatically cleaned up ${cleanupResult.timers} timers and ${cleanupResult.listeners} event listeners on close`);
                 }
             }
             
@@ -834,14 +830,12 @@ Object.assign(SypnexOS.prototype, {
             const allNotifications = document.querySelectorAll('.notification');
             if (allNotifications.length > 0) {
                 allNotifications.forEach(notification => notification.remove());
-                console.log(`App ${appId}: Cleaned up ${allNotifications.length} OS-level notifications`);
             }
             
             // Clean up WebSocket connection if app has one
             if (window.sypnexApps && window.sypnexApps[appId] && window.sypnexApps[appId].sypnexAPI) {
                 const sypnexAPI = window.sypnexApps[appId].sypnexAPI;
                 if (sypnexAPI.isSocketConnected()) {
-                    console.log(`Disconnecting WebSocket for app: ${appId}`);
                     sypnexAPI.disconnectSocket();
                 }
                 // Clean up the app reference

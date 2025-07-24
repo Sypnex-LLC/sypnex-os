@@ -72,7 +72,6 @@ Object.assign(SypnexAPI.prototype, {
             // Set up connection event handlers
             this.socket.on('connect', () => {
                 this.socketConnected = true;
-                console.log(`SypnexAPI [${this.appId}]: Socket.IO connected`);
                 this._triggerEvent('socket_connected', { appId: this.appId });
                 
                 // Send app identification message
@@ -87,7 +86,6 @@ Object.assign(SypnexAPI.prototype, {
             
             this.socket.on('disconnect', (reason) => {
                 this.socketConnected = false;
-                console.log(`SypnexAPI [${this.appId}]: Socket.IO disconnected: ${reason}`);
                 this._triggerEvent('socket_disconnected', { appId: this.appId, reason });
                 
                 // Don't auto-reconnect if it was a manual disconnect
@@ -112,12 +110,10 @@ Object.assign(SypnexAPI.prototype, {
             
             // Socket.IO reconnection events
             this.socket.on('reconnect_attempt', (attemptNumber) => {
-                console.log(`SypnexAPI [${this.appId}]: Reconnection attempt ${attemptNumber}`);
                 this._triggerEvent('reconnect_attempt', { appId: this.appId, attempt: attemptNumber });
             });
             
             this.socket.on('reconnect', (attemptNumber) => {
-                console.log(`SypnexAPI [${this.appId}]: Reconnected after ${attemptNumber} attempts`);
                 this.socketConnected = true;
                 this.reconnectAttempts = 0;
                 this._triggerEvent('reconnected', { appId: this.appId, attempts: attemptNumber });
@@ -163,7 +159,6 @@ Object.assign(SypnexAPI.prototype, {
             this.socket = null;
             this.socketConnected = false;
             this.roomsToRejoin.clear(); // Clear rooms to rejoin
-            console.log(`SypnexAPI [${this.appId}]: Socket.IO manually disconnected`);
         }
     },
     
@@ -213,7 +208,6 @@ Object.assign(SypnexAPI.prototype, {
                 });
             }
             
-            console.log(`SypnexAPI [${this.appId}]: Sent message '${event}' to ${room || 'all'}`);
             return true;
         } catch (error) {
             console.error(`SypnexAPI [${this.appId}]: Error sending message:`, error);
@@ -235,7 +229,6 @@ Object.assign(SypnexAPI.prototype, {
         try {
             this.socket.emit('join_room', { room: roomName, appId: this.appId });
             this.roomsToRejoin.add(roomName); // Track room for reconnection
-            console.log(`SypnexAPI [${this.appId}]: Joined room '${roomName}'`);
             return true;
         } catch (error) {
             console.error(`SypnexAPI [${this.appId}]: Error joining room:`, error);
@@ -257,7 +250,6 @@ Object.assign(SypnexAPI.prototype, {
         try {
             this.socket.emit('leave_room', { room: roomName, appId: this.appId });
             this.roomsToRejoin.delete(roomName); // Remove from reconnection tracking
-            console.log(`SypnexAPI [${this.appId}]: Left room '${roomName}'`);
             return true;
         } catch (error) {
             console.error(`SypnexAPI [${this.appId}]: Error leaving room:`, error);
@@ -302,7 +294,6 @@ Object.assign(SypnexAPI.prototype, {
         
         // Add listener to socket
         this.socket.on(eventName, (data) => {
-            console.log(`SypnexAPI [${this.appId}]: Received event '${eventName}':`, data);
             callback(data);
         });
     },
@@ -391,7 +382,6 @@ Object.assign(SypnexAPI.prototype, {
             this.performHealthCheck();
         }, this.healthCheckInterval);
         
-        console.log(`SypnexAPI [${this.appId}]: Health checks started (${this.healthCheckInterval}ms interval)`);
     },
     
     /**
@@ -401,7 +391,6 @@ Object.assign(SypnexAPI.prototype, {
         if (this.healthCheckTimer) {
             clearInterval(this.healthCheckTimer);
             this.healthCheckTimer = null;
-            console.log(`SypnexAPI [${this.appId}]: Health checks stopped`);
         }
     },
     
@@ -410,13 +399,11 @@ Object.assign(SypnexAPI.prototype, {
      */
     async performHealthCheck() {
         if (!this.isSocketConnected()) {
-            console.log(`SypnexAPI [${this.appId}]: Skipping health check - not connected`);
             return;
         }
         
         try {
             const pingTime = await this.ping();
-            console.log(`SypnexAPI [${this.appId}]: Health check ping: ${pingTime}ms`);
         } catch (error) {
             console.warn(`SypnexAPI [${this.appId}]: Health check failed:`, error.message);
             // If health check fails, it might indicate connection issues
@@ -435,7 +422,6 @@ Object.assign(SypnexAPI.prototype, {
         } else {
             this.stopHealthChecks();
         }
-        console.log(`SypnexAPI [${this.appId}]: Health checks ${enabled ? 'enabled' : 'disabled'}`);
     },
     
     /**
@@ -448,7 +434,6 @@ Object.assign(SypnexAPI.prototype, {
             this.stopHealthChecks();
             this.startHealthChecks();
         }
-        console.log(`SypnexAPI [${this.appId}]: Health check interval set to ${intervalMs}ms`);
     },
     
     // ===== AUTO-RECONNECT HELPER METHODS =====
@@ -462,7 +447,6 @@ Object.assign(SypnexAPI.prototype, {
         if (this.socket) {
             this.socket.io.reconnection(enabled);
         }
-        console.log(`SypnexAPI [${this.appId}]: Auto-reconnect ${enabled ? 'enabled' : 'disabled'}`);
     },
     
     /**
@@ -486,11 +470,6 @@ Object.assign(SypnexAPI.prototype, {
             this.socket.io.reconnectionDelayMax(this.maxReconnectDelay);
         }
         
-        console.log(`SypnexAPI [${this.appId}]: Reconnect config updated:`, {
-            maxAttempts: this.maxReconnectAttempts,
-            delay: this.reconnectDelay,
-            maxDelay: this.maxReconnectDelay
-        });
     },
     
     /**
@@ -500,7 +479,6 @@ Object.assign(SypnexAPI.prototype, {
         if (this.socket) {
             this.manualDisconnect = false; // Reset manual disconnect flag
             this.socket.connect();
-            console.log(`SypnexAPI [${this.appId}]: Manual reconnection triggered`);
         }
     },
     
@@ -517,7 +495,6 @@ Object.assign(SypnexAPI.prototype, {
         this.reconnectAttempts++;
         const delay = Math.min(this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1), this.maxReconnectDelay);
         
-        console.log(`SypnexAPI [${this.appId}]: Scheduling reconnection attempt ${this.reconnectAttempts} in ${delay}ms`);
         
         this.reconnectTimer = setTimeout(() => {
             if (this.socket && !this.socket.connected && !this.manualDisconnect) {
@@ -535,12 +512,10 @@ Object.assign(SypnexAPI.prototype, {
             return;
         }
         
-        console.log(`SypnexAPI [${this.appId}]: Rejoining ${this.roomsToRejoin.size} rooms`);
         
         this.roomsToRejoin.forEach(roomName => {
             try {
                 this.socket.emit('join_room', { room: roomName, appId: this.appId });
-                console.log(`SypnexAPI [${this.appId}]: Rejoined room '${roomName}'`);
             } catch (error) {
                 console.error(`SypnexAPI [${this.appId}]: Error rejoining room '${roomName}':`, error);
             }

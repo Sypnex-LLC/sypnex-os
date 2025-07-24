@@ -209,15 +209,12 @@ Object.assign(SypnexOS.prototype, {
                     socket = io();
                     
                     socket.on('connect', () => {
-                        console.log('Terminal: Connected to WebSocket for Python output');
                         
                         // Join terminal room for Python execution output
                         socket.emit('join_room', { room: 'terminal' });
-                        console.log('Terminal: Joined terminal room');
                     });
                     
                     socket.on('disconnect', () => {
-                        console.log('Terminal: Disconnected from WebSocket');
                     });
                     
                     // Listen for Python output

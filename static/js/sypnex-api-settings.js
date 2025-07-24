@@ -38,7 +38,6 @@ Object.assign(SypnexAPI.prototype, {
             });
             
             if (response.ok) {
-                console.log(`SypnexAPI: Setting ${key} saved successfully`);
                 return true;
             } else {
                 console.error(`SypnexAPI: Failed to save setting ${key}`);
@@ -77,7 +76,6 @@ Object.assign(SypnexAPI.prototype, {
             });
             
             if (response.ok) {
-                console.log(`SypnexAPI: Setting ${key} deleted successfully`);
                 return true;
             } else {
                 console.error(`SypnexAPI: Failed to delete setting ${key}`);
@@ -130,7 +128,6 @@ Object.assign(SypnexAPI.prototype, {
             });
             
             if (response.ok) {
-                console.log(`SypnexAPI: Preference ${category}.${key} saved successfully`);
                 return true;
             } else {
                 console.error(`SypnexAPI: Failed to save preference ${category}.${key}`);

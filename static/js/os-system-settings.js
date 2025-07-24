@@ -4,7 +4,6 @@
 // Extend SypnexOS class with system settings methods
 Object.assign(SypnexOS.prototype, {
     setupSystemSettings(windowElement) {
-        console.log('SystemSettings: Setup called');
         
         // Initialize the app
         this.initializeSystemSettingsEventListeners(windowElement);
@@ -620,7 +619,6 @@ Object.assign(SypnexOS.prototype, {
                 this.updatePinStatus(windowElement, true);
                 this.clearPinInputs(pinInputs);
                 // Refresh lock button visibility
-                console.log('System Settings: Calling refreshPinStatus after PIN set');
                 this.refreshLockButtonVisibility();
             } else {
                 throw new Error('Failed to set PIN code');
@@ -683,7 +681,6 @@ Object.assign(SypnexOS.prototype, {
                 this.updatePinStatus(windowElement, false);
                 this.clearPinInputs(pinInputs);
                 // Refresh lock button visibility
-                console.log('System Settings: Calling refreshPinStatus after PIN removal');
                 this.refreshLockButtonVisibility();
             } else {
                 throw new Error('Failed to remove PIN code');
@@ -747,13 +744,11 @@ Object.assign(SypnexOS.prototype, {
     async refreshLockButtonVisibility() {
         // Try to use systemLock if available
         if (window.systemLock) {
-            console.log('System Settings: Using window.systemLock.refreshPinStatus()');
             window.systemLock.refreshPinStatus();
             return;
         }
 
         // Fallback: directly update lock button visibility
-        console.log('System Settings: Fallback - directly updating lock button');
         try {
             const response = await fetch('/api/preferences/security/pin_code');
             if (response.ok) {
@@ -763,7 +758,6 @@ Object.assign(SypnexOS.prototype, {
                 const lockButton = document.getElementById('lock-button');
                 if (lockButton) {
                     lockButton.style.display = hasPin ? 'block' : 'none';
-                    console.log('System Settings: Lock button visibility set to:', hasPin ? 'visible' : 'hidden');
                 } else {
                     console.warn('System Settings: Lock button element not found');
                 }
@@ -914,7 +908,6 @@ Object.assign(SypnexOS.prototype, {
                     console.error('Reset network error:', error);
                 }
             } else {
-                console.log('User cancelled OS reset');
             }
         } catch (error) {
             console.error('Error showing reset confirmation:', error);

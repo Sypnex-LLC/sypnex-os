@@ -610,7 +610,6 @@ Object.assign(SypnexAPI.prototype, {
                     fileList.innerHTML = '<div class="sypnex-file-explorer-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
                     
                     const response = await this.listVirtualFiles(path);
-                    console.log('VFS response:', response);
                     
                     // Handle different response formats
                     let items = [];
@@ -623,7 +622,6 @@ Object.assign(SypnexAPI.prototype, {
                         items = Object.values(response);
                     }
                     
-                    console.log('Processed items:', items);
                     
                     if (!items || items.length === 0) {
                         fileList.innerHTML = '<div class="sypnex-file-explorer-empty">This directory is empty</div>';
