@@ -335,8 +335,17 @@ def scope_system_app_css(css_content: str, app_id: str) -> str:
                     if not s_stripped:
                         continue
                     
-                    # Handle special 'root' selectors by targeting the container
-                    if s_stripped.lower() in ['html', 'body', ':root']:
+                    # Skip scoping for modal-related selectors (they need global scope)
+                    modal_selectors = ['.modal', '.modal-content', '.modal-header', '.modal-body', 
+                                     '.modal-footer', '.modal-close', '.form-group']
+                    
+                    should_skip_scoping = any(selector in s_stripped for selector in modal_selectors)
+                    
+                    if should_skip_scoping:
+                        # Don't scope modal selectors - keep them global
+                        scoped_selectors.append(s_stripped)
+                    elif s_stripped.lower() in ['html', 'body', ':root']:
+                        # Handle special 'root' selectors by targeting the container
                         scoped_selectors.append(prefix)
                     else:
                         # Prepend the prefix to all other selectors

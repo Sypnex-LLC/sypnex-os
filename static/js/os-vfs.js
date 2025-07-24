@@ -201,56 +201,12 @@ Object.assign(SypnexOS.prototype, {
             }
         };
         
-        // View file content
+        // View file content - disabled, use text editor instead
         const viewFile = async (filePath) => {
-            try {
-                const response = await fetch(`/api/virtual-files/read/${encodeURIComponent(filePath.substring(1))}`);
-                const fileData = await response.json();
-                
-                // Create a simple modal to display file content
-                const modal = document.createElement('div');
-                modal.className = 'modal';
-                modal.style.display = 'block';
-                modal.innerHTML = `
-                    <div class="modal-content" style="max-width: 800px;">
-                        <div class="modal-header">
-                            <h3><i class="fas fa-file"></i> ${fileData.name}</h3>
-                            <button class="modal-close">&times;</button>
-                        </div>
-                        <div class="modal-body">
-                            <div style="margin-bottom: 15px; color: var(--text-secondary);">
-                                Size: ${formatFileSize(fileData.size)} • Modified: ${formatDate(fileData.updated_at)}
-                            </div>
-                            <pre style="background: rgba(0,0,0,0.1); padding: 15px; border-radius: 6px; overflow-x: auto; max-height: 400px;">${fileData.content}</pre>
-                        </div>
-                        <div class="modal-footer">
-                            <button class="app-btn secondary modal-close">Close</button>
-                        </div>
-                    </div>
-                `;
-                
-                document.body.appendChild(modal);
-                
-                // Add close handlers
-                modal.querySelectorAll('.modal-close').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        document.body.removeChild(modal);
-                    });
-                });
-                
-                // Close on outside click
-                modal.addEventListener('click', (e) => {
-                    if (e.target === modal) {
-                        document.body.removeChild(modal);
-                    }
-                });
-                
-            } catch (error) {
-                console.error('Error viewing file:', error);
-                this.showNotification('Error viewing file', 'error');
-            }
+            // Show notification instead of opening modal
+            this.showNotification('Use Text Editor to view files', 'info');
         };
-        
+
         // Download file
         const downloadFile = async (filePath, fileName) => {
             try {
@@ -274,24 +230,22 @@ Object.assign(SypnexOS.prototype, {
         
         // Delete item
         const deleteItem = async (itemPath, itemName) => {
-            const deleteModal = document.getElementById('deleteModal');
-            const deleteItemName = document.getElementById('deleteItemName');
-            const deleteConfirm = document.querySelector('.delete-confirm');
-            
-            if (!deleteModal || !deleteConfirm) {
-                console.error('Delete modal elements not found');
-                return;
-            }
-            
-            if (deleteItemName) {
-                deleteItemName.textContent = itemName;
-            }
-            
-            deleteModal.style.display = 'block';
-            
-            // Handle delete confirmation
-            const handleDelete = async () => {
-                try {
+            try {
+                // Create a temporary SypnexAPI instance to use the confirmation dialog
+                const tempAPI = new window.SypnexAPI('virtual-file-system');
+                
+                const confirmed = await tempAPI.showConfirmation(
+                    'Delete Item',
+                    `Are you sure you want to delete "${itemName}"? This action cannot be undone.`,
+                    {
+                        type: 'danger',
+                        confirmText: 'Delete',
+                        cancelText: 'Cancel',
+                        icon: 'fas fa-trash'
+                    }
+                );
+
+                if (confirmed) {
                     const response = await fetch(`/api/virtual-files/delete/${encodeURIComponent(itemPath.substring(1))}`, {
                         method: 'DELETE'
                     });
@@ -304,25 +258,11 @@ Object.assign(SypnexOS.prototype, {
                         const error = await response.json();
                         this.showNotification(`Error deleting ${itemName}: ${error.error}`, 'error');
                     }
-                } catch (error) {
-                    console.error('Error deleting item:', error);
-                    this.showNotification(`Error deleting ${itemName}`, 'error');
                 }
-                
-                // Clean up event listeners
-                deleteConfirm.removeEventListener('click', handleDelete);
-                deleteModal.style.display = 'none';
-            };
-            
-            deleteConfirm.addEventListener('click', handleDelete);
-            
-            // Close modal handlers
-            deleteModal.querySelectorAll('.modal-close, .modal-cancel').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    deleteModal.style.display = 'none';
-                    deleteConfirm.removeEventListener('click', handleDelete);
-                });
-            });
+            } catch (error) {
+                console.error('Error deleting item:', error);
+                this.showNotification(`Error deleting ${itemName}`, 'error');
+            }
         };
         
         // Setup modal handlers
