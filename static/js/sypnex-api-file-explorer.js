@@ -438,7 +438,7 @@ Object.assign(SypnexAPI.prototype, {
                     }
                     
                     .sypnex-file-explorer-item[data-type="directory"]:hover .sypnex-file-explorer-item-arrow {
-                        color: #ffd700;
+                        color: var(--accent-color);
                         opacity: 1;
                     }
                     
