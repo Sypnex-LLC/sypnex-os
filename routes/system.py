@@ -76,13 +76,13 @@ def register_system_routes(app, managers):
 
     @app.route('/api/system/reset', methods=['POST'])
     def reset_system():
-        """Reset the system to default state by replacing databases with templates"""
+        """Reset the system to default state by deleting databases and triggering first boot seeding"""
         import sqlite3
         import gc
         
         print("🔄 Starting system reset...")
         
-        # Step 1: Try to force close any SQLite connections
+        # Step 1: Force close any SQLite connections
         try:
             print("  - Force closing SQLite connections...")
             # Force garbage collection to close any lingering connections
@@ -117,7 +117,7 @@ def register_system_routes(app, managers):
         except Exception as e:
             print(f"  Warning: SQLite cleanup failed: {e}")
         
-        # Step 2: Try using copy-over strategy instead of rename
+        # Step 2: Create fresh seeded databases and copy them over (no deletion needed)
         max_retries = 3
         retry_delay = 0.5  # 500ms between retries
         
@@ -125,36 +125,86 @@ def register_system_routes(app, managers):
             try:
                 print(f"🔄 Reset attempt {attempt + 1}/{max_retries}")
                 
-                # Copy templates directly over existing files (overwrite strategy)
-                success = True
+                # Create temporary database files with seeded data
+                temp_db_files = {
+                    'data/user_preferences.db': 'temp_prefs.db',
+                    'data/virtual_files.db': 'temp_vfs.db'
+                }
                 
-                if os.path.exists('defaults/databases/user_preferences.template'):
-                    print("  - Overwriting user_preferences.db with template...")
-                    shutil.copy2('defaults/databases/user_preferences.template', 'data/user_preferences.db')
-                    print("  ✅ user_preferences.db overwritten")
-                else:
-                    print("  ❌ user_preferences.template not found")
-                    success = False
-                    
-                if os.path.exists('defaults/databases/virtual_files.template'):
-                    print("  - Overwriting virtual_files.db with template...")
-                    shutil.copy2('defaults/databases/virtual_files.template', 'data/virtual_files.db')
-                    print("  ✅ virtual_files.db overwritten")
-                else:
-                    print("  ❌ virtual_files.template not found")
-                    success = False
+                print("  - Creating temporary seeded databases...")
                 
-                if success:
-                    print("🎉 System reset successful!")
+                # Remove temp files if they exist
+                for temp_db in temp_db_files.values():
+                    if os.path.exists(temp_db):
+                        os.remove(temp_db)
+                
+                # Initialize temporary managers to create fresh databases
+                from user_preferences import UserPreferences
+                from virtual_file_manager import VirtualFileManager
+                from logs_manager import LogsManager
+                from websocket_manager import WebSocketManager
+                from system_boot_manager import SystemBootManager
+                
+                # Create temp instances with temp database files
+                temp_vfs = VirtualFileManager(db_path='temp_vfs.db')
+                temp_logs = LogsManager(temp_vfs)
+                temp_prefs = UserPreferences(temp_logs, db_path='temp_prefs.db')
+                temp_boot = SystemBootManager(db_path='temp_prefs.db')  # Uses same DB as preferences
+                temp_websocket = WebSocketManager(temp_logs)
+                
+                temp_managers = {
+                    'virtual_file_manager': temp_vfs,
+                    'user_preferences': temp_prefs,
+                    'logs_manager': temp_logs,
+                    'websocket_manager': temp_websocket,
+                    'system_boot_manager': temp_boot
+                }
+                
+                # Ensure all database tables are created by calling initialization methods
+                print("  - Initializing database schemas...")
+                temp_boot.initialize_system()  # This creates the system_boot table
+                # The other managers create tables automatically in their constructors
+                
+                # Seed the temporary databases
+                print("  - Seeding temporary databases...")
+                from app_config import seed_first_boot
+                seed_first_boot(temp_managers)
+                
+                # Close temp database connections
+                del temp_vfs, temp_prefs, temp_logs, temp_websocket, temp_boot
+                import gc
+                gc.collect()
+                
+                # Copy temp databases over existing ones (this is the key - no deletion!)
+                print("  - Copying seeded databases over existing ones...")
+                copied_files = []
+                for target_db, temp_db in temp_db_files.items():
+                    if os.path.exists(temp_db):
+                        shutil.copy2(temp_db, target_db)
+                        os.remove(temp_db)  # Clean up temp file
+                        copied_files.append(target_db)
+                        print(f"    ✅ {target_db} overwritten with seeded data")
+                
+                if copied_files:
+                    print("🎉 System reset and re-seeding complete!")
                     return jsonify({
                         'success': True, 
-                        'message': 'System reset complete - databases restored to default state'
+                        'message': 'System reset complete - databases overwritten with fresh seeded data'
                     })
                 else:
-                    raise Exception("Template files not found")
+                    raise Exception("No temporary databases were created")
                     
             except (OSError, IOError, PermissionError) as e:
                 print(f"❌ Reset attempt {attempt + 1} failed: {e}")
+                
+                # Clean up temp files on error
+                for temp_db in ['temp_prefs.db', 'temp_vfs.db']:
+                    if os.path.exists(temp_db):
+                        try:
+                            os.remove(temp_db)
+                        except:
+                            pass
+                
                 if attempt < max_retries - 1:
                     print(f"   Retrying in {retry_delay}s...")
                     time.sleep(retry_delay)
@@ -167,6 +217,15 @@ def register_system_routes(app, managers):
                     }), 500
             except Exception as e:
                 print(f"❌ Unexpected error during reset: {e}")
+                
+                # Clean up temp files on error
+                for temp_db in ['temp_prefs.db', 'temp_vfs.db']:
+                    if os.path.exists(temp_db):
+                        try:
+                            os.remove(temp_db)
+                        except:
+                            pass
+                
                 return jsonify({
                     'success': False, 
                     'error': f'Unexpected error during reset: {str(e)}'
