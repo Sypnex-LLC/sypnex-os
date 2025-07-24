@@ -29,43 +29,6 @@
     </div>
 </div>
 
-<!-- Install App Modal -->
-<div class="modal" id="installAppModal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3><i class="fas fa-download"></i> Install App Package</h3>
-            <button class="modal-close">&times;</button>
-        </div>
-        <div class="modal-body">
-            <div class="install-instructions">
-                <p><strong>How to install an app:</strong></p>
-                <ol>
-                    <li>Select a packaged app file (.app extension)</li>
-                    <li>The app will be installed to your VFS and appear in the app launcher</li>
-                    <li>Installed apps persist across system restarts</li>
-                </ol>
-            </div>
-            <form id="installAppForm">
-                <div class="form-group">
-                    <label for="appPackage">App Package File:</label>
-                    <input type="file" id="appPackage" name="appPackage" accept=".app" required>
-                    <small>Select a .app package file to install</small>
-                </div>
-            </form>
-            <div id="installProgress" style="display: none;">
-                <div class="progress-bar">
-                    <div class="progress-fill"></div>
-                </div>
-                <p class="progress-text">Installing app...</p>
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button class="app-btn secondary modal-cancel">Cancel</button>
-            <button class="app-btn primary install-app-submit">Install App</button>
-        </div>
-    </div>
-</div>
-
 <!-- Create Terminal App Modal -->
 <div class="modal" id="createTerminalModal">
     <div class="modal-content">

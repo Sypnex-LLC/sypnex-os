@@ -9,7 +9,6 @@ Object.assign(SypnexOS.prototype, {
         const statusSummary = windowElement.querySelector('.status-summary');
         const breadcrumb = windowElement.querySelector('.breadcrumb');
         const createFolderBtn = windowElement.querySelector('.create-folder');
-        const createFileBtn = windowElement.querySelector('.create-file');
         const uploadFileBtn = windowElement.querySelector('.upload-file');
         
         // Check if required elements exist
@@ -267,186 +266,93 @@ Object.assign(SypnexOS.prototype, {
         
         // Setup modal handlers
         const setupModals = () => {
-            // Create folder modal
-            const createFolderModal = document.getElementById('createFolderModal');
-            const createFolderForm = document.getElementById('createFolderForm');
-            const folderPathInput = document.getElementById('folderPath');
-            const createFolderSubmit = document.querySelector('.create-folder-submit');
-            
-            if (createFolderBtn && createFolderModal && createFolderForm && folderPathInput && createFolderSubmit) {
-                createFolderBtn.addEventListener('click', () => {
-                    folderPathInput.value = currentPath;
-                    createFolderModal.style.display = 'block';
-                });
-                
-                createFolderSubmit.addEventListener('click', async (e) => {
-                    e.preventDefault();
-                    const formData = new FormData(createFolderForm);
-                    const folderName = formData.get('folderName');
-                    
-                    try {
-                        const response = await fetch('/api/virtual-files/create-folder', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                name: folderName,
-                                parent_path: currentPath
-                            })
-                        });
-                        
-                        if (response.ok) {
-                            this.showNotification(`Folder ${folderName} created successfully`, 'success');
-                            createFolderModal.style.display = 'none';
-                            createFolderForm.reset();
-                            loadFiles();
-                            loadStats();
-                        } else {
-                            const error = await response.json();
-                            this.showNotification(`Error creating folder: ${error.error}`, 'error');
+            // Create folder functionality with SypnexAPI modal
+            if (createFolderBtn) {
+                createFolderBtn.addEventListener('click', async () => {
+                    const tempAPI = new SypnexAPI();
+                    const folderName = await tempAPI.showInputModal(
+                        'Create New Folder',
+                        'Folder Name:',
+                        {
+                            placeholder: 'Enter folder name',
+                            confirmText: 'Create Folder',
+                            icon: 'fas fa-folder-plus'
                         }
-                    } catch (error) {
-                        console.error('Error creating folder:', error);
-                        this.showNotification('Error creating folder', 'error');
+                    );
+                    
+                    if (folderName) {
+                        try {
+                            const response = await fetch('/api/virtual-files/create-folder', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    name: folderName,
+                                    parent_path: currentPath
+                                })
+                            });
+                            
+                            if (response.ok) {
+                                this.showNotification(`Folder ${folderName} created successfully`, 'success');
+                                loadFiles();
+                                loadStats();
+                            } else {
+                                const error = await response.json();
+                                this.showNotification(`Error creating folder: ${error.error}`, 'error');
+                            }
+                        } catch (error) {
+                            console.error('Error creating folder:', error);
+                            this.showNotification('Error creating folder', 'error');
+                        }
                     }
                 });
             }
             
-            // Create file modal
-            const createFileModal = document.getElementById('createFileModal');
-            const createFileForm = document.getElementById('createFileForm');
-            const createFilePathInput = document.getElementById('createFilePath');
-            const createFileSubmit = document.querySelector('.create-file-submit');
-            
-            if (createFileBtn && createFileModal && createFileForm && createFilePathInput && createFileSubmit) {
-                createFileBtn.addEventListener('click', () => {
-                    createFilePathInput.value = currentPath;
-                    createFileModal.style.display = 'block';
-                });
-                
-                createFileSubmit.addEventListener('click', async (e) => {
-                    e.preventDefault();
-                    const formData = new FormData(createFileForm);
-                    const fileName = formData.get('createFileName');
-                    const fileContent = formData.get('createFileContent');
-                    
-                    try {
-                        const response = await fetch('/api/virtual-files/create-file', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                name: fileName,
-                                parent_path: currentPath,
-                                content: fileContent
-                            })
-                        });
-                        
-                        if (response.ok) {
-                            this.showNotification(`File ${fileName} created successfully`, 'success');
-                            createFileModal.style.display = 'none';
-                            createFileForm.reset();
-                            loadFiles();
-                            loadStats();
-                        } else {
-                            const error = await response.json();
-                            this.showNotification(`Error creating file: ${error.error}`, 'error');
+            // Upload file functionality with SypnexAPI modal
+            if (uploadFileBtn) {
+                uploadFileBtn.addEventListener('click', async () => {
+                    const tempAPI = new SypnexAPI();
+                    const selectedFile = await tempAPI.showFileUploadModal(
+                        'Upload File',
+                        'Select File:',
+                        {
+                            confirmText: 'Upload File',
+                            icon: 'fas fa-upload'
                         }
-                    } catch (error) {
-                        console.error('Error creating file:', error);
-                        this.showNotification('Error creating file', 'error');
+                    );
+                    
+                    if (selectedFile) {
+                        try {
+                            const formData = new FormData();
+                            formData.append('file', selectedFile);
+                            formData.append('parent_path', currentPath);
+                            
+                            const response = await fetch('/api/virtual-files/upload-file', {
+                                method: 'POST',
+                                body: formData
+                            });
+                            
+                            if (response.ok) {
+                                this.showNotification(`File ${selectedFile.name} uploaded successfully`, 'success');
+                                loadFiles();
+                                loadStats();
+                            } else {
+                                const error = await response.json();
+                                this.showNotification(`Error uploading file: ${error.error}`, 'error');
+                            }
+                        } catch (error) {
+                            console.error('Error uploading file:', error);
+                            this.showNotification('Error uploading file', 'error');
+                        }
                     }
                 });
             }
-            
-            // Upload file modal
-            const uploadFileModal = document.getElementById('uploadFileModal');
-            const uploadFileForm = document.getElementById('uploadFileForm');
-            const uploadFilePathInput = document.getElementById('uploadFilePath');
-            const fileInput = document.getElementById('fileInput');
-            const fileInfo = document.getElementById('fileInfo');
-            const selectedFileName = document.getElementById('selectedFileName');
-            const selectedFileSize = document.getElementById('selectedFileSize');
-            const uploadFileSubmit = document.querySelector('.upload-file-submit');
-            
-            if (uploadFileBtn && uploadFileModal && uploadFileForm && uploadFilePathInput && uploadFileSubmit) {
-                uploadFileBtn.addEventListener('click', () => {
-                    uploadFilePathInput.value = currentPath;
-                    uploadFileModal.style.display = 'block';
-                    fileInfo.style.display = 'none';
-                    fileInput.value = '';
-                });
-                
-                // Handle file selection
-                if (fileInput) {
-                    fileInput.addEventListener('change', (e) => {
-                        const file = e.target.files[0];
-                        if (file) {
-                            selectedFileName.textContent = file.name;
-                            selectedFileSize.textContent = formatFileSize(file.size);
-                            fileInfo.style.display = 'block';
-                        } else {
-                            fileInfo.style.display = 'none';
-                        }
-                    });
-                }
-                
-                uploadFileSubmit.addEventListener('click', async (e) => {
-                    e.preventDefault();
-                    const file = fileInput.files[0];
-                    
-                    if (!file) {
-                        this.showNotification('Please select a file to upload', 'error');
-                        return;
-                    }
-                    
-                    try {
-                        const formData = new FormData();
-                        formData.append('file', file);
-                        formData.append('parent_path', currentPath);
-                        
-                        const response = await fetch('/api/virtual-files/upload-file', {
-                            method: 'POST',
-                            body: formData
-                        });
-                        
-                        if (response.ok) {
-                            this.showNotification(`File ${file.name} uploaded successfully`, 'success');
-                            uploadFileModal.style.display = 'none';
-                            uploadFileForm.reset();
-                            fileInfo.style.display = 'none';
-                            loadFiles();
-                            loadStats();
-                        } else {
-                            const error = await response.json();
-                            this.showNotification(`Error uploading file: ${error.error}`, 'error');
-                        }
-                    } catch (error) {
-                        console.error('Error uploading file:', error);
-                        this.showNotification('Error uploading file', 'error');
-                    }
-                });
-            }
-            
-            // Close modal handlers
-            document.querySelectorAll('.modal-close, .modal-cancel').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const modal = btn.closest('.modal');
-                    if (modal) {
-                        modal.style.display = 'none';
-                    }
-                });
-            });
         };
         
         // Initialize
         loadStats();
         loadFiles();
         updateBreadcrumb();
-        
-        // Setup modals after a small delay to ensure DOM is ready
-        setTimeout(() => {
-            setupModals();
-        }, 100);
+        setupModals();
         
         // Refresh button
         if (refreshBtn) {

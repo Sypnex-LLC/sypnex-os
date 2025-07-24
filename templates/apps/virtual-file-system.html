@@ -9,9 +9,6 @@
             <button class="app-btn secondary create-folder">
                 <i class="fas fa-folder-plus"></i> New Folder
             </button>
-            <button class="app-btn primary create-file">
-                <i class="fas fa-file-plus"></i> Create File
-            </button>
             <button class="app-btn primary upload-file">
                 <i class="fas fa-upload"></i> Upload File
             </button>
@@ -38,112 +35,6 @@
                     <!-- File list will be populated by JavaScript -->
                 </div>
             </div>
-        </div>
-    </div>
-</div>
-
-<!-- Create Folder Modal -->
-<div class="modal" id="createFolderModal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3><i class="fas fa-folder-plus"></i> Create New Folder</h3>
-            <button class="modal-close">&times;</button>
-        </div>
-        <div class="modal-body">
-            <form id="createFolderForm">
-                <div class="form-group">
-                    <label for="folderName">Folder Name:</label>
-                    <input type="text" id="folderName" name="folderName" required placeholder="Enter folder name">
-                </div>
-                <div class="form-group">
-                    <label for="folderPath">Parent Path:</label>
-                    <input type="text" id="folderPath" name="folderPath" readonly>
-                </div>
-            </form>
-        </div>
-        <div class="modal-footer">
-            <button class="app-btn secondary modal-cancel">Cancel</button>
-            <button class="app-btn primary create-folder-submit">Create Folder</button>
-        </div>
-    </div>
-</div>
-
-<!-- Create File Modal -->
-<div class="modal" id="createFileModal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3><i class="fas fa-file-plus"></i> Create File</h3>
-            <button class="modal-close">&times;</button>
-        </div>
-        <div class="modal-body">
-            <form id="createFileForm">
-                <div class="form-group">
-                    <label for="createFileName">File Name:</label>
-                    <input type="text" id="createFileName" name="createFileName" required placeholder="Enter file name">
-                </div>
-                <div class="form-group">
-                    <label for="createFilePath">Parent Path:</label>
-                    <input type="text" id="createFilePath" name="createFilePath" readonly>
-                </div>
-                <div class="form-group">
-                    <label for="createFileContent">File Content:</label>
-                    <textarea id="createFileContent" name="createFileContent" rows="10" placeholder="Enter file content"></textarea>
-                </div>
-            </form>
-        </div>
-        <div class="modal-footer">
-            <button class="app-btn secondary modal-cancel">Cancel</button>
-            <button class="app-btn primary create-file-submit">Create File</button>
-        </div>
-    </div>
-</div>
-
-<!-- Upload File Modal -->
-<div class="modal" id="uploadFileModal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3><i class="fas fa-upload"></i> Upload File</h3>
-            <button class="modal-close">&times;</button>
-        </div>
-        <div class="modal-body">
-            <form id="uploadFileForm">
-                <div class="form-group">
-                    <label for="uploadFilePath">Parent Path:</label>
-                    <input type="text" id="uploadFilePath" name="uploadFilePath" readonly>
-                </div>
-                <div class="form-group">
-                    <label for="fileInput">Select File:</label>
-                    <input type="file" id="fileInput" name="fileInput" required>
-                </div>
-                <div class="form-group">
-                    <div id="fileInfo" style="display: none;">
-                        <p><strong>Selected File:</strong> <span id="selectedFileName"></span></p>
-                        <p><strong>Size:</strong> <span id="selectedFileSize"></span></p>
-                    </div>
-                </div>
-            </form>
-        </div>
-        <div class="modal-footer">
-            <button class="app-btn secondary modal-cancel">Cancel</button>
-            <button class="app-btn primary upload-file-submit">Upload File</button>
-        </div>
-    </div>
-</div>
-
-<!-- Delete Confirmation Modal -->
-<div class="modal" id="deleteModal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3><i class="fas fa-trash"></i> Confirm Delete</h3>
-            <button class="modal-close">&times;</button>
-        </div>
-        <div class="modal-body">
-            <p>Are you sure you want to delete <span id="deleteItemName"></span>?</p>
-            <p class="warning-text">This action cannot be undone.</p>
-        </div>
-        <div class="modal-footer">
-            <button class="app-btn secondary modal-cancel">Cancel</button>
-            <button class="app-btn danger delete-confirm">Delete</button>
         </div>
     </div>
 </div> 

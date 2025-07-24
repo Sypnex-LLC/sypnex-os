@@ -6,7 +6,6 @@ Object.assign(SypnexOS.prototype, {
         const refreshBtn = windowElement.querySelector('.refresh-user-apps');
         const installBtn = windowElement.querySelector('.install-app-btn');
         const statusSummary = windowElement.querySelector('.status-summary');
-        const installModal = windowElement.querySelector('#installAppModal');
 
         // Helper method to refresh backend registry
         const refreshBackendRegistry = async (showFeedback = false) => {
@@ -98,105 +97,84 @@ Object.assign(SypnexOS.prototype, {
 
         // Setup install modal functionality
         const setupInstallModal = () => {
-            if (!installModal) return;
-
-            const installClose = installModal.querySelector('.modal-close');
-            const installCancel = installModal.querySelector('.modal-cancel');
-            const installSubmit = installModal.querySelector('.install-app-submit');
-            const fileInput = installModal.querySelector('#appPackage');
-            const progressDiv = installModal.querySelector('#installProgress');
-            const form = installModal.querySelector('#installAppForm');
-
-            // Show install modal
+            // Install app functionality using SypnexAPI modal
             if (installBtn) {
-                installBtn.addEventListener('click', () => {
-                    installModal.style.display = 'block';
-                });
-            }
-
-            // Close install modal
-            if (installClose) {
-                installClose.addEventListener('click', () => {
-                    installModal.style.display = 'none';
-                });
-            }
-
-            if (installCancel) {
-                installCancel.addEventListener('click', () => {
-                    installModal.style.display = 'none';
-                });
-            }
-
-            // Install app submission
-            if (installSubmit) {
-                installSubmit.addEventListener('click', async () => {
-                    const file = fileInput.files[0];
-
-                    if (!file) {
-                        this.showNotification('Please select a package file', 'error');
-                        return;
-                    }
-
-                    if (!file.name.endsWith('.app')) {
-                        this.showNotification('Please select a valid .app package file', 'error');
-                        return;
-                    }
-
-                    // Show progress
-                    progressDiv.style.display = 'block';
-                    form.style.display = 'none';
-
-                    try {
-                        const formData = new FormData();
-                        formData.append('package', file);
-
-                        const response = await fetch('/api/user-apps/install', {
-                            method: 'POST',
-                            body: formData
-                        });
-
-                        const result = await response.json();
-
-                        if (response.ok) {
-                            this.showNotification(`App installed successfully: ${result.app_name}`, 'success');
-                            installModal.style.display = 'none';
-                            // Auto-refresh backend registry and UI after install
-                            await refreshBackendRegistry();
-                            // Also refresh the latest versions cache to reflect new app
-                            if (this.refreshLatestVersionsCache) {
-                                await this.refreshLatestVersionsCache();
-                            }
-                            loadUserApps(); // Reload apps to show the new one
-                        } else {
-                            this.showNotification(result.error || 'Failed to install app', 'error');
+                installBtn.addEventListener('click', async () => {
+                    const tempAPI = new SypnexAPI();
+                    const selectedFile = await tempAPI.showFileUploadModal(
+                        'Install App',
+                        'Select App Package:',
+                        {
+                            confirmText: 'Install App',
+                            icon: 'fas fa-download',
+                            accept: '.app'
                         }
-                    } catch (error) {
-                        console.error('Error installing app:', error);
-                        this.showNotification('Failed to install app', 'error');
-                    } finally {
-                        // Hide progress and show form again
-                        progressDiv.style.display = 'none';
-                        form.style.display = 'block';
-                        fileInput.value = ''; // Clear file input
+                    );
+                    
+                    if (selectedFile) {
+                        // Validate file extension
+                        if (!selectedFile.name.endsWith('.app')) {
+                            this.showNotification('Please select a valid .app package file', 'error');
+                            return;
+                        }
+
+                        try {
+                            this.showNotification('Installing app...', 'info');
+                            
+                            const formData = new FormData();
+                            formData.append('package', selectedFile);
+
+                            const response = await fetch('/api/user-apps/install', {
+                                method: 'POST',
+                                body: formData
+                            });
+
+                            const result = await response.json();
+
+                            if (response.ok) {
+                                this.showNotification(`App installed successfully: ${result.app_name}`, 'success');
+                                // Auto-refresh backend registry and UI after install
+                                await refreshBackendRegistry();
+                                // Also refresh the latest versions cache to reflect new app
+                                if (this.refreshLatestVersionsCache) {
+                                    await this.refreshLatestVersionsCache();
+                                }
+                                loadUserApps(); // Reload apps to show the new one
+                            } else {
+                                this.showNotification(result.error || 'Failed to install app', 'error');
+                            }
+                        } catch (error) {
+                            console.error('Error installing app:', error);
+                            this.showNotification('Failed to install app', 'error');
+                        }
                     }
                 });
             }
-
-            // Close modal when clicking outside
-            window.addEventListener('click', (event) => {
-                if (event.target === installModal) {
-                    installModal.style.display = 'none';
-                }
-            });
         };
 
         // Setup uninstall functionality
         this.uninstallApp = async (appId, appName) => {
-            if (!confirm(`Are you sure you want to uninstall "${appName}"? This action cannot be undone.`)) {
-                return;
-            }
-
             try {
+                // Create a temporary SypnexAPI instance to use the confirmation dialog
+                const tempAPI = new SypnexAPI();
+                
+                const confirmed = await tempAPI.showConfirmation(
+                    'Uninstall App',
+                    `Are you sure you want to uninstall "${appName}"?`,
+                    {
+                        type: 'danger',
+                        confirmText: 'Uninstall',
+                        cancelText: 'Cancel',
+                        icon: 'fas fa-trash-alt'
+                    }
+                );
+
+                if (!confirmed) {
+                    return;
+                }
+
+                this.showNotification(`Uninstalling ${appName}...`, 'info');
+
                 const response = await fetch(`/api/user-apps/uninstall/${appId}`, {
                     method: 'DELETE'
                 });
