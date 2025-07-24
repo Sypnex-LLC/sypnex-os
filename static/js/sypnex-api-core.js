@@ -366,13 +366,6 @@ class SypnexAPI {
             cancelBtn.addEventListener('click', () => closeModal(false));
             confirmBtn.addEventListener('click', () => closeModal(true));
 
-            // Click outside to close
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    closeModal(false);
-                }
-            });
-
             // Escape key to close
             const escapeHandler = (e) => {
                 if (e.key === 'Escape') {
@@ -620,13 +613,6 @@ class SypnexAPI {
                     if (value) {
                         closeModal(value);
                     }
-                }
-            });
-
-            // Click outside to close
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    closeModal(null);
                 }
             });
 
@@ -911,13 +897,6 @@ class SypnexAPI {
                 const file = fileInput.files[0];
                 if (file) {
                     closeModal(file);
-                }
-            });
-
-            // Click outside to close
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    closeModal(null);
                 }
             });
 

@@ -856,15 +856,6 @@ Object.assign(SypnexAPI.prototype, {
                 });
             }
 
-            // Click outside to close
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    if (onCancel) onCancel();
-                    resolve(null);
-                    modal.remove();
-                }
-            });
-
             // Handle filename input for save mode
             if (filenameInput && selectBtn) {
                 filenameInput.addEventListener('input', () => {
