@@ -147,6 +147,8 @@ def serve_bundled_sypnex_api():
         "sypnex-api-file-explorer.js",
         "sypnex-api-terminal.js",
         "sypnex-api-logs.js",
+        "sypnex-api-app-management.js",
+        "sypnex-api-network.js",
     ]
     
     bundle_content = "// SypnexAPI - Dynamically Bundled JavaScript API\n"

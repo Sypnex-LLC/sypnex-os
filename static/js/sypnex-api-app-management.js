@@ -46,15 +46,31 @@ Object.assign(SypnexAPI.prototype, {
      * Update a specific application to the latest version
      * @async
      * @param {string} appId - Application ID to update
+     * @param {string} downloadUrl - Download URL for the app update (required)
      * @returns {Promise<object>} - Update result
      */
-    async updateApp(appId) {
+    async updateApp(appId, downloadUrl) {
         try {
-            const response = await fetch(`${this.baseUrl}/user-apps/update/${appId}`, {
+            if (!downloadUrl) {
+                throw new Error('Download URL is required for app update');
+            }
+            
+            const requestBody = {
+                download_url: downloadUrl
+            };
+            
+            console.log(`SypnexAPI [${this.appId}]: Updating app ${appId} with URL:`, downloadUrl);
+            
+            const fullUrl = `${this.baseUrl}/user-apps/update/${appId}`;
+            console.log(`SypnexAPI [${this.appId}]: Making request to:`, fullUrl);
+            console.log(`SypnexAPI [${this.appId}]: Request body:`, requestBody);
+            
+            const response = await fetch(fullUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                }
+                },
+                body: JSON.stringify(requestBody)
             });
             
             if (response.ok) {
@@ -63,7 +79,7 @@ Object.assign(SypnexAPI.prototype, {
                 return result;
             } else {
                 const errorData = await response.json();
-                throw new Error(errorData.error || `Failed to update app: ${response.status}`);
+                throw new Error(errorData.error || `Update failed: ${response.status} ${response.statusText}: ${errorData.error || 'Unknown error'}`);
             }
         } catch (error) {
             console.error(`SypnexAPI [${this.appId}]: Error updating app ${appId}:`, error);

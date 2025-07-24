@@ -41,11 +41,7 @@ Object.assign(SypnexAPI.prototype, {
             
             // Handle body based on content type and data type
             if (body !== null && body !== undefined) {
-                if (typeof body === 'object' && !Buffer.isBuffer(body)) {
-                    proxyRequest.body = body;
-                } else {
-                    proxyRequest.body = body;
-                }
+                proxyRequest.body = body;
             }
             
             console.log(`SypnexAPI [${this.appId}]: Proxying ${method} request to ${url}`);
