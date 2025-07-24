@@ -8,6 +8,7 @@ from .services import register_service_routes
 from .virtual_files import register_virtual_file_routes
 from .system import register_system_routes
 from .app_updates import register_app_updates_routes
+from .app_discovery import register_app_discovery_routes
 
 def register_all_routes(app, managers, builtin_apps):
     """Register all routes with the Flask application"""
@@ -30,4 +31,7 @@ def register_all_routes(app, managers, builtin_apps):
     register_system_routes(app, managers)
     
     # Register app updates routes
-    register_app_updates_routes(app, managers) 
+    register_app_updates_routes(app, managers)
+    
+    # Register app discovery routes
+    register_app_discovery_routes(app, managers) 

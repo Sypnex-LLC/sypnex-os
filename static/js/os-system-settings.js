@@ -110,6 +110,14 @@ Object.assign(SypnexOS.prototype, {
                 }
             });
         }
+
+        // Default text editor select
+        const defaultTextEditorSelect = windowElement.querySelector('#default-text-editor-select');
+        if (defaultTextEditorSelect) {
+            defaultTextEditorSelect.addEventListener('change', (e) => {
+                this.saveDefaultTextEditor(e.target.value);
+            });
+        }
     },
     
     async loadSystemPreferences(windowElement) {
@@ -158,6 +166,9 @@ Object.assign(SypnexOS.prototype, {
             const displayNameData = await displayNameResponse.json();
             
             this.loadDisplayName(windowElement, displayNameData.value || 'Not set');
+
+            // Load default text editor setting and available editors
+            await this.loadDefaultTextEditorSettings(windowElement);
             
         } catch (error) {
             console.error('Error loading system preferences:', error);
@@ -912,6 +923,105 @@ Object.assign(SypnexOS.prototype, {
         } catch (error) {
             console.error('Error showing reset confirmation:', error);
             this.showNotification('Error showing confirmation dialog', 'error');
+        }
+    },
+
+    async loadDefaultTextEditorSettings(windowElement) {
+        try {
+            // Load available text editors (apps with 'editor' keyword)
+            const editorsResponse = await fetch('/api/apps/by-keyword/editor');
+            const editorsData = await editorsResponse.json();
+            
+            const defaultTextEditorSelect = windowElement.querySelector('#default-text-editor-select');
+            if (!defaultTextEditorSelect) return;
+            
+            // Clear existing options
+            defaultTextEditorSelect.innerHTML = '';
+            
+            // Add default option
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = 'No default editor (system choice)';
+            defaultTextEditorSelect.appendChild(defaultOption);
+            
+            // Add available text editors
+            if (editorsData.success && editorsData.apps.length > 0) {
+                editorsData.apps.forEach(app => {
+                    const option = document.createElement('option');
+                    option.value = app.id;
+                    option.textContent = `${app.name} (${app.type === 'builtin' ? 'Built-in' : 'User App'})`;
+                    defaultTextEditorSelect.appendChild(option);
+                });
+            } else {
+                // No text editors found
+                const noEditorsOption = document.createElement('option');
+                noEditorsOption.value = '';
+                noEditorsOption.textContent = 'No text editors available';
+                noEditorsOption.disabled = true;
+                defaultTextEditorSelect.appendChild(noEditorsOption);
+            }
+            
+            // Load current default text editor setting
+            const defaultEditorResponse = await fetch('/api/preferences/system/default_text_editor');
+            const defaultEditorData = await defaultEditorResponse.json();
+            
+            if (defaultEditorData.success && defaultEditorData.value) {
+                defaultTextEditorSelect.value = defaultEditorData.value;
+            }
+            
+        } catch (error) {
+            console.error('Error loading default text editor settings:', error);
+            
+            // Show error in select
+            const defaultTextEditorSelect = windowElement.querySelector('#default-text-editor-select');
+            if (defaultTextEditorSelect) {
+                defaultTextEditorSelect.innerHTML = '<option value="">Error loading editors</option>';
+            }
+        }
+    },
+
+    async saveDefaultTextEditor(editorId) {
+        try {
+            const response = await fetch('/api/preferences/system/default_text_editor', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    value: editorId
+                })
+            });
+            
+            if (response.ok) {
+                if (editorId) {
+                    // Get the editor name for the notification
+                    const select = document.querySelector('#default-text-editor-select');
+                    const selectedOption = select.querySelector(`option[value="${editorId}"]`);
+                    const editorName = selectedOption ? selectedOption.textContent : editorId;
+                    this.showNotification(`Default text editor set to: ${editorName}`, 'success');
+                } else {
+                    this.showNotification('Default text editor preference cleared', 'success');
+                }
+            } else {
+                throw new Error('Failed to save default text editor setting');
+            }
+            
+        } catch (error) {
+            console.error('Error saving default text editor:', error);
+            this.showNotification('Failed to save default text editor setting', 'error');
+            
+            // Revert the selection if save failed
+            const defaultTextEditorSelect = document.querySelector('#default-text-editor-select');
+            if (defaultTextEditorSelect) {
+                // Try to reload the current setting
+                try {
+                    const currentResponse = await fetch('/api/preferences/system/default_text_editor');
+                    const currentData = await currentResponse.json();
+                    defaultTextEditorSelect.value = currentData.value || '';
+                } catch (revertError) {
+                    console.error('Error reverting default text editor selection:', revertError);
+                }
+            }
         }
     }
 });
