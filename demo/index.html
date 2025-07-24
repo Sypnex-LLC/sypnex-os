@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sypnex OS - Demo Gallery</title>
+    <style>
+        :root {
+            /* Background */
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #1a1a1a;
+            --bg-elevated: #2a2a2a;
+
+            /* Glass morphism */
+            --glass-bg: rgba(20, 20, 20, 0.8);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-overlay: rgba(255, 255, 255, 0.05);
+
+            /* Accent */
+            --accent-color: #00d4ff;
+            --accent-bg: rgba(0, 212, 255, 0.1);
+            --accent-glow: rgba(0, 212, 255, 0.2);
+
+            /* Text */
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --text-muted: #707070;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: var(--accent-color);
+            text-shadow: 0 0 30px var(--accent-color);
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            font-weight: 300;
+        }
+
+        .gallery-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .main-image-container {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            padding: 30px;
+            margin-bottom: 40px;
+            text-align: center;
+            position: relative;
+        }
+
+        .nav-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            font-size: 20px;
+            color: var(--text-primary);
+            z-index: 10;
+        }
+
+        .nav-arrow:hover {
+            background: var(--accent-bg);
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .nav-arrow.prev {
+            left: 20px;
+        }
+
+        .nav-arrow.next {
+            right: 20px;
+        }
+
+        .main-image {
+            max-width: 100%;
+            max-height: 70vh;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        }
+
+        .main-image:hover {
+            transform: scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 212, 255, 0.2);
+        }
+
+        .image-title {
+            margin-top: 20px;
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .image-description {
+            margin-top: 8px;
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .thumbnails {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 20px 0;
+        }
+
+        .thumbnail-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .thumbnail-card:hover {
+            background: var(--accent-bg);
+            border-color: var(--accent-color);
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 212, 255, 0.2);
+        }
+
+        .thumbnail-card.active {
+            background: var(--accent-bg);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
+        }
+
+        .thumbnail {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .thumbnail-title {
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .thumbnail-card.active .thumbnail-title {
+            color: var(--accent-color);
+        }
+
+        .thumbnail-subtitle {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--glass-border);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-color);
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+
+            .thumbnails {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 15px;
+            }
+
+            .main-image-container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>Sypnex OS</h1>
+        <p>Your personal web-based operating system</p>
+    </div>
+
+    <div class="gallery-container">
+        <div class="main-image-container">
+            <div class="nav-arrow prev" id="prevBtn">‹</div>
+            <div class="nav-arrow next" id="nextBtn">›</div>
+            <img id="mainImage" class="main-image" src="Desktop.png" alt="Desktop Environment">
+            <h3 id="imageTitle" class="image-title">Desktop Environment</h3>
+            <p id="imageDescription" class="image-description">The main desktop interface with glassmorphism design</p>
+        </div>
+
+        <div class="thumbnails">
+
+            <div class="thumbnail-card active" data-image="desktop.png" data-title="Desktop Environment"
+                data-description="The main desktop interface with glassmorphism design">
+                <img class="thumbnail" src="desktop.png" alt="Desktop">
+                <div class="thumbnail-title">Desktop</div>
+                <div class="thumbnail-subtitle">Main Interface</div>
+            </div>
+
+            <div class="thumbnail-card" data-image="welcome.png" data-title="Welcome Screen"
+                data-description="First-time user welcome and setup experience">
+                <img class="thumbnail" src="welcome.png" alt="Welcome">
+                <div class="thumbnail-title">Welcome</div>
+                <div class="thumbnail-subtitle">Setup Experience</div>
+            </div>
+
+            <div class="thumbnail-card" data-image="flow_editor.png" data-title="Flow Editor"
+                data-description="Visual workflow automation and scripting">
+                <img class="thumbnail" src="flow_editor.png" alt="Flow Editor">
+                <div class="thumbnail-title">Flow Editor</div>
+                <div class="thumbnail-subtitle">Automation</div>
+            </div>
+
+            <div class="thumbnail-card" data-image="app_store.png" data-title="App Store"
+                data-description="Discover and install applications">
+                <img class="thumbnail" src="app_store.png" alt="App Store">
+                <div class="thumbnail-title">App Store</div>
+                <div class="thumbnail-subtitle">Application Hub</div>
+            </div>
+
+            <div class="thumbnail-card" data-image="spotlight.png" data-title="Spotlight Search"
+                data-description="Powerful system-wide search functionality">
+                <img class="thumbnail" src="spotlight.png" alt="Spotlight">
+                <div class="thumbnail-title">Spotlight</div>
+                <div class="thumbnail-subtitle">Search System</div>
+            </div>
+
+            <div class="thumbnail-card" data-image="app_manager.png" data-title="App Manager"
+                data-description="Manage installed applications and processes">
+                <img class="thumbnail" src="app_manager.png" alt="App Manager">
+                <div class="thumbnail-title">App Manager</div>
+                <div class="thumbnail-subtitle">Process Control</div>
+            </div>
+
+            <div class="thumbnail-card" data-image="text_editor.png" data-title="Text Editor"
+                data-description="Advanced code and text editing capabilities">
+                <img class="thumbnail" src="text_editor.png" alt="Text Editor">
+                <div class="thumbnail-title">Text Editor</div>
+                <div class="thumbnail-subtitle">Code & Text</div>
+            </div>
+
+            <div class="thumbnail-card" data-image="resource_manager.png" data-title="Resource Manager"
+                data-description="Monitor system performance and resources">
+                <img class="thumbnail" src="resource_manager.png" alt="Resources">
+                <div class="thumbnail-title">Resources</div>
+                <div class="thumbnail-subtitle">Performance</div>
+            </div>
+
+            <div class="thumbnail-card" data-image="lock_screen.png" data-title="Lock Screen"
+                data-description="Secure authentication with elegant design">
+                <img class="thumbnail" src="lock_screen.png" alt="Lock Screen">
+                <div class="thumbnail-title">Lock Screen</div>
+                <div class="thumbnail-subtitle">Authentication</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const mainImage = document.getElementById('mainImage');
+        const imageTitle = document.getElementById('imageTitle');
+        const imageDescription = document.getElementById('imageDescription');
+        const thumbnailCards = document.querySelectorAll('.thumbnail-card');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+
+        let currentIndex = 0; // Start with first image (Desktop)
+
+        function updateMainImage(index) {
+            const card = thumbnailCards[index];
+            const imageSrc = card.dataset.image;
+            const title = card.dataset.title;
+            const description = card.dataset.description;
+
+            mainImage.src = imageSrc;
+            mainImage.alt = title;
+            imageTitle.textContent = title;
+            imageDescription.textContent = description;
+
+            // Update active card styling
+            thumbnailCards.forEach(c => c.classList.remove('active'));
+            card.classList.add('active');
+        }
+
+        // Navigation functions
+        function goToPrevious() {
+            currentIndex = currentIndex > 0 ? currentIndex - 1 : thumbnailCards.length - 1;
+            updateMainImage(currentIndex);
+        }
+
+        function goToNext() {
+            currentIndex = currentIndex < thumbnailCards.length - 1 ? currentIndex + 1 : 0;
+            updateMainImage(currentIndex);
+        }
+
+        // Event listeners for navigation arrows
+        prevBtn.addEventListener('click', goToPrevious);
+        nextBtn.addEventListener('click', goToNext);
+
+        // Event listeners for thumbnail clicks
+        thumbnailCards.forEach((card, index) => {
+            card.addEventListener('click', () => {
+                currentIndex = index;
+                updateMainImage(currentIndex);
+            });
+        });
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') {
+                goToPrevious();
+            } else if (e.key === 'ArrowRight') {
+                goToNext();
+            }
+        });
+
+        // Add smooth scroll behavior
+        document.documentElement.style.scrollBehavior = 'smooth';
+    </script>
+</body>
+
+</html>
