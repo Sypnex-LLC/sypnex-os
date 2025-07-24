@@ -629,50 +629,13 @@ class MvCommand(BaseCommand):
             
             vfs = get_virtual_file_manager()
             
-            # Read source file/directory
-            if vfs._is_directory(source):
-                # For directories, use get_file_info
-                source_data = vfs.get_file_info(source)
-                if not source_data:
-                    return {'error': f'Source not found: {source}', 'success': False}
-                print(f"MV: Source directory data: {source_data}")
-                
-                # Check if destination exists
-                dest_data = vfs.get_file_info(destination)
-                if dest_data:
-                    return {'error': f'Destination already exists: {destination}', 'success': False}
-                
-                # Create new directory at destination
-                print(f"MV: Creating directory at {destination}")
-                success = vfs.create_directory(destination)
+            # Use the new efficient rename method
+            success = vfs.rename_path(source, destination)
+            
+            if success:
+                return {'output': f'Moved {source} to {destination}', 'success': True}
             else:
-                # For files, use read_file to get content
-                source_data = vfs.read_file(source)
-                if not source_data:
-                    return {'error': f'Source not found: {source}', 'success': False}
-                print(f"MV: Source file data: {source_data}")
-                
-                # Check if destination exists
-                dest_data = vfs.get_file_info(destination)
-                if dest_data:
-                    return {'error': f'Destination already exists: {destination}', 'success': False}
-                
-                # Create new file at destination with content
-                content = source_data.get('content', b'')
-                print(f"MV: Creating file at {destination} with content length {len(content)}")
-                success = vfs.create_file(destination, content)
-            
-            if not success:
-                return {'error': f'Failed to create destination: {destination}', 'success': False}
-            
-            # Delete source
-            success = vfs.delete_path(source)
-            if not success:
-                # If we failed to delete source, try to clean up the destination
-                vfs.delete_path(destination)
-                return {'error': f'Failed to delete source: {source}', 'success': False}
-            
-            return {'output': f'Moved {source} to {destination}', 'success': True}
+                return {'error': f'Failed to move {source} to {destination}', 'success': False}
             
         except Exception as e:
             return {'error': f'Error moving file: {str(e)}', 'success': False}

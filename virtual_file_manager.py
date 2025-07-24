@@ -448,6 +448,85 @@ class VirtualFileManager:
             print(f"Error calculating directory size {path}: {e}")
             return 0
     
+    def rename_path(self, old_path: str, new_path: str) -> bool:
+        """
+        Rename a file or directory by updating its path in the database.
+        This is more efficient than copy-then-delete for large files/directories.
+        """
+        try:
+            old_normalized = self._normalize_path(old_path)
+            new_normalized = self._normalize_path(new_path)
+            
+            # Check if source exists
+            if not self._path_exists(old_normalized):
+                print(f"Rename failed: source path {old_normalized} does not exist")
+                return False
+            
+            # Check if destination already exists
+            if self._path_exists(new_normalized):
+                print(f"Rename failed: destination path {new_normalized} already exists")
+                return False
+            
+            # Get new parent path and name
+            new_parent_path = self._get_parent_path(new_normalized)
+            new_name = self._get_name_from_path(new_normalized)
+            
+            # Ensure parent directory exists
+            if new_parent_path != '/' and not self._path_exists(new_parent_path):
+                print(f"Rename failed: parent directory {new_parent_path} does not exist")
+                return False
+            
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                
+                # Check if this is a directory - if so, we need to update all children paths too
+                cursor.execute('SELECT is_directory FROM virtual_files WHERE path = ?', (old_normalized,))
+                result = cursor.fetchone()
+                is_directory = bool(result[0]) if result else False
+                
+                if is_directory:
+                    # Update all child paths recursively
+                    cursor.execute('''
+                        UPDATE virtual_files 
+                        SET path = ? || SUBSTR(path, ?),
+                            parent_path = CASE 
+                                WHEN parent_path = ? THEN ?
+                                ELSE ? || SUBSTR(parent_path, ?)
+                            END,
+                            updated_at = ?
+                        WHERE path = ? OR path LIKE ?
+                    ''', (
+                        new_normalized,  # New base path
+                        len(old_normalized) + 1,  # Start position for substring
+                        old_normalized,  # Old parent path to match
+                        new_parent_path,  # New parent path
+                        new_normalized,  # New base for other parent paths
+                        len(old_normalized) + 1,  # Start position for parent path substring
+                        datetime.now().isoformat(),  # Updated timestamp
+                        old_normalized,  # Exact path match
+                        old_normalized + '/%'  # Children path pattern
+                    ))
+                else:
+                    # Just update the single file
+                    cursor.execute('''
+                        UPDATE virtual_files 
+                        SET path = ?, name = ?, parent_path = ?, updated_at = ?
+                        WHERE path = ?
+                    ''', (new_normalized, new_name, new_parent_path, datetime.now().isoformat(), old_normalized))
+                
+                # Check if any rows were affected
+                if cursor.rowcount == 0:
+                    print(f"Rename failed: no rows updated for path {old_normalized}")
+                    return False
+                
+                conn.commit()
+                print(f"Successfully renamed {old_normalized} to {new_normalized} ({cursor.rowcount} rows updated)")
+                return True
+                
+        except Exception as e:
+            print(f"Error renaming {old_path} to {new_path}: {e}")
+            return False
+    
     def get_system_stats(self) -> Dict[str, Any]:
         """Get virtual file system statistics."""
         try:

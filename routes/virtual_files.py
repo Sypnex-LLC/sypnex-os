@@ -232,6 +232,48 @@ def register_virtual_file_routes(app, managers):
             print(f"Error deleting virtual item: {e}")
             return jsonify({'error': 'Failed to delete item'}), 500
 
+    @app.route('/api/virtual-files/rename', methods=['POST'])
+    def rename_virtual_item():
+        """Rename a file or directory"""
+        try:
+            data = request.json
+            old_path = data.get('old_path')
+            new_path = data.get('new_path')
+            
+            if not old_path or not new_path:
+                return jsonify({'error': 'Both old_path and new_path are required'}), 400
+            
+            # Ensure paths start with /
+            if not old_path.startswith('/'):
+                old_path = '/' + old_path
+            if not new_path.startswith('/'):
+                new_path = '/' + new_path
+            
+            # Check if source exists
+            source_info = managers['virtual_file_manager'].get_file_info(old_path)
+            if not source_info:
+                return jsonify({'error': f'Source path {old_path} does not exist'}), 404
+            
+            # Check if destination already exists
+            dest_info = managers['virtual_file_manager'].get_file_info(new_path)
+            if dest_info:
+                return jsonify({'error': f'Destination path {new_path} already exists'}), 400
+            
+            success = managers['virtual_file_manager'].rename_path(old_path, new_path)
+            if success:
+                return jsonify({
+                    'message': f'Successfully renamed {old_path} to {new_path}',
+                    'old_path': old_path,
+                    'new_path': new_path
+                })
+            else:
+                return jsonify({'error': f'Failed to rename {old_path} to {new_path}'}), 500
+        except Exception as e:
+            print(f"Error renaming virtual item: {e}")
+            import traceback
+            traceback.print_exc()
+            return jsonify({'error': 'Failed to rename item'}), 500
+
     @app.route('/api/virtual-files/info/<path:item_path>', methods=['GET'])
     def get_virtual_item_info(item_path):
         """Get information about a file or directory"""
