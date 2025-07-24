@@ -929,7 +929,7 @@ Object.assign(SypnexOS.prototype, {
     async loadDefaultTextEditorSettings(windowElement) {
         try {
             // Load available text editors (apps with 'editor' keyword)
-            const editorsResponse = await fetch('/api/apps/by-keyword/editor');
+            const editorsResponse = await fetch('/api/apps/by-keyword/text_editor');
             const editorsData = await editorsResponse.json();
             
             const defaultTextEditorSelect = windowElement.querySelector('#default-text-editor-select');

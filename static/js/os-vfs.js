@@ -182,10 +182,15 @@ Object.assign(SypnexOS.prototype, {
                             });
                         }
                         
-                        // Double click to open folders
+                        // Double click to open folders or view files
                         if (item.is_directory) {
                             fileElement.addEventListener('dblclick', () => {
                                 navigateToPath(item.path);
+                            });
+                        } else {
+                            // Double click to view files (same as View button)
+                            fileElement.addEventListener('dblclick', () => {
+                                viewFile(item.path);
                             });
                         }
                         
@@ -200,10 +205,52 @@ Object.assign(SypnexOS.prototype, {
             }
         };
         
-        // View file content - disabled, use text editor instead
+        // View file content with default text editor
         const viewFile = async (filePath) => {
-            // Show notification instead of opening modal
-            this.showNotification('Use Text Editor to view files', 'info');
+            try {
+                // Get default text editor preference directly via API
+                const defaultEditorResponse = await fetch('/api/preferences/system/default_text_editor');
+                
+                if (!defaultEditorResponse.ok) {
+                    this.showNotification('Could not retrieve default text editor preference.', 'error');
+                    return;
+                }
+                
+                const defaultEditorData = await defaultEditorResponse.json();
+                const defaultEditor = defaultEditorData.value;
+                
+                if (!defaultEditor) {
+                    this.showNotification('No default text editor set. Please configure in System Settings.', 'warning');
+                    return;
+                }
+                
+                // Set intent using preferences API (simple fetch)
+                const intentData = {
+                    action: 'open_file',
+                    data: { filePath: filePath },
+                    timestamp: new Date().toISOString()
+                };
+                
+                const intentResponse = await fetch(`/api/preferences/${defaultEditor}/_pending_intent`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ value: intentData })
+                });
+                
+                if (!intentResponse.ok) {
+                    this.showNotification('Error setting file intent', 'error');
+                    return;
+                }
+                
+                // Launch the default text editor
+                window.sypnexOS.openApp(defaultEditor);
+                
+                this.showNotification(`Opening ${filePath.split('/').pop()} with ${defaultEditor}`, 'success');
+                
+            } catch (error) {
+                console.error('Error opening file with default editor:', error);
+                this.showNotification('Error opening file with default editor', 'error');
+            }
         };
 
         // Download file
