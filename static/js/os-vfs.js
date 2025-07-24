@@ -140,8 +140,8 @@ Object.assign(SypnexOS.prototype, {
                             </div>
                             <div class="file-actions">
                                 ${item.is_directory ? 
-                                    '<button class="file-action-btn open">Open</button>' : 
-                                    '<button class="file-action-btn view">View</button>'
+                                    '<button class="file-action-btn open">Open</button><button class="file-action-btn rename">Rename</button>' : 
+                                    '<button class="file-action-btn rename">Rename</button>'
                                 }
                                 ${!item.is_directory ? '<button class="file-action-btn download">Download</button>' : ''}
                                 <button class="file-action-btn delete">Delete</button>
@@ -150,7 +150,7 @@ Object.assign(SypnexOS.prototype, {
                         
                         // Add click handlers
                         const openBtn = fileElement.querySelector('.open');
-                        const viewBtn = fileElement.querySelector('.view');
+                        const renameBtn = fileElement.querySelector('.rename');
                         const downloadBtn = fileElement.querySelector('.download');
                         const deleteBtn = fileElement.querySelector('.delete');
                         
@@ -161,10 +161,10 @@ Object.assign(SypnexOS.prototype, {
                             });
                         }
                         
-                        if (viewBtn) {
-                            viewBtn.addEventListener('click', (e) => {
+                        if (renameBtn) {
+                            renameBtn.addEventListener('click', (e) => {
                                 e.stopPropagation();
-                                viewFile(item.path);
+                                renameItem(item.path, item.name);
                             });
                         }
                         
@@ -308,6 +308,60 @@ Object.assign(SypnexOS.prototype, {
             } catch (error) {
                 console.error('Error deleting item:', error);
                 this.showNotification(`Error deleting ${itemName}`, 'error');
+            }
+        };
+        
+        // Rename item
+        const renameItem = async (itemPath, currentName) => {
+            try {
+                // Create a temporary SypnexAPI instance to use the input modal
+                const tempAPI = new window.SypnexAPI('virtual-file-system');
+                
+                const newName = await tempAPI.showInputModal(
+                    'Rename Item',
+                    'New name:',
+                    {
+                        placeholder: 'Enter new name',
+                        confirmText: 'Rename',
+                        cancelText: 'Cancel',
+                        icon: 'fas fa-edit',
+                        defaultValue: currentName
+                    }
+                );
+
+                if (newName && newName !== currentName) {
+                    // Construct new path using the item's actual parent directory
+                    // Not the current browsing directory
+                    const pathParts = itemPath.split('/').filter(part => part !== '');
+                    const itemParentPath = pathParts.length > 1 ? '/' + pathParts.slice(0, -1).join('/') : '/';
+                    const newPath = itemParentPath === '/' ? `/${newName}` : `${itemParentPath}/${newName}`;
+                    
+                    console.log(`Current browsing path: ${currentPath}`);
+                    console.log(`Item path: ${itemPath}`);
+                    console.log(`Item parent: ${itemParentPath}`);
+                    console.log(`Renaming: ${itemPath} -> ${newPath}`);
+                    
+                    const response = await fetch('/api/virtual-files/rename', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            old_path: itemPath,
+                            new_path: newPath
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        this.showNotification(`${currentName} renamed to ${newName} successfully`, 'success');
+                        loadFiles();
+                        loadStats();
+                    } else {
+                        const error = await response.json();
+                        this.showNotification(`Error renaming ${currentName}: ${error.error}`, 'error');
+                    }
+                }
+            } catch (error) {
+                console.error('Error renaming item:', error);
+                this.showNotification(`Error renaming ${currentName}`, 'error');
             }
         };
         

@@ -457,6 +457,8 @@ class VirtualFileManager:
             old_normalized = self._normalize_path(old_path)
             new_normalized = self._normalize_path(new_path)
             
+            print(f"VFS Rename: {old_normalized} -> {new_normalized}")
+            
             # Check if source exists
             if not self._path_exists(old_normalized):
                 print(f"Rename failed: source path {old_normalized} does not exist")
@@ -485,28 +487,41 @@ class VirtualFileManager:
                 is_directory = bool(result[0]) if result else False
                 
                 if is_directory:
-                    # Update all child paths recursively
+                    print(f"Renaming directory and all children...")
+                    
+                    # Get all files/directories that need to be updated
                     cursor.execute('''
-                        UPDATE virtual_files 
-                        SET path = ? || SUBSTR(path, ?),
-                            parent_path = CASE 
-                                WHEN parent_path = ? THEN ?
-                                ELSE ? || SUBSTR(parent_path, ?)
-                            END,
-                            updated_at = ?
+                        SELECT path FROM virtual_files 
                         WHERE path = ? OR path LIKE ?
-                    ''', (
-                        new_normalized,  # New base path
-                        len(old_normalized) + 1,  # Start position for substring
-                        old_normalized,  # Old parent path to match
-                        new_parent_path,  # New parent path
-                        new_normalized,  # New base for other parent paths
-                        len(old_normalized) + 1,  # Start position for parent path substring
-                        datetime.now().isoformat(),  # Updated timestamp
-                        old_normalized,  # Exact path match
-                        old_normalized + '/%'  # Children path pattern
-                    ))
+                        ORDER BY LENGTH(path) DESC
+                    ''', (old_normalized, old_normalized + '/%'))
+                    
+                    paths_to_update = cursor.fetchall()
+                    print(f"Found {len(paths_to_update)} items to update")
+                    
+                    # Update each path
+                    for (path_to_update,) in paths_to_update:
+                        if path_to_update == old_normalized:
+                            # This is the directory itself
+                            new_item_path = new_normalized
+                            new_item_parent = new_parent_path
+                            new_item_name = new_name
+                        else:
+                            # This is a child - replace the old prefix with the new prefix
+                            relative_part = path_to_update[len(old_normalized):]  # Get the part after old path
+                            new_item_path = new_normalized + relative_part
+                            new_item_parent = self._get_parent_path(new_item_path)
+                            new_item_name = self._get_name_from_path(new_item_path)
+                        
+                        print(f"Updating: {path_to_update} -> {new_item_path}")
+                        
+                        cursor.execute('''
+                            UPDATE virtual_files 
+                            SET path = ?, name = ?, parent_path = ?, updated_at = ?
+                            WHERE path = ?
+                        ''', (new_item_path, new_item_name, new_item_parent, datetime.now().isoformat(), path_to_update))
                 else:
+                    print(f"Renaming single file...")
                     # Just update the single file
                     cursor.execute('''
                         UPDATE virtual_files 
@@ -520,11 +535,13 @@ class VirtualFileManager:
                     return False
                 
                 conn.commit()
-                print(f"Successfully renamed {old_normalized} to {new_normalized} ({cursor.rowcount} rows updated)")
+                print(f"Successfully renamed {old_normalized} to {new_normalized} ({cursor.rowcount} total updates)")
                 return True
                 
         except Exception as e:
             print(f"Error renaming {old_path} to {new_path}: {e}")
+            import traceback
+            traceback.print_exc()
             return False
     
     def get_system_stats(self) -> Dict[str, Any]:
