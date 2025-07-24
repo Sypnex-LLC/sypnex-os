@@ -1,0 +1,73 @@
+{
+  "description": "Default system preferences and asset configuration for first boot",
+  "asset_mappings": {
+    "description": "Maps local asset directories to VFS paths for first boot seeding",
+    "mappings": [
+      {
+        "local_path": "assets/wallpapers",
+        "vfs_path": "/wallpapers",
+        "description": "Default wallpapers for the desktop"
+      },
+      {
+        "local_path": "assets/services",
+        "vfs_path": "/services/configs",
+        "description": "Service configuration files"
+      }
+    ]
+  },
+  "preferences": [
+    {
+      "category": "ui",
+      "key": "wallpaper",
+      "value": "/wallpapers/main_wallpaper.png"
+    },
+    {
+      "category": "ui",
+      "key": "app_scale",
+      "value": "85"
+    },
+    {
+      "category": "ui",
+      "key": "dashboard_category",
+      "value": "all"
+    },
+    {
+      "category": "system",
+      "key": "default_text_editor",
+      "value": "text_editor"
+    }
+  ],
+  "seeding_process": {
+    "description": "Order and method for first boot seeding",
+    "steps": [
+      {
+        "step": 1,
+        "action": "install_essential_apps",
+        "source": "essential-apps/",
+        "method": "POST /api/user-apps/install",
+        "description": "Install essential .app packages using multipart file upload"
+      },
+      {
+        "step": 2,
+        "action": "create_vfs_directories",
+        "source": "asset_mappings",
+        "method": "POST /api/virtual-files/create-folder",
+        "description": "Create VFS directories before uploading assets"
+      },
+      {
+        "step": 3,
+        "action": "upload_assets",
+        "source": "asset_mappings",
+        "method": "POST /api/virtual-files/upload-file",
+        "description": "Upload assets to VFS using file upload endpoint"
+      },
+      {
+        "step": 4,
+        "action": "set_preferences",
+        "source": "preferences",
+        "method": "POST /api/preferences/{category}/{key}",
+        "description": "Set default system preferences using category/key API"
+      }
+    ]
+  }
+}

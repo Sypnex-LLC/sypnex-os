@@ -11,9 +11,12 @@ from service_manager import get_service_manager
 from virtual_file_manager import get_virtual_file_manager
 from system_boot_manager import get_system_boot_manager
 from logs_manager import LogsManager
-from app_utils import load_user_requirements
+from app_utils import load_user_requirements, install_app_direct
 import os
 import shutil
+import json
+import requests
+import glob
 
 # Built-in apps (not plugins)
 BUILTIN_APPS = {
@@ -100,29 +103,12 @@ def create_app():
     
     return app
 
-def ensure_runtime_databases_exist():
-    """Copy template databases to runtime if they don't exist"""
-    # Ensure data directory exists
-    os.makedirs('data', exist_ok=True)
-    
-    databases = [
-        ('user_preferences', 'User preferences'),
-        ('virtual_files', 'Virtual file system')
-    ]
-    
-    for db_name, description in databases:
-        runtime_path = f'data/{db_name}.db'
-        template_path = f'defaults/databases/{db_name}.template'
-        
-        if not os.path.exists(runtime_path) and os.path.exists(template_path):
-            shutil.copy2(template_path, runtime_path)
-            print(f"📋 Initialized {description} database from template")
-
 def initialize_managers():
     """Initialize all system managers"""
-    # Ensure runtime databases exist from templates before any manager initialization
-    ensure_runtime_databases_exist()
+    # Check if this is first boot before initializing databases
+    first_boot = is_first_boot()
     
+    # Ensure runtime databases exist from templates before any manager initialization
     # Initialize VFS and logs first (these are foundational)
     virtual_file_manager = get_virtual_file_manager()
     logs_manager = LogsManager(virtual_file_manager)
@@ -138,7 +124,7 @@ def initialize_managers():
     # Initialize service manager with logger and VFS manager
     service_manager = get_service_manager(logs_manager, virtual_file_manager)
     
-    return {
+    managers = {
         'user_app_manager': user_app_manager,
         'user_preferences': user_preferences,
         'websocket_manager': websocket_manager,
@@ -147,6 +133,12 @@ def initialize_managers():
         'virtual_file_manager': virtual_file_manager,
         'logs_manager': logs_manager
     }
+    
+    # If this was first boot, seed the system
+    if first_boot:
+        seed_first_boot(managers)
+    
+    return managers
 
 def initialize_system(managers):
     """Initialize the system with all managers"""
@@ -155,26 +147,171 @@ def initialize_system(managers):
     # Initialize system boot manager and reset counters
     boot_manager = get_system_boot_manager()
     boot_manager.initialize_system()
-    
-    # # Set default system preferences
-    # set_default_preferences(managers['user_preferences'])
-    
-    # # Load user requirements
-    # load_user_requirements(managers['virtual_file_manager'])
-   
+
     # Discover user apps
     managers['user_app_manager'].discover_user_apps()
     
     print("✅ System initialization complete")
     return managers
 
-# def set_default_preferences(user_preferences):
-#     """Set default system preferences if they don't exist"""
-#     print("🔧 Setting default system preferences...")
+def is_first_boot():
+    """Check if this is a first boot (no database files exist)"""
+    databases = ['data/user_preferences.db', 'data/virtual_files.db']
+    return not any(os.path.exists(db) for db in databases)
+
+def seed_first_boot(managers):
+    """Seed the system on first boot using the preferences.json configuration"""
+    config_path = 'defaults/preferences.json'
     
-#     # Developer mode - default to disabled
-#     if user_preferences.get_preference('system', 'developer_mode') is None:
-#         user_preferences.set_preference('system', 'developer_mode', 'false')
-#         print("  - Set developer_mode: false")
+    if not os.path.exists(config_path):
+        print("⚠️  No preferences.json found, skipping first boot seeding")
+        return
     
-#     print("✅ Default preferences set") 
+    try:
+        with open(config_path, 'r', encoding='utf-8') as f:
+            config = json.load(f)
+        
+        print("🌱 Starting first boot seeding...")
+        
+        # Step 1: Install essential apps
+        install_essential_apps(managers)
+        
+        # Step 2: Create VFS directories
+        create_vfs_directories(config.get('asset_mappings', {}), managers)
+        
+        # Step 3: Upload assets to VFS
+        upload_assets_to_vfs(config.get('asset_mappings', {}), managers)
+        
+        # Step 4: Set default preferences
+        set_default_preferences(config.get('preferences', []), managers)
+        
+        print("✅ First boot seeding completed successfully!")
+        
+    except Exception as e:
+        print(f"❌ Error during first boot seeding: {e}")
+        import traceback
+        traceback.print_exc()
+
+def install_essential_apps(managers):
+    """Install essential apps from defaults/essential-apps/"""
+    apps_dir = 'defaults/essential-apps'
+    
+    if not os.path.exists(apps_dir):
+        print("⚠️  No essential-apps directory found")
+        return
+    
+    app_files = glob.glob(f'{apps_dir}/*.app')
+    if not app_files:
+        print("⚠️  No .app files found in essential-apps")
+        return
+    
+    print(f"📱 Installing {len(app_files)} essential apps...")
+    
+    for app_file in app_files:
+        try:
+            print(f"  - Installing {os.path.basename(app_file)}...")
+            success = install_app_direct(app_file, managers['virtual_file_manager'])
+            if success:
+                print(f"    ✅ Installed successfully")
+            else:
+                print(f"    ❌ Installation failed")
+        except Exception as e:
+            print(f"    ❌ Error installing {app_file}: {e}")
+
+def create_vfs_directories(asset_mappings, managers):
+    """Create VFS directories for asset uploads"""
+    mappings = asset_mappings.get('mappings', [])
+    if not mappings:
+        return
+    
+    print(f"📁 Creating {len(mappings)} VFS directories...")
+    
+    for mapping in mappings:
+        vfs_path = mapping.get('vfs_path')
+        if not vfs_path:
+            continue
+        
+        try:
+            # Split path and create directories recursively
+            path_parts = [p for p in vfs_path.split('/') if p]
+            current_path = ''
+            
+            for part in path_parts:
+                parent_path = current_path or '/'
+                current_path = f'{current_path}/{part}' if current_path else f'/{part}'
+                
+                # Check if directory exists
+                if not managers['virtual_file_manager']._path_exists(current_path):
+                    success = managers['virtual_file_manager'].create_directory(current_path)
+                    if success:
+                        print(f"  ✅ Created directory: {current_path}")
+                    else:
+                        print(f"  ❌ Failed to create directory: {current_path}")
+                        
+        except Exception as e:
+            print(f"  ❌ Error creating directory {vfs_path}: {e}")
+
+def upload_assets_to_vfs(asset_mappings, managers):
+    """Upload assets to VFS based on mappings"""
+    mappings = asset_mappings.get('mappings', [])
+    if not mappings:
+        return
+    
+    print("📤 Uploading assets to VFS...")
+    
+    for mapping in mappings:
+        local_path = mapping.get('local_path')
+        vfs_path = mapping.get('vfs_path')
+        
+        if not local_path or not vfs_path:
+            continue
+        
+        full_local_path = f'defaults/{local_path}'
+        if not os.path.exists(full_local_path):
+            print(f"  ⚠️  Local path not found: {full_local_path}")
+            continue
+        
+        # Upload all files in the directory
+        for root, dirs, files in os.walk(full_local_path):
+            for file in files:
+                file_path = os.path.join(root, file)
+                relative_path = os.path.relpath(file_path, full_local_path)
+                vfs_file_path = f"{vfs_path}/{relative_path}".replace('\\', '/')
+                
+                try:
+                    with open(file_path, 'rb') as f:
+                        file_content = f.read()
+                    
+                    success = managers['virtual_file_manager'].create_file(vfs_file_path, file_content)
+                    if success:
+                        print(f"  ✅ Uploaded: {file} -> {vfs_file_path}")
+                    else:
+                        print(f"  ❌ Failed to upload: {file}")
+                        
+                except Exception as e:
+                    print(f"  ❌ Error uploading {file}: {e}")
+
+def set_default_preferences(preferences, managers):
+    """Set default preferences using the preferences API"""
+    if not preferences:
+        return
+    
+    print(f"⚙️  Setting {len(preferences)} default preferences...")
+    
+    for pref in preferences:
+        category = pref.get('category')
+        key = pref.get('key')
+        value = pref.get('value')
+        
+        if not all([category, key, value is not None]):
+            continue
+        
+        try:
+            success = managers['user_preferences'].set_preference(category, key, value)
+            if success:
+                print(f"  ✅ Set {category}/{key} = {value}")
+            else:
+                print(f"  ❌ Failed to set {category}/{key}")
+                
+        except Exception as e:
+            print(f"  ❌ Error setting preference {category}/{key}: {e}")
