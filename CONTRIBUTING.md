@@ -196,7 +196,7 @@ When contributing features or fixes:
 
 If you're stuck or have questions:
 - **System Architecture Questions**: Check existing [GitHub Discussions](https://github.com/Sypnex-LLC/sypnex-os/discussions)
-- **App Development Help**: Visit the [Apps Repository](https://github.com/Sypnex-LLC/sypnex-os-apps) and read the [Development Guide](https://github.com/Sypnex-LLC/sypnex-os-apps/blob/main/USER_APP_DEVELOPMENT_GUIDE.md)
+- **App Development Help**: Visit the [Apps Repository](https://github.com/Sypnex-LLC/sypnex-os-apps) and read the [Development Guide](https://github.com/Sypnex-LLC/sypnex-os-apps/blob/master/USER_APP_DEVELOPMENT_GUIDE.md)
 - **Core OS Bugs**: Use GitHub Issues for specific bugs or feature requests
 - **VS Code Extension Issues**: Visit the [extension repository](https://github.com/Sypnex-LLC/sypnex-os-vscode-extension)
 - **General Questions**: Create a new discussion in this repository

@@ -4,7 +4,7 @@
 
 The comprehensive User App Development Guide is now located in the official apps repository:
 
-**👉 [Complete User App Development Guide](https://github.com/Sypnex-LLC/sypnex-os-apps/blob/main/USER_APP_DEVELOPMENT_GUIDE.md)**
+**👉 [Complete User App Development Guide](https://github.com/Sypnex-LLC/sypnex-os-apps/blob/master/USER_APP_DEVELOPMENT_GUIDE.md)**
 
 ## Why the Move?
 

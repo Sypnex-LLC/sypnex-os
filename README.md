@@ -76,7 +76,7 @@ Sypnex OS provides a customizable development environment that you can own and m
 **[Sypnex OS Apps](https://github.com/Sypnex-LLC/sypnex-os-apps)** - Ready-to-use applications and comprehensive development tools
 
 **For App Developers:**
-- **[Complete Development Guide](https://github.com/Sypnex-LLC/sypnex-os-apps/blob/main/USER_APP_DEVELOPMENT_GUIDE.md)** - Build apps on Sypnex OS
+- **[Complete Development Guide](https://github.com/Sypnex-LLC/sypnex-os-apps/blob/master/USER_APP_DEVELOPMENT_GUIDE.md)** - Build apps on Sypnex OS
 - **[VS Code Extension](https://github.com/Sypnex-LLC/sypnex-os-vscode-extension)** - IntelliSense for 65+ SypnexAPI methods
 - **Development Tools** - App scaffolding, deployment, and packaging utilities
 
@@ -202,7 +202,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **[🖥️ Frontend Architecture](SYPNEX_OS_FRONTEND_ARCHITECTURE.md)** - Frontend system design and APIs
 
 ### App Development Documentation
-- **[📱 User App Development Guide](https://github.com/Sypnex-LLC/sypnex-os-apps/blob/main/USER_APP_DEVELOPMENT_GUIDE.md)** - Complete guide for creating apps (in apps repository)
+- **[📱 User App Development Guide](https://github.com/Sypnex-LLC/sypnex-os-apps/blob/master/USER_APP_DEVELOPMENT_GUIDE.md)** - Complete guide for creating apps (in apps repository)
 - **[VS Code Extension](https://github.com/Sypnex-LLC/sypnex-os-vscode-extension)** - IntelliSense support for SypnexAPI
 - **[Official Apps Repository](https://github.com/Sypnex-LLC/sypnex-os-apps)** - Apps, examples, and development tools
 
