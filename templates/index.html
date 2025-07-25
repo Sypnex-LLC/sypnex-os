@@ -5,6 +5,172 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sypnex OS</title>
+    
+    <!-- Asset Loading Error Handler - Inline to avoid dependency issues -->
+    <style>
+        .sypnex-error-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: #ffffff;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+        }
+        .sypnex-error-content {
+            text-align: center;
+            max-width: 500px;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        .sypnex-error-icon {
+            font-size: 48px;
+            color: #ff6b6b;
+            margin-bottom: 20px;
+        }
+        .sypnex-error-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #00d4ff;
+        }
+        .sypnex-error-message {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 24px;
+            color: #cccccc;
+        }
+        .sypnex-error-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .sypnex-error-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .sypnex-error-btn.primary {
+            background: #00d4ff;
+            color: #1a1a2e;
+        }
+        .sypnex-error-btn.primary:hover {
+            background: #00b8e6;
+            transform: translateY(-2px);
+        }
+        .sypnex-error-details {
+            margin-top: 20px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #ff6b6b;
+            text-align: center;
+        }
+    </style>
+    
+    <script>
+        function showSypnexErrorScreen() {
+            const overlay = document.getElementById('sypnex-error-overlay');
+            const details = document.getElementById('sypnex-error-details');
+            
+            if (overlay && details) {
+                details.textContent = 'Check browser console for specific details';
+                overlay.style.display = 'flex';
+            }
+        }
+        
+        function reloadPage() {
+            window.location.reload(true);
+        }
+        
+        // Check all critical assets after page loads
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                let hasErrors = false;
+                
+                // Check Bootstrap JS - creates window.bootstrap
+                if (!window.bootstrap) {
+                    console.error('Bootstrap JS failed to load');
+                    hasErrors = true;
+                }
+                
+                // Check Socket.IO - creates window.io
+                if (!window.io) {
+                    console.error('Socket.IO failed to load');
+                    hasErrors = true;
+                }
+                
+                // Check SypnexAPI - creates window.SypnexAPI
+                if (!window.SypnexAPI) {
+                    console.error('SypnexAPI failed to load');
+                    hasErrors = true;
+                }
+                
+                // Check Sypnex OS - creates window.sypnexOS
+                if (!window.sypnexOS) {
+                    console.error('Sypnex OS failed to load');
+                    hasErrors = true;
+                }
+                
+                // Check Bootstrap CSS - .btn class should have specific styling
+                const testBtn = document.createElement('div');
+                testBtn.className = 'btn';
+                document.body.appendChild(testBtn);
+                const btnStyles = window.getComputedStyle(testBtn);
+                if (btnStyles.display === 'inline' || btnStyles.padding === '0px') {
+                    console.error('Bootstrap CSS failed to load');
+                    hasErrors = true;
+                }
+                document.body.removeChild(testBtn);
+                
+                // Check FontAwesome CSS - .fas class should have font-family
+                const testIcon = document.createElement('i');
+                testIcon.className = 'fas fa-home';
+                document.body.appendChild(testIcon);
+                const iconStyles = window.getComputedStyle(testIcon);
+                if (!iconStyles.fontFamily || iconStyles.fontFamily.indexOf('Font Awesome') === -1) {
+                    console.error('FontAwesome CSS failed to load');
+                    hasErrors = true;
+                }
+                document.body.removeChild(testIcon);
+                
+                // Check Sypnex OS CSS - status-bar should have fixed positioning
+                const testOS = document.createElement('div');
+                testOS.id = 'status-bar';
+                document.body.appendChild(testOS);
+                const osStyles = window.getComputedStyle(testOS);
+                if (osStyles.position !== 'fixed' || osStyles.height !== '40px') {
+                    console.error('Sypnex OS CSS failed to load');
+                    hasErrors = true;
+                }
+                document.body.removeChild(testOS);
+                
+                // Show error if any assets failed
+                if (hasErrors) {
+                    showSypnexErrorScreen();
+                }
+            }, 1000);
+        });
+    </script>
+    
     <!-- Local Vendor Dependencies for Offline Support -->
     <link href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='vendor/fontawesome/css/all.min.css') }}" rel="stylesheet">
@@ -13,6 +179,23 @@
 </head>
 
 <body>
+    <!-- Asset Loading Error Overlay - Hidden by default -->
+    <div id="sypnex-error-overlay" class="sypnex-error-overlay">
+        <div class="sypnex-error-content">
+            <div class="sypnex-error-icon">⚠️</div>
+            <div class="sypnex-error-title">Loading Error</div>
+            <div class="sypnex-error-message">
+                Some resources failed to load. This is rare but can happen due to network issues or connectivity problems.
+            </div>
+            <div class="sypnex-error-buttons">
+                <button class="sypnex-error-btn primary" onclick="reloadPage()">
+                    🔄 Reload Page
+                </button>
+            </div>
+            <div id="sypnex-error-details" class="sypnex-error-details"></div>
+        </div>
+    </div>
+
     <!-- Main OS Interface -->
     <div id="os-container">
         <!-- Spotlight Overlay -->
