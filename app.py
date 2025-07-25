@@ -145,6 +145,7 @@ def serve_bundled_sypnex_api():
     # Define load order (critical for dependencies)
     api_modules = [
         "sypnex-api-core.js",
+        "sypnex-api-scaling.js",  # Add scaling utilities early after core
         "sypnex-api-settings.js", 
         "sypnex-api-socket.js",
         "sypnex-api-vfs.js",
