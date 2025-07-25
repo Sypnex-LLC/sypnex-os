@@ -135,6 +135,11 @@ def serve_bundled_sypnex_api():
     Dynamically bundle all sypnex-api-*.js files in the correct load order
     This replaces loading 8+ individual SypnexAPI modules
     """
+    from flask import request
+    
+    # Get bundle parameter, defaults to True
+    bundle = request.args.get('bundle', 'true').lower() == 'true'
+    
     js_dir = Path(app.static_folder) / 'js'
     
     # Define load order (critical for dependencies)
@@ -152,7 +157,8 @@ def serve_bundled_sypnex_api():
     ]
     
     bundle_content = "// SypnexAPI - Dynamically Bundled JavaScript API\n"
-    bundle_content += f"// Generated: {__import__('datetime').datetime.now()}\n\n"
+    bundle_content += f"// Generated: {__import__('datetime').datetime.now()}\n"
+    bundle_content += f"// Minified: {bundle and JSMIN_AVAILABLE}\n\n"
     
     for js_file in api_modules:
         file_path = js_dir / js_file
@@ -166,8 +172,8 @@ def serve_bundled_sypnex_api():
         else:
             bundle_content += f"// MISSING: {js_file}\n\n"
     
-    # Minify the bundle if jsmin is available
-    if JSMIN_AVAILABLE:
+    # Minify the bundle if jsmin is available AND bundle is True
+    if JSMIN_AVAILABLE and bundle:
         try:
             bundle_content = jsmin(bundle_content, quote_chars="'\"`")
         except Exception as e:
