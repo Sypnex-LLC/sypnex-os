@@ -1,6 +1,16 @@
-# Contributing to Sypnex OS
+# Contributing to Sypnex OS Core
 
-Thank you for your interest in contributing to Sypnex OS! We welcome contributions from developers of all skill levels and backgrounds.
+Thank you for your interest in contributing to Sypnex OS! This repository contains the core operating system. We welcome contributions from developers of all skill levels and backgrounds.
+
+## 🏗️ About This Repository
+
+This is the core Sypnex OS repository focused on system architecture and infrastructure:
+
+- **[sypnex-os](https://github.com/Sypnex-LLC/sypnex-os)**: This repository - Core operating system, APIs, and system documentation
+- **[sypnex-os-apps](https://github.com/Sypnex-LLC/sypnex-os-apps)**: Official apps, development tools, and comprehensive app development guide
+- **[sypnex-os-vscode-extension](https://github.com/Sypnex-LLC/sypnex-os-vscode-extension)**: VS Code IntelliSense support for SypnexAPI
+
+**🎯 Looking to build apps?** Check out the [Official Apps Repository](https://github.com/Sypnex-LLC/sypnex-os-apps) for comprehensive development guides and tools.
 
 ## 🚀 Getting Started
 
@@ -61,30 +71,43 @@ We welcome new ideas. When suggesting features:
 ### 🔧 Code Contributions
 
 #### Areas Where We Need Help
-1. **Core Features**
+1. **Core System Features**
    - Window management improvements
    - Virtual file system enhancements
    - Service system optimization
+   - System boot and initialization
 
-2. **Frontend Development**
-   - CSS improvements and theming
-   - JavaScript API enhancements
+2. **Frontend Infrastructure**
+   - CSS framework and theming system
+   - JavaScript API architecture
    - Accessibility improvements
+   - Cross-browser compatibility
 
 3. **Backend Development**
    - Flask route optimization
    - Database performance
-   - WebSocket improvements
+   - WebSocket infrastructure
+   - API endpoint improvements
 
-4. **Testing**
+4. **System Architecture**
+   - App sandboxing and security
+   - Service management
+   - System configuration
+   - Performance optimizations
+
+5. **Testing & Infrastructure**
    - Unit tests for core components
    - Integration tests for API endpoints
    - Cross-browser compatibility testing
+   - Performance benchmarking
 
-5. **Documentation**
-   - API documentation
-   - Developer tutorials
-   - Code comments and docstrings
+6. **Core Documentation**
+   - System architecture documentation
+   - API reference documentation
+   - Infrastructure guides
+   - Development setup guides
+
+**Note**: For app development contributions, please visit the [Official Apps Repository](https://github.com/Sypnex-LLC/sypnex-os-apps).
 
 #### Development Workflow
 
@@ -172,10 +195,11 @@ When contributing features or fixes:
 ## 🆘 Getting Help
 
 If you're stuck or have questions:
-- Check existing [GitHub Discussions](https://github.com/Sypnex-LLC/sypnex-os/discussions)
-- Create a new discussion for general questions
-- Use GitHub Issues for specific bugs or feature requests
-- Look at the documentation in the repository
+- **System Architecture Questions**: Check existing [GitHub Discussions](https://github.com/Sypnex-LLC/sypnex-os/discussions)
+- **App Development Help**: Visit the [Apps Repository](https://github.com/Sypnex-LLC/sypnex-os-apps) and read the [Development Guide](https://github.com/Sypnex-LLC/sypnex-os-apps/blob/main/USER_APP_DEVELOPMENT_GUIDE.md)
+- **Core OS Bugs**: Use GitHub Issues for specific bugs or feature requests
+- **VS Code Extension Issues**: Visit the [extension repository](https://github.com/Sypnex-LLC/sypnex-os-vscode-extension)
+- **General Questions**: Create a new discussion in this repository
 
 ## 📝 License
 
@@ -183,4 +207,4 @@ By contributing to Sypnex OS, you agree that your contributions will be licensed
 
 ---
 
-Thank you for contributing to Sypnex OS! Every contribution helps make the project better.
+Thank you for contributing to Sypnex OS! Every contribution helps make the platform better for everyone.

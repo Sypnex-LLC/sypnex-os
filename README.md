@@ -73,19 +73,26 @@ Sypnex OS provides a customizable development environment that you can own and m
 
 ## 📱 Official Apps Repository
 
-Looking for apps to use with Sypnex OS? Check out our **[Official Apps Repository](https://github.com/Sypnex-LLC/sypnex-os-apps)** which contains:
+**[Sypnex OS Apps](https://github.com/Sypnex-LLC/sypnex-os-apps)** - Ready-to-use applications and comprehensive development tools
 
-- **Ready-to-use Applications**: Download and install apps directly into your Sypnex OS instance
-- **Development Tools**: Utilities for building and packaging your own apps
-- **Example Applications**: Sample apps demonstrating various features and APIs
-- **App Templates**: Starting points for creating new applications
+**For App Developers:**
+- **[Complete Development Guide](https://github.com/Sypnex-LLC/sypnex-os-apps/blob/main/USER_APP_DEVELOPMENT_GUIDE.md)** - Build apps on Sypnex OS
+- **[VS Code Extension](https://github.com/Sypnex-LLC/sypnex-os-vscode-extension)** - IntelliSense for 65+ SypnexAPI methods
+- **Development Tools** - App scaffolding, deployment, and packaging utilities
 
-The apps repository is separate from the core OS to allow for faster iteration and community contributions focused on application development.
+**Featured Apps:**
+- **Flow Editor** - Visual workflow builder with AI integration
+- **Text Editor** - Code editor with syntax highlighting and terminal
+- **App Store** - Application marketplace and manager
+- **LLM Chat** - AI chat interface
+
+The apps repository demonstrates the full potential of building on Sypnex OS and provides all the tools needed for development.
 
 ### Repository Structure
 
-- **[sypnex-os](https://github.com/Sypnex-LLC/sypnex-os)** (this repository): Core operating system, APIs, and documentation
-- **[sypnex-os-apps](https://github.com/Sypnex-LLC/sypnex-os-apps)**: Official applications, development tools, and app examples
+- **[sypnex-os](https://github.com/Sypnex-LLC/sypnex-os)** (this repository): Core operating system, APIs, and system documentation
+- **[sypnex-os-apps](https://github.com/Sypnex-LLC/sypnex-os-apps)**: Official applications, development tools, and comprehensive app development guide
+- **[sypnex-os-vscode-extension](https://github.com/Sypnex-LLC/sypnex-os-vscode-extension)**: VS Code IntelliSense support for SypnexAPI
 
 ## 🤖 Built with AI Collaboration
 
@@ -167,13 +174,13 @@ We're building a community around Sypnex OS and welcome contributions of all kin
 
 ### Contributing
 We welcome contributions in these areas:
-- **Feature Development**: Core OS features, new APIs, and system improvements
-- **Application Development**: Sample apps and developer tools in the [official apps repository](https://github.com/Sypnex-LLC/sypnex-os-apps)
+- **Core OS Development**: System features, APIs, and architecture improvements
+- **Application Development**: Create apps in the [official apps repository](https://github.com/Sypnex-LLC/sypnex-os-apps)
 - **Testing & QA**: Bug testing, performance testing, cross-browser compatibility
-- **Documentation**: Guides, API documentation, and tutorials
+- **Documentation**: System guides, API documentation, and tutorials
 - **UI/UX**: Interface improvements and accessibility enhancements
 
-See our [Contributing Guide](CONTRIBUTING.md) for detailed information on submitting pull requests.
+See our [Contributing Guide](CONTRIBUTING.md) for detailed information on contributing to the core OS.
 
 ### Areas Where You Can Make a Significant Impact
 1. **Cross-browser Testing**: Ensuring compatibility across all major browsers
@@ -188,11 +195,16 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📚 Documentation
 
-- [🚀 Roadmap](ROADMAP.md) - Project vision and development milestones
-- [🤝 Contributing Guide](CONTRIBUTING.md) - How to contribute to the project
-- [⚙️ Core Components](SYPNEX_OS_CORE_COMPONENTS.md) - Detailed architecture and system components
-- [🖥️ Frontend Architecture](SYPNEX_OS_FRONTEND_ARCHITECTURE.md) - Frontend system design and APIs
-- [📱 User App Development](USER_APP_DEVELOPMENT_GUIDE.md) - Guide for creating user applications
+### Core System Documentation
+- **[🚀 Roadmap](ROADMAP.md)** - Project vision and development milestones
+- **[🤝 Contributing Guide](CONTRIBUTING.md)** - How to contribute to the core OS
+- **[⚙️ Core Components](SYPNEX_OS_CORE_COMPONENTS.md)** - Detailed architecture and system components
+- **[🖥️ Frontend Architecture](SYPNEX_OS_FRONTEND_ARCHITECTURE.md)** - Frontend system design and APIs
+
+### App Development Documentation
+- **[📱 User App Development Guide](https://github.com/Sypnex-LLC/sypnex-os-apps/blob/main/USER_APP_DEVELOPMENT_GUIDE.md)** - Complete guide for creating apps (in apps repository)
+- **[VS Code Extension](https://github.com/Sypnex-LLC/sypnex-os-vscode-extension)** - IntelliSense support for SypnexAPI
+- **[Official Apps Repository](https://github.com/Sypnex-LLC/sypnex-os-apps)** - Apps, examples, and development tools
 
 ---
 
