@@ -305,6 +305,58 @@ Object.assign(SypnexAPI.prototype, {
     },
     
     /**
+     * Write binary content to a file using the upload endpoint
+     * @param {string} filePath - Path to the file
+     * @param {Uint8Array|Blob} binaryData - Binary data to write
+     * @returns {Promise<object>} - Write result
+     */
+    async writeVirtualFileBinary(filePath, binaryData) {
+        try {
+            // First check if file exists and delete it
+            const exists = await this.virtualItemExists(filePath);
+            if (exists) {
+                await this.deleteVirtualItem(filePath);
+            }
+            
+            // Extract name and parent path
+            const pathParts = filePath.split('/');
+            const fileName = pathParts.pop();
+            const parentPath = pathParts.length > 0 ? pathParts.join('/') || '/' : '/';
+            
+            // Create FormData for the upload
+            const formData = new FormData();
+            
+            // Convert Uint8Array to Blob if needed
+            let blob;
+            if (binaryData instanceof Uint8Array) {
+                blob = new Blob([binaryData], { type: 'application/octet-stream' });
+            } else if (binaryData instanceof Blob) {
+                blob = binaryData;
+            } else {
+                throw new Error('Binary data must be Uint8Array or Blob');
+            }
+            
+            formData.append('file', blob, fileName);
+            formData.append('parent_path', parentPath);
+            
+            const response = await fetch(`${this.baseUrl}/virtual-files/upload-file`, {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (response.ok) {
+                return await response.json();
+            } else {
+                const errorData = await response.json();
+                throw new Error(errorData.error || `Failed to upload binary file: ${response.status}`);
+            }
+        } catch (error) {
+            console.error(`SypnexAPI [${this.appId}]: Error writing virtual file binary:`, error);
+            throw error;
+        }
+    },
+    
+    /**
      * Create a directory structure (creates parent directories if needed)
      * @param {string} dirPath - Directory path to create
      * @returns {Promise<object>} - Creation result
