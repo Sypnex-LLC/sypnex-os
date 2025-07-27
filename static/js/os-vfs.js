@@ -1,7 +1,7 @@
 // Sypnex OS - Virtual File System Module
 // Contains VFS functionality
 
-// Extend SypnexOS class with VFS methods
+// Extend SypnexOS methods
 Object.assign(SypnexOS.prototype, {
     setupVirtualFileSystem(windowElement) {
         const fileList = windowElement.querySelector('.file-list');
@@ -105,7 +105,6 @@ Object.assign(SypnexOS.prototype, {
             let path = '';
             parts.forEach((part, index) => {
                 path += '/' + part;
-                const separator = index < parts.length - 1 ? ' / ' : '';
                 breadcrumb.innerHTML += `
                     <span class="breadcrumb-separator">/</span>
                     <span class="breadcrumb-item" data-path="${path}">${part}</span>

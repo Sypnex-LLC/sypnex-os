@@ -39,7 +39,10 @@
     cursor: pointer;
     padding: 4px 8px;
     border-radius: 4px;
-    transition: background-color 0.2s ease;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .breadcrumb-item:hover {
@@ -120,52 +123,56 @@
 }
 
 .file-icon.folder {
-    color: var(--accent-color);
+    color: #ffd700; /* Gold for folders */
 }
 
 .file-icon.file {
-    color: var(--text-primary);
+    color: var(--text-primary); /* Default file color */
 }
 
-/* File type specific colors - using OS consistent colors */
+/* File type specific colors - restored colorful icons */
 .file-icon.file .fa-file-pdf {
-    color: var(--accent-color);
+    color: #e74c3c; /* Red for PDF */
 }
 
 .file-icon.file .fa-file-word {
-    color: var(--accent-color);
+    color: #2980b9; /* Blue for Word */
 }
 
 .file-icon.file .fa-file-excel {
-    color: var(--accent-color);
+    color: #27ae60; /* Green for Excel */
 }
 
 .file-icon.file .fa-file-powerpoint {
-    color: var(--accent-color);
+    color: #e67e22; /* Orange for PowerPoint */
 }
 
 .file-icon.file .fa-file-code {
-    color: var(--accent-color);
+    color: #9b59b6; /* Purple for code files */
 }
 
 .file-icon.file .fa-file-archive {
-    color: var(--accent-color);
+    color: #f39c12; /* Yellow/orange for archives */
 }
 
 .file-icon.file .fa-file-video {
-    color: var(--accent-color);
+    color: #e91e63; /* Pink for video */
 }
 
 .file-icon.file .fa-file-audio {
-    color: var(--accent-color);
+    color: #ff5722; /* Red-orange for audio */
 }
 
 .file-icon.file .fa-image {
-    color: var(--accent-color);
+    color: #4caf50; /* Green for images */
 }
 
 .file-icon.file .fa-file-alt {
-    color: var(--accent-color);
+    color: #607d8b; /* Blue-grey for text files */
+}
+
+.file-icon.file .fa-file {
+    color: var(--accent-color); /* Accent color for generic files */
 }
 
 .file-item:hover .file-icon {
@@ -210,8 +217,9 @@
 
 .file-actions {
     position: absolute;
-    top: 5px;
+    top: 50%;
     right: 5px;
+    transform: translateY(-50%);
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -225,7 +233,7 @@
 
 .file-item:hover .file-actions {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(-50%);
 }
 
 .file-action-btn {
