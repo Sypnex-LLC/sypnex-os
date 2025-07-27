@@ -137,14 +137,6 @@ BUILTIN_APPS = {
         'keywords': ['settings', 'preferences', 'system', 'config', 'options'],
         'template': 'apps/system-settings.html'
     },
-    'websocket-server': {
-        'id': 'websocket-server',
-        'name': 'WebSocket Server',
-        'icon': 'fas fa-network-wired',
-        'description': 'Real-time WebSocket communication server',
-        'keywords': ['websocket', 'real-time', 'communication', 'socket', 'server'],
-        'template': 'apps/websocket-server.html'
-    },
     'terminal': {
         'id': 'terminal',
         'name': 'Terminal',

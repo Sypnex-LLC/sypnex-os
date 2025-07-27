@@ -742,9 +742,6 @@ Object.assign(SypnexOS.prototype, {
             case 'user-app-manager':
                 this.setupUserAppManager(windowElement);
                 break;
-            case 'websocket-server':
-                this.setupWebSocketServer(windowElement);
-                break;
             case 'virtual-file-system':
                 this.setupVirtualFileSystem(windowElement);
                 break;

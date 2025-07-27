@@ -99,7 +99,6 @@ def serve_bundled_os():
         "os-dashboard.js",
         "os-terminal.js",
         "os-vfs.js",
-        "os-websocket-server.js",
         "os-resource-manager.js",
         "os-app-manager.js",
         "os-system-settings.js",
@@ -242,7 +241,6 @@ def serve_bundled_css():
     # System Apps CSS with their app IDs for scoping
     system_app_css = [
         ("os-resource-manager.css", "resource-manager"),
-        ("os-websocket-server.css", "websocket-server"),
         ("os-virtual-file-system.css", "virtual-file-system"),
         ("os-user-app-manager.css", "user-app-manager"),
         ("os-terminal.css", "terminal"),

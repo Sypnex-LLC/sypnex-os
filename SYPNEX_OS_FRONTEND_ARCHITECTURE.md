@@ -440,45 +440,75 @@ The SypnexAPI provides a JavaScript interface for user applications to interact 
 
 ## Template System
 
-### 1. System App Templates
+### 1. Essential System Apps
+
+The OS ships with these core system apps that provide essential functionality:
 
 **User App Manager** (`templates/apps/user-app-manager.html`):
-- App discovery interface
-- Installation management
-- App metadata display
-- Source tracking (VFS vs local)
+- App discovery and installation interface
+- User app management and metadata display
+- Installation tracking (VFS vs local source)
+- App lifecycle management
 
 **System Settings** (`templates/apps/system-settings.html`):
-- System configuration interface
-- Preference management
-- Developer mode controls
-- App scaling settings
+- Core system configuration interface
+- User preferences and personalization
+- Developer mode and debugging controls
+- Display and accessibility settings
 
 **Terminal** (`templates/apps/terminal.html`):
-- Command input interface
-- Output display area
-- Command history
-- Auto-completion interface
+- Command-line interface for power users
+- System command execution
+- Command history and auto-completion
+- Developer and administrative access
 
 **Virtual File System** (`templates/apps/virtual-file-system.html`):
-- File browser interface
-- File operations panel
-- Upload functionality
-- File preview area
-
-**WebSocket Server** (`templates/apps/websocket-server.html`):
-- Connection status display
-- Client management interface
-- Message broadcasting
-- Server statistics
+- File browser and management interface
+- File operations (create, edit, delete, upload)
+- Directory navigation and organization
+- File preview and metadata viewing
 
 **Resource Manager** (`templates/apps/resource-manager.html`):
-- System resource monitoring
-- App performance tracking
-- Memory and CPU usage
-- Network activity display
+- System resource monitoring and analytics
+- App performance tracking and diagnostics
+- Memory, CPU, and network usage display
+- System health and status overview
 
-### 2. Template Standards
+### 2. Example User Apps
+
+These apps demonstrate the platform capabilities and provide common functionality:
+
+**App Store** (User App):
+- Discover and install community apps
+- App ratings, reviews, and metadata
+- Category browsing and search
+- Installation and update management
+
+**Flow Editor** (User App):
+- Visual workflow and automation builder
+- Node-based interface for creating flows
+- Integration with system APIs
+- Export and sharing capabilities
+
+**Flow Runner** (User App):
+- Execute and monitor automated workflows
+- Schedule and trigger flow execution
+- Real-time flow status and logging
+- Integration with Flow Editor
+
+**LLM Chat** (User App):
+- AI-powered chat interface
+- Multiple model support and configuration
+- Conversation history and management
+- API integration for AI services
+
+**Text Editor** (User App):
+- Code and text editing capabilities
+- Syntax highlighting and themes
+- File integration with VFS
+- Developer-friendly features
+
+### 3. Template Standards
 
 **Structure Pattern**:
 - App container with header and content sections
