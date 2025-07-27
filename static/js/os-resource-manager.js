@@ -133,17 +133,6 @@ Object.assign(SypnexOS.prototype, {
 
             const apps = Array.from(this.apps.entries());
 
-            if (apps.length === 0) {
-                if (!resourceTableBody.querySelector('.no-apps-message')) {
-                    resourceTableBody.innerHTML = `
-                        <tr>
-                            <td colspan="7" class="no-apps-message">No applications are currently running</td>
-                        </tr>
-                    `;
-                }
-                return;
-            }
-
             // Get existing rows to avoid complete rebuild
             const existingRows = new Map();
             resourceTableBody.querySelectorAll('tr[data-app-id]').forEach(row => {
@@ -152,6 +141,7 @@ Object.assign(SypnexOS.prototype, {
 
             // Track which apps are still active
             const activeAppIds = new Set();
+            let validAppsCount = 0;
 
             for (const [appId, appWindow] of apps) {
                 try {
@@ -166,6 +156,8 @@ Object.assign(SypnexOS.prototype, {
                     // Use pre-calculated metrics
                     const metrics = appMetrics.get(appId);
                     if (!metrics) continue;
+                    
+                    validAppsCount++; // Increment count for valid apps
                     
                     const domNodes = metrics.domNodes;
                     const activeTimers = metrics.timers;
@@ -304,6 +296,23 @@ Object.assign(SypnexOS.prototype, {
                     row.remove();
                 }
             });
+
+            // Show "no apps" message only if we truly have no valid apps
+            if (validAppsCount === 0) {
+                if (!resourceTableBody.querySelector('.no-apps-message')) {
+                    resourceTableBody.innerHTML = `
+                        <tr>
+                            <td colspan="7" class="no-apps-message">No applications are currently running</td>
+                        </tr>
+                    `;
+                }
+            } else {
+                // Remove "no apps" message if we have valid apps
+                const noAppsMessage = resourceTableBody.querySelector('.no-apps-message');
+                if (noAppsMessage) {
+                    noAppsMessage.parentElement.remove();
+                }
+            }
             
         };
 
