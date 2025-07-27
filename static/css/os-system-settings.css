@@ -244,9 +244,9 @@ input:checked + .toggle-slider:before {
 }
 
 .pin-status.pin-set {
-    color: #4CAF50;
-    background: rgba(76, 175, 80, 0.1);
-    border-color: rgba(76, 175, 80, 0.3);
+    color: var(--success-color);
+    background: var(--success-bg);
+    border-color: var(--success-border);
 }
 
 .pin-status-text {
@@ -315,9 +315,9 @@ input:checked + .toggle-slider:before {
 }
 
 .display-name-status.success {
-    color: #4CAF50;
-    background: rgba(76, 175, 80, 0.1);
-    border-color: rgba(76, 175, 80, 0.3);
+    color: var(--success-color);
+    background: var(--success-bg);
+    border-color: var(--success-border);
 }
 
 .display-name-current {

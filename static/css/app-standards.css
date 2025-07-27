@@ -69,7 +69,7 @@
 }
 
 .app-btn:hover {
-    background: rgba(0, 212, 255, 0.1);
+    background: var(--glass-hover);
     border-color: var(--accent-color);
     transform: translateY(-1px);
 }
@@ -95,6 +95,25 @@
 
 .app-btn.secondary:hover {
     background: rgba(255, 255, 255, 0.2);
+}
+
+.app-btn.danger {
+    background: var(--error-bg);
+    color: var(--error-color);
+    border-color: var(--error-border);
+}
+
+.app-btn.danger:hover {
+    background: var(--glass-hover);
+}
+
+.app-btn.outline {
+    background: transparent;
+    border: 1px solid var(--glass-border);
+}
+
+.app-btn.outline:hover {
+    background: var(--glass-hover);
 }
 
 /* Standard Input Styles */
@@ -361,4 +380,143 @@
     font-size: 1.5em;
     font-weight: bold;
     color: var(--accent-color);
+}
+
+/* Standard Status Badges */
+.status-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.status-badge.success {
+    background: var(--success-bg);
+    color: var(--success-color);
+    border: 1px solid var(--success-border);
+}
+
+.status-badge.warning {
+    background: var(--warning-bg);
+    color: var(--warning-color);
+    border: 1px solid var(--warning-border);
+}
+
+.status-badge.error {
+    background: var(--error-bg);
+    color: var(--error-color);
+    border: 1px solid var(--error-border);
+}
+
+.status-badge.info {
+    background: var(--info-bg);
+    color: var(--info-color);
+    border: 1px solid var(--info-border);
+}
+
+/* Standard Action Buttons */
+.action-btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    background: var(--info-bg);
+    color: var(--info-color);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.8em;
+    border: 1px solid var(--info-border);
+}
+
+.action-btn:hover {
+    background: var(--glass-hover);
+    transform: translateY(-1px);
+}
+
+.action-btn.success {
+    background: var(--success-bg);
+    color: var(--success-color);
+    border-color: var(--success-border);
+}
+
+.action-btn.warning {
+    background: var(--warning-bg);
+    color: var(--warning-color);
+    border-color: var(--warning-border);
+}
+
+.action-btn.error {
+    background: var(--error-bg);
+    color: var(--error-color);
+    border-color: var(--error-border);
+}
+
+/* Standard Metric Components */
+.metric-value {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.metric-bar {
+    width: 60px;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 4px;
+}
+
+.metric-fill {
+    height: 100%;
+    background: var(--info-color);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+.metric-fill.success {
+    background: var(--success-color);
+}
+
+.metric-fill.warning {
+    background: var(--warning-color);
+}
+
+.metric-fill.error {
+    background: var(--error-color);
+}
+
+/* Standard Overview Grid */
+.overview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.overview-item {
+    text-align: center;
+    padding: 15px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+}
+
+.overview-label {
+    display: block;
+    font-size: 0.9em;
+    color: var(--text-secondary);
+    margin-bottom: 5px;
+}
+
+.overview-value {
+    display: block;
+    font-size: 1.5em;
+    font-weight: bold;
+    color: var(--accent-color);
+}
+
+.overview-unit {
+    font-size: 0.8em;
+    color: var(--text-secondary);
 } 

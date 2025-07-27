@@ -315,7 +315,7 @@ class SypnexAPI {
             if (type === 'danger') {
                 const warningP = document.createElement('p');
                 warningP.style.cssText = `
-                    color: var(--danger-color, #ff4444);
+                    color: var(--error-color);
                     margin: 10px 0 0 0;
                     font-size: 14px;
                     font-style: italic;

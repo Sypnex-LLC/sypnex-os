@@ -13,6 +13,25 @@
     --shadow-color: rgba(0, 212, 255, 0.1);
     --glass-bg: rgba(26, 26, 26, 0.8);
     --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-hover: rgba(0, 212, 255, 0.1);
+    
+    /* Semantic Status Colors */
+    --success-color: #2ed573;
+    --warning-color: #ffa502;
+    --error-color: #ff4757;
+    --info-color: var(--accent-color);
+    
+    /* Status Background Colors */
+    --success-bg: rgba(46, 213, 115, 0.1);
+    --warning-bg: rgba(255, 165, 2, 0.1);
+    --error-bg: rgba(255, 71, 87, 0.1);
+    --info-bg: rgba(0, 212, 255, 0.1);
+    
+    /* Status Border Colors */
+    --success-border: rgba(46, 213, 115, 0.3);
+    --warning-border: rgba(255, 165, 2, 0.3);
+    --error-border: rgba(255, 71, 87, 0.3);
+    --info-border: rgba(0, 212, 255, 0.3);
 }
 
 * {

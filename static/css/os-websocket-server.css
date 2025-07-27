@@ -23,7 +23,7 @@
 
 .stat-card:hover {
     border-color: var(--accent-color);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .stat-icon {
@@ -33,7 +33,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(0, 212, 255, 0.2);
+    background: var(--info-bg);
     border-radius: 8px;
     color: var(--accent-color);
 }

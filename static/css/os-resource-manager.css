@@ -1,36 +1,11 @@
 /* Resource Manager App Styles */
+/* Uses standard overview-grid, status-badge, metric-*, and action-btn classes from app-standards.css */
+
 .system-overview {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 15px;
     margin-bottom: 20px;
-}
-
-.overview-item {
-    text-align: center;
-    padding: 15px;
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    border-radius: 8px;
-}
-
-.overview-label {
-    display: block;
-    font-size: 0.9em;
-    color: var(--text-secondary);
-    margin-bottom: 5px;
-}
-
-.overview-value {
-    display: block;
-    font-size: 1.5em;
-    font-weight: bold;
-    color: var(--accent-color);
-}
-
-.overview-unit {
-    font-size: 0.8em;
-    color: var(--text-secondary);
 }
 
 .resource-table-container {
@@ -62,7 +37,7 @@
 }
 
 .resource-table tr:hover {
-    background: rgba(0, 212, 255, 0.05);
+    background: var(--glass-hover);
 }
 
 .resource-table tr:last-child td {
@@ -82,98 +57,28 @@
     font-size: 14px;
 }
 
-.status-badge {
-    display: inline-block;
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 0.8em;
-    font-weight: bold;
-    text-transform: uppercase;
-}
-
+/* Status badge overrides for running/minimized states */
 .status-running {
-    background: rgba(0, 255, 0, 0.2);
-    color: #00ff00;
+    background: var(--success-bg);
+    color: var(--success-color);
+    border: 1px solid var(--success-border);
 }
 
 .status-minimized {
-    background: rgba(255, 165, 2, 0.2);
-    color: #ffa502;
+    background: var(--warning-bg);
+    color: var(--warning-color);
+    border: 1px solid var(--warning-border);
 }
 
 .status-error {
-    background: rgba(255, 71, 87, 0.2);
-    color: #ff4757;
-}
-
-.metric-value {
-    font-weight: 500;
-    color: var(--text-primary);
-}
-
-.metric-bar {
-    width: 60px;
-    height: 6px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 3px;
-    overflow: hidden;
-    margin-top: 4px;
-}
-
-.metric-fill {
-    height: 100%;
-    background: var(--accent-color);
-    border-radius: 3px;
-    transition: width 0.3s ease;
-}
-
-.metric-fill.high {
-    background: #ff4757;
-}
-
-.metric-fill.medium {
-    background: #ffa502;
-}
-
-.metric-fill.low {
-    background: #00ff00;
+    background: var(--error-bg);
+    color: var(--error-color);
+    border: 1px solid var(--error-border);
 }
 
 .app-actions {
     display: flex;
     gap: 8px;
-}
-
-.action-btn {
-    padding: 6px 12px;
-    border: none;
-    border-radius: 4px;
-    background: rgba(0, 212, 255, 0.2);
-    color: var(--accent-color);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 0.8em;
-}
-
-.action-btn:hover {
-    background: rgba(0, 212, 255, 0.3);
-    transform: translateY(-1px);
-}
-
-.action-btn.danger {
-    background: rgba(255, 71, 87, 0.2);
-    color: #ff4757;
-}
-
-.action-btn.danger:hover {
-    background: rgba(255, 71, 87, 0.3);
-}
-
-.no-apps-message {
-    text-align: center;
-    color: var(--text-secondary);
-    padding: 40px;
-    font-style: italic;
 }
 
 .refresh-resources {
@@ -182,6 +87,13 @@
 
 .error-message {
     text-align: center;
-    color: #ff4757;
+    color: var(--error-color);
     padding: 20px;
+}
+
+.no-apps-message {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 40px;
+    font-style: italic;
 }
