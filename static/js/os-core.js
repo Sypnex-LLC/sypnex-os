@@ -1,6 +1,28 @@
 // Sypnex OS - Core Module
 // Contains the main SypnexOS class and core initialization
 
+// Global fetch override for automatic token injection - OS Context
+// This ensures OS-level fetch calls also include the test token
+if (typeof window !== 'undefined' && window.fetch && !window._sypnexFetchOverridden) {
+    const originalFetch = window.fetch;
+    
+    window.fetch = function(url, options = {}) {
+        // Initialize headers if not present
+        if (!options.headers) {
+            options.headers = {};
+        }
+        
+        // Add access token header to all fetch requests
+        options.headers['X-Test-Token'] = '{{ACCESS_TOKEN}}';
+        
+        // Call original fetch with modified options
+        return originalFetch(url, options);
+    };
+    
+    // Mark as overridden to prevent double-override
+    window._sypnexFetchOverridden = true;
+}
+
 class SypnexOS {
     constructor() {
         this.apps = new Map();
@@ -19,7 +41,12 @@ class SypnexOS {
 
     init() {
         this.setupEventListeners();
-        this.updateTime();
+        
+        // Small delay to ensure fetch override is fully applied
+        setTimeout(() => {
+            this.updateTime();
+        }, 100);
+        
         this.checkWelcomeScreen(); // Check if welcome screen should be shown
         this.loadWallpaper();
         
@@ -29,12 +56,14 @@ class SypnexOS {
         // Cache latest app versions on startup
         this.cacheLatestVersions();
         
-        // Update time and network status every second
-        setInterval(() => {
-            this.updateTime();
-            this.updateNetworkStatus();
-            this.updateWebSocketStatus();
-        }, 5000);
+        // Update time and network status every 5 seconds (with small initial delay)
+        setTimeout(() => {
+            setInterval(() => {
+                this.updateTime();
+                this.updateNetworkStatus();
+                this.updateWebSocketStatus();
+            }, 5000);
+        }, 200);
     }
 
     setupEventListeners() {

@@ -112,6 +112,9 @@ def serve_bundled_os():
         else:
             bundle_content += f"// MISSING: {js_file}\n\n"
     
+    # Replace template tokens with actual values
+    bundle_content = bundle_content.replace('{{ACCESS_TOKEN}}', 'testabc')
+    
     # Minify the bundle if jsmin is available
     if JSMIN_AVAILABLE:
         try:
@@ -172,6 +175,9 @@ def serve_bundled_sypnex_api():
                 bundle_content += f"// ERROR loading {js_file}: {str(e)}\n\n"
         else:
             bundle_content += f"// MISSING: {js_file}\n\n"
+    
+    # Replace template tokens with actual values
+    bundle_content = bundle_content.replace('{{ACCESS_TOKEN}}', 'testabc')
     
     # Minify the bundle if jsmin is available AND bundle is True
     if JSMIN_AVAILABLE and bundle:

@@ -919,4 +919,26 @@ if (typeof module !== 'undefined' && module.exports) {
 // Make SypnexAPI globally available for OS use
 if (typeof window !== 'undefined') {
     window.SypnexAPI = SypnexAPI;
+}
+
+// Global fetch override for automatic token injection
+// This will be included in both main system and sandboxed apps
+if (typeof window !== 'undefined' && window.fetch && !window._sypnexFetchOverridden) {
+    const originalFetch = window.fetch;
+    
+    window.fetch = function(url, options = {}) {
+        // Initialize headers if not present
+        if (!options.headers) {
+            options.headers = {};
+        }
+        
+        // Add access token header to all fetch requests
+        options.headers['X-Test-Token'] = '{{ACCESS_TOKEN}}';
+        
+        // Call original fetch with modified options
+        return originalFetch(url, options);
+    };
+    
+    // Mark as overridden to prevent double-override
+    window._sypnexFetchOverridden = true;
 } 
