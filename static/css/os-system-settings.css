@@ -101,11 +101,6 @@
     transition: all 0.3s ease;
 }
 
-.preference-item:hover {
-    border-color: var(--accent-color);
-    background: rgba(0, 212, 255, 0.05);
-}
-
 .preference-info {
     flex: 1;
 }

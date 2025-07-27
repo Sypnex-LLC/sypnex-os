@@ -104,7 +104,11 @@
 }
 
 .app-btn.danger:hover {
-    background: var(--glass-hover);
+    background: var(--error-bg);
+    border-color: var(--error-color);
+    color: var(--error-color);
+    transform: translateY(-1px);
+    opacity: 0.9;
 }
 
 .app-btn.outline {

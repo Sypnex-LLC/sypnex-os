@@ -18,11 +18,6 @@
     transition: all 0.3s ease;
 }
 
-.user-app-item:hover {
-    border-color: var(--accent-color);
-    background: var(--glass-hover);
-}
-
 .app-info {
     flex: 1;
 }
@@ -174,8 +169,11 @@
 }
 
 .app-uninstall:hover {
-    background: var(--glass-hover);
+    background: var(--error-bg);
+    border-color: var(--error-color);
+    color: var(--error-color);
     transform: translateY(-1px);
+    opacity: 0.9;
 }
 
 .error-message {
