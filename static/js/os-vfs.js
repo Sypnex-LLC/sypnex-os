@@ -28,6 +28,36 @@ Object.assign(SypnexOS.prototype, {
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         };
         
+        // Helper function to get file icon based on extension
+        const getFileIcon = (fileName, isDirectory) => {
+            if (isDirectory) return 'fas fa-folder';
+            
+            const ext = fileName.split('.').pop().toLowerCase();
+            const iconMap = {
+                // Images
+                'jpg': 'fas fa-image', 'jpeg': 'fas fa-image', 'png': 'fas fa-image', 
+                'gif': 'fas fa-image', 'svg': 'fas fa-image', 'webp': 'fas fa-image',
+                // Documents
+                'pdf': 'fas fa-file-pdf', 'doc': 'fas fa-file-word', 'docx': 'fas fa-file-word',
+                'xls': 'fas fa-file-excel', 'xlsx': 'fas fa-file-excel',
+                'ppt': 'fas fa-file-powerpoint', 'pptx': 'fas fa-file-powerpoint',
+                // Code
+                'js': 'fas fa-file-code', 'ts': 'fas fa-file-code', 'py': 'fas fa-file-code',
+                'html': 'fas fa-file-code', 'css': 'fas fa-file-code', 'json': 'fas fa-file-code',
+                'xml': 'fas fa-file-code', 'yml': 'fas fa-file-code', 'yaml': 'fas fa-file-code',
+                // Archives
+                'zip': 'fas fa-file-archive', 'rar': 'fas fa-file-archive', '7z': 'fas fa-file-archive',
+                'tar': 'fas fa-file-archive', 'gz': 'fas fa-file-archive',
+                // Media
+                'mp4': 'fas fa-file-video', 'avi': 'fas fa-file-video', 'mov': 'fas fa-file-video',
+                'mp3': 'fas fa-file-audio', 'wav': 'fas fa-file-audio', 'flac': 'fas fa-file-audio',
+                // Text
+                'txt': 'fas fa-file-alt', 'md': 'fas fa-file-alt', 'log': 'fas fa-file-alt'
+            };
+            
+            return iconMap[ext] || 'fas fa-file';
+        };
+        
         // Helper function to format date
         const formatDate = (dateString) => {
             const date = new Date(dateString);
@@ -123,7 +153,7 @@ Object.assign(SypnexOS.prototype, {
                         fileElement.className = 'file-item';
                         fileElement.dataset.path = item.path;
                         
-                        const icon = item.is_directory ? 'fas fa-folder' : 'fas fa-file';
+                        const icon = getFileIcon(item.name, item.is_directory);
                         const iconClass = item.is_directory ? 'folder' : 'file';
                         const size = item.is_directory ? '--' : formatFileSize(item.size);
                         const modified = formatDate(item.updated_at);
@@ -134,17 +164,17 @@ Object.assign(SypnexOS.prototype, {
                                     <i class="${icon}"></i>
                                 </div>
                                 <div class="file-details">
-                                    <div class="file-name">${item.name}</div>
-                                    <div class="file-meta">${size} • Modified ${modified}</div>
+                                    <div class="file-name" title="${item.name}">${item.name}</div>
+                                    <div class="file-meta" title="${size} • Modified ${modified}">${size}</div>
                                 </div>
                             </div>
                             <div class="file-actions">
                                 ${item.is_directory ? 
-                                    '<button class="file-action-btn open">Open</button><button class="file-action-btn rename">Rename</button>' : 
-                                    '<button class="file-action-btn rename">Rename</button>'
+                                    '<button class="file-action-btn open" title="Open"><i class="fas fa-folder-open"></i></button><button class="file-action-btn rename" title="Rename"><i class="fas fa-edit"></i></button>' : 
+                                    '<button class="file-action-btn rename" title="Rename"><i class="fas fa-edit"></i></button>'
                                 }
-                                ${!item.is_directory ? '<button class="file-action-btn download">Download</button>' : ''}
-                                <button class="file-action-btn delete">Delete</button>
+                                ${!item.is_directory ? '<button class="file-action-btn download" title="Download"><i class="fas fa-download"></i></button>' : ''}
+                                <button class="file-action-btn delete" title="Delete"><i class="fas fa-trash"></i></button>
                             </div>
                         `;
                         
