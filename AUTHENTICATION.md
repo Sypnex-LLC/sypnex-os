@@ -54,6 +54,11 @@ The `docker-compose.yml` includes demo credentials for testing:
 - **Username:** `demo`
 - **Password:** `demo123`
 
+**⚠️ Important Notes:**
+- Change the demo credentials for production use!
+- When adding bcrypt hashes to `docker-compose.yml`, escape dollar signs by doubling them (`$$`)
+- Example: `$2b$12$hash...` becomes `$$2b$$12$$hash...` in docker-compose.yml
+
 **⚠️ Change these for production use!**
 
 ## Security Notes

@@ -18,7 +18,7 @@ services:
       - PYTHONPATH=/app
       # Authentication users (username:bcrypt_hashed_password)
       # Demo user with password: demo123
-      - AUTH_USER_1=demo:$2b$12$fmHQckTV.N5z9sFT/4.kM.M24aqSJIqbUAKBcJwJHGoNP9nr32gJC
+      - AUTH_USER_1=demo:$$2b$$12$$fmHQckTV.N5z9sFT/4.kM.M24aqSJIqbUAKBcJwJHGoNP9nr32gJC
       - INSTANCE_NAME=docker-demo-instance
       - SESSION_SECRET_KEY=docker-super-secret-session-key-change-me
     restart: unless-stopped
