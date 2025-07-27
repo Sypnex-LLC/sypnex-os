@@ -5,6 +5,21 @@
     align-items: center;
 }
 
+/* Make app-content fill available height */
+.app-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* Make app-section take all available space */
+.app-section {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0; /* Important for flex child to shrink */
+}
+
 .breadcrumb-container {
     margin-bottom: 15px;
     padding: 10px;
@@ -40,15 +55,20 @@
     border-radius: 12px;
     border: 1px solid var(--glass-border);
     overflow: hidden;
+    flex: 1; /* Take all remaining space */
+    display: flex;
+    flex-direction: column;
+    min-height: 0; /* Important for flex child to shrink */
 }
 
 .file-list {
-    max-height: 500px;
+    flex: 1;
     overflow-y: auto;
     padding: 15px;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
     gap: 15px;
+    align-content: start;
 }
 
 .file-item {
@@ -95,59 +115,57 @@
     align-items: center;
     justify-content: center;
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.05);
+    background: transparent;
     transition: all 0.3s ease;
 }
 
 .file-icon.folder {
-    color: #ffd700;
-    background: rgba(255, 215, 0, 0.1);
+    color: var(--accent-color);
 }
 
 .file-icon.file {
-    color: var(--accent-color);
-    background: rgba(0, 212, 255, 0.1);
+    color: var(--text-primary);
 }
 
-/* File type specific colors */
+/* File type specific colors - using OS consistent colors */
 .file-icon.file .fa-file-pdf {
-    color: #e74c3c;
+    color: var(--accent-color);
 }
 
 .file-icon.file .fa-file-word {
-    color: #2980b9;
+    color: var(--accent-color);
 }
 
 .file-icon.file .fa-file-excel {
-    color: #27ae60;
+    color: var(--accent-color);
 }
 
 .file-icon.file .fa-file-powerpoint {
-    color: #e67e22;
+    color: var(--accent-color);
 }
 
 .file-icon.file .fa-file-code {
-    color: #9b59b6;
+    color: var(--accent-color);
 }
 
 .file-icon.file .fa-file-archive {
-    color: #f39c12;
+    color: var(--accent-color);
 }
 
 .file-icon.file .fa-file-video {
-    color: #e91e63;
+    color: var(--accent-color);
 }
 
 .file-icon.file .fa-file-audio {
-    color: #ff5722;
+    color: var(--accent-color);
 }
 
 .file-icon.file .fa-image {
-    color: #4caf50;
+    color: var(--accent-color);
 }
 
 .file-icon.file .fa-file-alt {
-    color: #607d8b;
+    color: var(--accent-color);
 }
 
 .file-item:hover .file-icon {
@@ -411,10 +429,51 @@
     transform: translateY(-1px);
 }
 
+/* Status section within app container */
+.vfs-status-section {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    padding: 10px 15px;
+    margin-top: 15px;
+}
+
+.vfs-stats-display {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    color: var(--text-secondary);
+    font-weight: 400;
+    font-size: 0.85em;
+}
+
+.vfs-stat-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.vfs-stat-label {
+    color: var(--text-secondary);
+}
+
+.vfs-stat-value {
+    color: var(--accent-color);
+    font-weight: 600;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
-    .status-summary {
-        grid-template-columns: repeat(2, 1fr);
+    .vfs-stats-display {
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+    
+    .vfs-stat-item {
+        font-size: 0.8em;
+        gap: 4px;
     }
     
     .header-actions {

@@ -6,7 +6,7 @@ Object.assign(SypnexOS.prototype, {
     setupVirtualFileSystem(windowElement) {
         const fileList = windowElement.querySelector('.file-list');
         const refreshBtn = windowElement.querySelector('.refresh-files');
-        const statusSummary = windowElement.querySelector('.status-summary');
+        const statusSummary = windowElement.querySelector('.vfs-stats-display');
         const breadcrumb = windowElement.querySelector('.breadcrumb');
         const createFolderBtn = windowElement.querySelector('.create-folder');
         const uploadFileBtn = windowElement.querySelector('.upload-file');
@@ -72,21 +72,21 @@ Object.assign(SypnexOS.prototype, {
                 
                 if (statusSummary) {
                     statusSummary.innerHTML = `
-                        <div class="status-item">
-                            <span class="status-label">Total Items:</span>
-                            <span class="status-value">${stats.total_items}</span>
+                        <div class="vfs-stat-item">
+                            <span class="vfs-stat-label">Items:</span>
+                            <span class="vfs-stat-value">${stats.total_items}</span>
                         </div>
-                        <div class="status-item">
-                            <span class="status-label">Files:</span>
-                            <span class="status-value">${stats.total_files}</span>
+                        <div class="vfs-stat-item">
+                            <span class="vfs-stat-label">Files:</span>
+                            <span class="vfs-stat-value">${stats.total_files}</span>
                         </div>
-                        <div class="status-item">
-                            <span class="status-label">Folders:</span>
-                            <span class="status-value">${stats.total_directories}</span>
+                        <div class="vfs-stat-item">
+                            <span class="vfs-stat-label">Folders:</span>
+                            <span class="vfs-stat-value">${stats.total_directories}</span>
                         </div>
-                        <div class="status-item">
-                            <span class="status-label">Total Size:</span>
-                            <span class="status-value">${formatFileSize(stats.total_size)}</span>
+                        <div class="vfs-stat-item">
+                            <span class="vfs-stat-label">Size:</span>
+                            <span class="vfs-stat-value">${formatFileSize(stats.total_size)}</span>
                         </div>
                     `;
                 }
