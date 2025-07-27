@@ -2,6 +2,7 @@
 Virtual file system routes for the Sypnex OS application
 """
 from flask import request, jsonify, Response
+from virtual_file_manager import validate_filename
 
 def register_virtual_file_routes(app, managers):
     """Register virtual file system routes"""
@@ -50,6 +51,11 @@ def register_virtual_file_routes(app, managers):
             if not folder_name:
                 return jsonify({'error': 'Folder name is required'}), 400
             
+            # Validate folder name
+            is_valid, error_message = validate_filename(folder_name)
+            if not is_valid:
+                return jsonify({'error': error_message}), 400
+            
             # Construct full path
             if parent_path == '/':
                 full_path = f'/{folder_name}'
@@ -85,6 +91,11 @@ def register_virtual_file_routes(app, managers):
             
             if not file_name:
                 return jsonify({'error': 'File name is required'}), 400
+            
+            # Validate file name
+            is_valid, error_message = validate_filename(file_name)
+            if not is_valid:
+                return jsonify({'error': error_message}), 400
             
             # Construct full path
             if parent_path == '/':
@@ -123,6 +134,11 @@ def register_virtual_file_routes(app, managers):
             # Get file content
             file_content = file.read()
             file_name = file.filename
+            
+            # Validate file name
+            is_valid, error_message = validate_filename(file_name)
+            if not is_valid:
+                return jsonify({'error': error_message}), 400
             
             # Construct full path
             if parent_path == '/':
@@ -248,6 +264,12 @@ def register_virtual_file_routes(app, managers):
                 old_path = '/' + old_path
             if not new_path.startswith('/'):
                 new_path = '/' + new_path
+            
+            # Extract the new filename from the new path and validate it
+            new_filename = new_path.split('/')[-1]
+            is_valid, error_message = validate_filename(new_filename)
+            if not is_valid:
+                return jsonify({'error': error_message}), 400
             
             # Check if source exists
             source_info = managers['virtual_file_manager'].get_file_info(old_path)

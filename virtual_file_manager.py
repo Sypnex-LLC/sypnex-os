@@ -15,6 +15,59 @@ import threading
 from pathlib import Path
 
 
+def validate_filename(filename: str) -> tuple[bool, str]:
+    """
+    Validate a filename for the virtual file system.
+    
+    Args:
+        filename: The filename to validate
+        
+    Returns:
+        tuple: (is_valid, error_message)
+               If valid: (True, "")
+               If invalid: (False, "Error description")
+    """
+    if not filename:
+        return False, "Filename cannot be empty"
+    
+    # Check filename length (255 character limit)
+    if len(filename) > 255:
+        return False, f"Filename too long ({len(filename)} characters). Maximum length is 255 characters"
+    
+    # Check for non-ASCII characters (block unicode)
+    for char in filename:
+        if ord(char) > 127:
+            return False, f"Filename contains non-ASCII character: {char}"
+    
+    # Check for control characters (0-31 and 127)
+    for char in filename:
+        if ord(char) < 32 or ord(char) == 127:
+            return False, f"Filename contains invalid control character: {repr(char)}"
+    
+    # Check for reserved characters
+    reserved_chars = ['<', '>', ':', '"', '|', '?', '*', '\\']
+    for char in reserved_chars:
+        if char in filename:
+            return False, f"Filename contains reserved character: {char}"
+    
+    # Check for leading/trailing spaces or dots
+    if filename.startswith(' ') or filename.endswith(' '):
+        return False, "Filename cannot start or end with spaces"
+    
+    if filename.startswith('.') or filename.endswith('.'):
+        return False, "Filename cannot start or end with dots"
+    
+    # Check for path traversal attempts
+    if '..' in filename:
+        return False, "Filename cannot contain '..' (path traversal prevention)"
+    
+    # Check for forward slash (path separator)
+    if '/' in filename:
+        return False, "Filename cannot contain '/' (path separator)"
+    
+    return True, ""
+
+
 class VirtualFileManager:
     """
     Manages a virtual file system stored entirely in SQLite.
