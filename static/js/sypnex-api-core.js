@@ -909,6 +909,189 @@ class SypnexAPI {
             document.addEventListener('keydown', escapeHandler);
         });
     }
+
+    /**
+     * Create a hamburger menu with customizable items
+     * @param {HTMLElement} container - The container element to append the menu to
+     * @param {Array} menuItems - Array of menu item objects
+     * @param {object} [options={}] - Configuration options
+     * @param {string} [options.position='right'] - Position of menu ('left' or 'right')
+     * @param {string} [options.buttonClass=''] - Additional CSS classes for the button
+     * @param {string} [options.menuId=''] - Custom ID for the menu (auto-generated if not provided)
+     * @returns {object} Object with methods to control the menu
+     * 
+     * @example
+     * const menuItems = [
+     *   { icon: 'fas fa-sync-alt', text: 'Refresh', action: () => console.log('Refresh') },
+     *   { icon: 'fas fa-folder-plus', text: 'New Folder', action: () => console.log('New Folder') },
+     *   { type: 'separator' },
+     *   { icon: 'fas fa-upload', text: 'Upload File', action: () => console.log('Upload') }
+     * ];
+     * 
+     * const menu = sypnexAPI.createHamburgerMenu(container, menuItems, { position: 'right' });
+     */
+    createHamburgerMenu(container, menuItems, options = {}) {
+        const {
+            position = 'right',
+            buttonClass = '',
+            menuId = `hamburger-menu-${Date.now()}`
+        } = options;
+
+        // Create hamburger button
+        const hamburgerBtn = document.createElement('button');
+        hamburgerBtn.className = `hamburger-btn ${buttonClass}`;
+        hamburgerBtn.innerHTML = '<i class="fas fa-bars"></i>';
+        hamburgerBtn.style.cssText = `
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 6px;
+            padding: 8px 12px;
+            cursor: pointer;
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+            backdrop-filter: blur(10px);
+        `;
+
+        // Create dropdown menu
+        const dropdownMenu = document.createElement('div');
+        dropdownMenu.id = menuId;
+        dropdownMenu.className = 'sypnex-dropdown-menu';
+        dropdownMenu.style.cssText = `
+            display: none;
+            position: absolute;
+            ${position}: 0;
+            top: 100%;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            z-index: 9999;
+            min-width: 180px;
+            width: 180px;
+            max-height: 70vh;
+            overflow-y: auto;
+            padding: 0;
+            margin-top: 4px;
+            backdrop-filter: blur(10px);
+        `;
+
+        // Populate menu items
+        menuItems.forEach(item => {
+            if (item.type === 'separator') {
+                const separator = document.createElement('div');
+                separator.style.cssText = `
+                    height: 1px;
+                    background: var(--glass-border);
+                    margin: 4px 0;
+                `;
+                dropdownMenu.appendChild(separator);
+            } else {
+                const menuItem = document.createElement('button');
+                menuItem.className = 'sypnex-menu-item';
+                menuItem.innerHTML = `
+                    <i class="${item.icon}" style="width: 16px; margin-right: 10px;"></i>
+                    ${item.text}
+                `;
+                menuItem.style.cssText = `
+                    display: flex;
+                    align-items: center;
+                    width: 100%;
+                    padding: 10px 16px;
+                    background: none;
+                    border: none;
+                    text-align: left;
+                    color: var(--text-primary);
+                    cursor: pointer;
+                    transition: background-color 0.2s ease;
+                    font-size: 14px;
+                `;
+
+                menuItem.addEventListener('mouseenter', () => {
+                    menuItem.style.background = 'var(--glass-hover)';
+                });
+
+                menuItem.addEventListener('mouseleave', () => {
+                    menuItem.style.background = 'none';
+                });
+
+                menuItem.addEventListener('click', () => {
+                    if (typeof item.action === 'function') {
+                        item.action();
+                    }
+                    hideMenu();
+                });
+
+                dropdownMenu.appendChild(menuItem);
+            }
+        });
+
+        // Setup container with relative positioning
+        if (container.style.position !== 'relative' && container.style.position !== 'absolute') {
+            container.style.position = 'relative';
+        }
+
+        // Append elements to container
+        container.appendChild(hamburgerBtn);
+        container.appendChild(dropdownMenu);
+
+        // Show/hide functionality
+        const showMenu = () => {
+            dropdownMenu.style.display = 'block';
+            hamburgerBtn.style.background = 'var(--glass-hover)';
+        };
+
+        const hideMenu = () => {
+            dropdownMenu.style.display = 'none';
+            hamburgerBtn.style.background = 'var(--glass-bg)';
+        };
+
+        const toggleMenu = () => {
+            if (dropdownMenu.style.display === 'none' || dropdownMenu.style.display === '') {
+                showMenu();
+            } else {
+                hideMenu();
+            }
+        };
+
+        // Event listeners
+        hamburgerBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleMenu();
+        });
+
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!container.contains(e.target)) {
+                hideMenu();
+            }
+        });
+
+        // Hover effects for button
+        hamburgerBtn.addEventListener('mouseenter', () => {
+            if (dropdownMenu.style.display === 'none' || dropdownMenu.style.display === '') {
+                hamburgerBtn.style.background = 'var(--glass-hover)';
+            }
+        });
+
+        hamburgerBtn.addEventListener('mouseleave', () => {
+            if (dropdownMenu.style.display === 'none' || dropdownMenu.style.display === '') {
+                hamburgerBtn.style.background = 'var(--glass-bg)';
+            }
+        });
+
+        // Return control object
+        return {
+            show: showMenu,
+            hide: hideMenu,
+            toggle: toggleMenu,
+            button: hamburgerBtn,
+            menu: dropdownMenu,
+            destroy: () => {
+                hamburgerBtn.remove();
+                dropdownMenu.remove();
+            }
+        };
+    }
 }
 
 // Export for use in modules (if supported)

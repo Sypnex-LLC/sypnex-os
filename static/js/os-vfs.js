@@ -5,11 +5,9 @@
 Object.assign(SypnexOS.prototype, {
     setupVirtualFileSystem(windowElement) {
         const fileList = windowElement.querySelector('.file-list');
-        const refreshBtn = windowElement.querySelector('.refresh-files');
         const statusSummary = windowElement.querySelector('.vfs-stats-display');
         const breadcrumb = windowElement.querySelector('.breadcrumb');
-        const createFolderBtn = windowElement.querySelector('.create-folder');
-        const uploadFileBtn = windowElement.querySelector('.upload-file');
+        const breadcrumbActions = windowElement.querySelector('.breadcrumb-actions');
         
         // Check if required elements exist
         if (!fileList) {
@@ -18,6 +16,10 @@ Object.assign(SypnexOS.prototype, {
         }
         
         let currentPath = '/';
+        let hamburgerMenu = null;
+        
+        // Create a temporary SypnexAPI instance to use the hamburger menu
+        const tempAPI = new window.SypnexAPI('virtual-file-system');
         
         // Helper function to format file size
         const formatFileSize = (bytes) => {
@@ -398,86 +400,112 @@ Object.assign(SypnexOS.prototype, {
             }
         };
         
-        // Setup modal handlers
-        const setupModals = () => {
-            // Create folder functionality with SypnexAPI modal
-            if (createFolderBtn) {
-                createFolderBtn.addEventListener('click', async () => {
-                    const tempAPI = new SypnexAPI();
-                    const folderName = await tempAPI.showInputModal(
-                        'Create New Folder',
-                        'Folder Name:',
-                        {
-                            placeholder: 'Enter folder name',
-                            confirmText: 'Create Folder',
-                            icon: 'fas fa-folder-plus'
-                        }
-                    );
-                    
-                    if (folderName) {
-                        try {
-                            const response = await fetch('/api/virtual-files/create-folder', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    name: folderName,
-                                    parent_path: currentPath
-                                })
-                            });
-                            
-                            if (response.ok) {
-                                this.showNotification(`Folder ${folderName} created successfully`, 'success');
-                                loadFiles();
-                                loadStats();
-                            } else {
-                                const error = await response.json();
-                                this.showNotification(`Error creating folder: ${error.error}`, 'error');
-                            }
-                        } catch (error) {
-                            console.error('Error creating folder:', error);
-                            this.showNotification('Error creating folder', 'error');
-                        }
-                    }
-                });
-            }
+        // Refresh files function
+        const refreshFiles = () => {
+            loadStats();
+            loadFiles();
+        };
+
+        // Create folder function
+        const createFolder = async () => {
+            const folderName = await tempAPI.showInputModal(
+                'Create New Folder',
+                'Folder Name:',
+                {
+                    placeholder: 'Enter folder name',
+                    confirmText: 'Create Folder',
+                    icon: 'fas fa-folder-plus'
+                }
+            );
             
-            // Upload file functionality with SypnexAPI modal
-            if (uploadFileBtn) {
-                uploadFileBtn.addEventListener('click', async () => {
-                    const tempAPI = new SypnexAPI();
-                    const selectedFile = await tempAPI.showFileUploadModal(
-                        'Upload File',
-                        'Select File:',
-                        {
-                            confirmText: 'Upload File',
-                            icon: 'fas fa-upload'
-                        }
-                    );
+            if (folderName) {
+                try {
+                    const response = await fetch('/api/virtual-files/create-folder', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            name: folderName,
+                            parent_path: currentPath
+                        })
+                    });
                     
-                    if (selectedFile) {
-                        try {
-                            const formData = new FormData();
-                            formData.append('file', selectedFile);
-                            formData.append('parent_path', currentPath);
-                            
-                            const response = await fetch('/api/virtual-files/upload-file', {
-                                method: 'POST',
-                                body: formData
-                            });
-                            
-                            if (response.ok) {
-                                this.showNotification(`File ${selectedFile.name} uploaded successfully`, 'success');
-                                loadFiles();
-                                loadStats();
-                            } else {
-                                const error = await response.json();
-                                this.showNotification(`Error uploading file: ${error.error}`, 'error');
-                            }
-                        } catch (error) {
-                            console.error('Error uploading file:', error);
-                            this.showNotification('Error uploading file', 'error');
-                        }
+                    if (response.ok) {
+                        this.showNotification(`Folder ${folderName} created successfully`, 'success');
+                        loadFiles();
+                        loadStats();
+                    } else {
+                        const error = await response.json();
+                        this.showNotification(`Error creating folder: ${error.error}`, 'error');
                     }
+                } catch (error) {
+                    console.error('Error creating folder:', error);
+                    this.showNotification('Error creating folder', 'error');
+                }
+            }
+        };
+
+        // Upload file function
+        const uploadFile = async () => {
+            const selectedFile = await tempAPI.showFileUploadModal(
+                'Upload File',
+                'Select File:',
+                {
+                    confirmText: 'Upload File',
+                    icon: 'fas fa-upload'
+                }
+            );
+            
+            if (selectedFile) {
+                try {
+                    const formData = new FormData();
+                    formData.append('file', selectedFile);
+                    formData.append('parent_path', currentPath);
+                    
+                    const response = await fetch('/api/virtual-files/upload-file', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (response.ok) {
+                        this.showNotification(`File ${selectedFile.name} uploaded successfully`, 'success');
+                        loadFiles();
+                        loadStats();
+                    } else {
+                        const error = await response.json();
+                        this.showNotification(`Error uploading file: ${error.error}`, 'error');
+                    }
+                } catch (error) {
+                    console.error('Error uploading file:', error);
+                    this.showNotification('Error uploading file', 'error');
+                }
+            }
+        };
+
+        // Setup hamburger menu
+        const setupHamburgerMenu = () => {
+            if (breadcrumbActions) {
+                const menuItems = [
+                    {
+                        icon: 'fas fa-sync-alt',
+                        text: 'Refresh',
+                        action: refreshFiles
+                    },
+                    { type: 'separator' },
+                    {
+                        icon: 'fas fa-folder-plus',
+                        text: 'New Folder',
+                        action: createFolder
+                    },
+                    {
+                        icon: 'fas fa-upload',
+                        text: 'Upload File',
+                        action: uploadFile
+                    }
+                ];
+
+                hamburgerMenu = tempAPI.createHamburgerMenu(breadcrumbActions, menuItems, {
+                    position: 'right',
+                    buttonClass: 'vfs-menu-btn'
                 });
             }
         };
@@ -486,14 +514,6 @@ Object.assign(SypnexOS.prototype, {
         loadStats();
         loadFiles();
         updateBreadcrumb();
-        setupModals();
-        
-        // Refresh button
-        if (refreshBtn) {
-            refreshBtn.addEventListener('click', () => {
-                loadStats();
-                loadFiles();
-            });
-        }
+        setupHamburgerMenu();
     }
 }); 

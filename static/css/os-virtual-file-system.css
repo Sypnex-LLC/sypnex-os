@@ -26,12 +26,22 @@
     background: var(--glass-bg);
     border-radius: 8px;
     border: 1px solid var(--glass-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .breadcrumb {
     display: flex;
     align-items: center;
     gap: 8px;
+    flex: 1;
+}
+
+.breadcrumb-actions {
+    display: flex;
+    align-items: center;
+    position: relative;
 }
 
 .breadcrumb-item {
@@ -530,4 +540,32 @@
         height: 24px;
         font-size: 0.7em;
     }
+}
+
+/* VFS Hamburger Menu Styles */
+.vfs-menu-btn {
+    min-width: 40px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.vfs-menu-btn:hover {
+    transform: scale(1.05);
+}
+
+.sypnex-dropdown-menu {
+    margin-top: 8px !important;
+}
+
+.sypnex-menu-item {
+    white-space: nowrap;
+    min-height: 36px;
+}
+
+.sypnex-menu-item i {
+    color: var(--accent-color);
+    min-width: 16px;
+    text-align: center;
 }
