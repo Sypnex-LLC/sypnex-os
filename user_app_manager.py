@@ -53,71 +53,7 @@ class UserAppManager:
         
         # Source: VFS installed apps only (local discovery disabled)
         self._discover_from_vfs()
-        
-        print(f"✅ Discovery complete: {len(self.user_apps)} user apps")
-        """Discover apps from local user_apps directory (legacy)"""
-        if not os.path.exists(self.user_apps_dir):
-            print(f"📁 Local user apps directory '{self.user_apps_dir}' not found")
-            return
-        
-        print(f"📁 Scanning local directory: {self.user_apps_dir}")
-        
-        # Scan each subdirectory in user_apps
-        for app_dir in os.listdir(self.user_apps_dir):
-            app_path = os.path.join(self.user_apps_dir, app_dir)
-            
-            if not os.path.isdir(app_path):
-                continue
-            
-            # Look for .app metadata file
-            app_metadata_file = os.path.join(app_path, f"{app_dir}.app")
-            app_html_file = os.path.join(app_path, f"{app_dir}.html")
-            
-            if not os.path.exists(app_metadata_file):
-                print(f"⚠️  Warning: No metadata file found for {app_dir}")
-                continue
-            
-            try:
-                # Load metadata
-                with open(app_metadata_file, 'r', encoding='utf-8') as f:
-                    metadata = json.load(f)
-                
-                # Validate required fields
-                required_fields = ['id', 'name', 'description', 'icon']
-                for field in required_fields:
-                    if field not in metadata:
-                        print(f"⚠️  Warning: Missing required field '{field}' in {app_dir}")
-                        continue
-                
-                app_id = metadata.get('id', '')
-                
-                # Add source information
-                metadata['source'] = 'local'
-                metadata['source_path'] = app_path
-                
-                # Handle regular user app
-                packed_html_file = self.pack_app(app_dir, app_path)
-                if packed_html_file and os.path.exists(packed_html_file):
-                    metadata['template'] = f"user_apps/{app_dir}/{app_dir}.html"
-                    metadata['type'] = 'user_app'
-                    metadata['html_file_path'] = packed_html_file
-                    metadata['is_packed'] = True
-                    self.user_apps[app_id] = metadata
-                    print(f"📱 Loaded local user app: {metadata['name']} ({app_id})")
-                elif os.path.exists(app_html_file):
-                    metadata['template'] = f"user_apps/{app_dir}/{app_dir}.html"
-                    metadata['type'] = 'user_app'
-                    metadata['html_file_path'] = app_html_file
-                    metadata['is_packed'] = False
-                    self.user_apps[app_id] = metadata
-                    print(f"📱 Loaded local user app: {metadata['name']} ({app_id})")
-                else:
-                    print(f"⚠️  Warning: No HTML file found for {app_dir}")
-                
-            except json.JSONDecodeError as e:
-                print(f"❌ Error parsing metadata for {app_dir}: {e}")
-            except Exception as e:
-                print(f"❌ Error loading user app {app_dir}: {e}")
+        print(f"📱 Found {len(self.user_apps)} user apps")
     
     def _discover_from_vfs(self):
         """Discover apps stored in VFS"""

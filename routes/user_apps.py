@@ -84,9 +84,6 @@ def register_user_app_routes(app, managers):
                         package_data = json.load(f)
                         app_name = package_data.get('app_metadata', {}).get('name', 'Unknown App')
                     
-                    # Refresh terminal manager to pick up new terminal apps
-                    managers['terminal_manager'].refresh_user_apps()
-                    
                     return jsonify({
                         'message': 'App installed successfully',
                         'app_name': app_name
@@ -140,9 +137,6 @@ def register_user_app_routes(app, managers):
                     except:
                         app_name = app_id
                     
-                    # Refresh terminal manager to pick up any changes
-                    managers['terminal_manager'].refresh_user_apps()
-                    
                     return jsonify({
                         'message': 'App updated successfully',
                         'app_name': app_name,
@@ -188,9 +182,6 @@ def register_user_app_routes(app, managers):
             success = managers['virtual_file_manager'].delete_path(app_vfs_path)
             
             if success:
-                # Refresh terminal manager to remove uninstalled terminal apps
-                managers['terminal_manager'].refresh_user_apps()
-                
                 return jsonify({
                     'message': 'App uninstalled successfully',
                     'app_name': app_name

@@ -62,7 +62,6 @@ class AutoSwaggerConfig:
                 {"name": "User Apps", "description": "User application management"},
                 {"name": "Events", "description": "Event bus endpoints"},
                 {"name": "WebSocket", "description": "WebSocket communication endpoints"},
-                {"name": "Terminal", "description": "Terminal and command endpoints"},
                 {"name": "Services", "description": "Service management endpoints"},
                 {"name": "Preferences", "description": "User preferences and settings"},
                 {"name": "Virtual Files", "description": "Virtual file system management endpoints"}
@@ -172,8 +171,6 @@ class AutoSwaggerConfig:
             return "Events"
         elif 'websocket' in endpoint_lower or 'websocket_service' in endpoint_lower:
             return "WebSocket"
-        elif 'terminal' in endpoint_lower:
-            return "Terminal"
         elif 'service' in endpoint_lower:
             return "Services"
         elif 'preference' in endpoint_lower or 'setting' in endpoint_lower:

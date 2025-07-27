@@ -26,9 +26,6 @@ managers = initialize_managers()
 # Initialize system (load requirements, discover plugins, etc.)
 managers = initialize_system(managers)
 
-# Register terminal manager routes
-managers['terminal_manager'].register_routes(app)
-
 # Register websocket routes
 managers['websocket_manager'].register_routes(app)
 
@@ -97,7 +94,6 @@ def serve_bundled_os():
         "os-taskbar.js",
         "os-status.js",
         "os-dashboard.js",
-        "os-terminal.js",
         "os-vfs.js",
         "os-resource-manager.js",
         "os-app-manager.js",
@@ -175,7 +171,6 @@ def serve_bundled_sypnex_api():
         "sypnex-api-vfs.js",
         "sypnex-api-libraries.js",
         "sypnex-api-file-explorer.js",
-        "sypnex-api-terminal.js",
         "sypnex-api-logs.js",
         "sypnex-api-app-management.js",
         "sypnex-api-network.js",
@@ -244,7 +239,6 @@ def serve_bundled_css():
         ("os-resource-manager.css", "resource-manager"),
         ("os-virtual-file-system.css", "virtual-file-system"),
         ("os-user-app-manager.css", "user-app-manager"),
-        ("os-terminal.css", "terminal"),
         ("os-system-settings.css", "system-settings")
     ]
     
@@ -292,8 +286,6 @@ def serve_bundled_css():
     response.headers['Last-Modified'] = __import__('datetime').datetime.now().strftime('%a, %d %b %Y %H:%M:%S GMT')
     
     return response
-
-# Register terminal manager routes
 
 if __name__ == '__main__':
     # Use SocketIO for WebSocket support

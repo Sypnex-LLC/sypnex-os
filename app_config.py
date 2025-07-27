@@ -6,7 +6,6 @@ from flask_cors import CORS
 from user_app_manager import UserAppManager
 from user_preferences import UserPreferences
 from websocket_manager import WebSocketManager
-from terminal_manager import TerminalManager
 from service_manager import get_service_manager
 from virtual_file_manager import get_virtual_file_manager
 from system_boot_manager import get_system_boot_manager
@@ -137,14 +136,6 @@ BUILTIN_APPS = {
         'keywords': ['settings', 'preferences', 'system', 'config', 'options'],
         'template': 'apps/system-settings.html'
     },
-    'terminal': {
-        'id': 'terminal',
-        'name': 'Terminal',
-        'icon': 'fas fa-terminal',
-        'description': 'Command line interface with extensible command system',
-        'keywords': ['terminal', 'command', 'cli', 'shell'],
-        'template': 'apps/terminal.html'
-    },
     'virtual-file-system': {
         'id': 'virtual-file-system',
         'name': 'Virtual File System',
@@ -213,9 +204,6 @@ def initialize_managers():
     user_app_manager = UserAppManager(logs_manager)
     user_preferences = UserPreferences(logs_manager)
     websocket_manager = WebSocketManager(logs_manager)
-    
-    # Terminal manager depends on other managers, so initialize it last
-    terminal_manager = TerminalManager(user_app_manager, websocket_manager, logs_manager)
 
     # Initialize service manager with logger and VFS manager
     service_manager = get_service_manager(logs_manager, virtual_file_manager)
@@ -224,7 +212,6 @@ def initialize_managers():
         'user_app_manager': user_app_manager,
         'user_preferences': user_preferences,
         'websocket_manager': websocket_manager,
-        'terminal_manager': terminal_manager,
         'service_manager': service_manager,
         'virtual_file_manager': virtual_file_manager,
         'logs_manager': logs_manager
