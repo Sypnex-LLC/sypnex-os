@@ -26,7 +26,15 @@ Object.assign(SypnexOS.prototype, {
                 this.saveDeveloperMode(e.target.checked);
             });
         }
-        
+
+        // Show notifications toggle
+        const showNotificationsToggle = windowElement.querySelector('#show-notifications-toggle');
+        if (showNotificationsToggle) {
+            showNotificationsToggle.addEventListener('change', (e) => {
+                this.saveShowNotifications(e.target.checked);
+            });
+        }
+
         // Reset OS button
         const resetOsBtn = windowElement.querySelector('#reset-os-btn');
         if (resetOsBtn) {
@@ -130,6 +138,15 @@ Object.assign(SypnexOS.prototype, {
             if (developerModeToggle) {
                 developerModeToggle.checked = data.value === 'true';
             }
+
+            // Load show notifications setting
+            const notificationResponse = await fetch('/api/preferences/ui/show_notifications');
+            const notificationData = await notificationResponse.json();
+            
+            const showNotificationsToggle = windowElement.querySelector('#show-notifications-toggle');
+            if (showNotificationsToggle) {
+                showNotificationsToggle.checked = notificationData.value !== 'false'; // Default to true
+            }
             
             // Load app scale setting
             const scaleResponse = await fetch('/api/preferences/ui/app_scale');
@@ -205,6 +222,35 @@ Object.assign(SypnexOS.prototype, {
             if (developerModeToggle) {
                 developerModeToggle.checked = !enabled;
             }
+        }
+    },
+
+    async saveShowNotifications(enabled) {
+        try {
+            const response = await fetch('/api/preferences/ui/show_notifications', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    value: enabled.toString()
+                })
+            });
+            
+            if (response.ok) {
+                // Only show notification if notifications are being enabled
+                // If disabling, don't show the notification (that would be annoying!)
+                if (enabled) {
+                    this.showNotification('Notifications enabled', 'success');
+                }
+            } else {
+                throw new Error('Failed to save notification setting');
+            }
+            
+        } catch (error) {
+            console.error('Error saving notification setting:', error);
+            // Always show error notifications regardless of setting
+            this.showNotification('Failed to save notification setting', 'error');
         }
     },
     

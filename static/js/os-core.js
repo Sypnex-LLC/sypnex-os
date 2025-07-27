@@ -287,7 +287,23 @@ class SypnexOS {
         }
     }
 
-    showNotification(message, type = 'info') {
+    async showNotification(message, type = 'info') {
+        // Check if notifications are disabled (except for errors, which should always show)
+        if (type !== 'error') {
+            try {
+                const response = await fetch('/api/preferences/ui/show_notifications');
+                const data = await response.json();
+                
+                // If notifications are disabled, don't show anything
+                if (data.value === 'false') {
+                    return;
+                }
+            } catch (error) {
+                // If we can't check the preference, default to showing notifications
+                console.warn('Could not check notification preference, showing notification anyway:', error);
+            }
+        }
+
         // Create notification element
         const notification = document.createElement('div');
         notification.className = `notification notification-${type}`;
