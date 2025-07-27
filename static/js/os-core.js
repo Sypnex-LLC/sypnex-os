@@ -144,6 +144,9 @@ class SypnexOS {
             } else if ((e.metaKey || e.ctrlKey) && e.key === 'm') {
                 e.preventDefault();
                 this.toggleTaskbar();
+            } else if ((e.metaKey || e.ctrlKey) && e.altKey && e.key === 'r') {
+                e.preventDefault();
+                this.resetAllWindows();
             }
         });
 
@@ -605,5 +608,43 @@ class SypnexOS {
         } catch (error) {
             console.error('Error checking welcome screen:', error);
         }
+    }
+
+    resetAllWindows() {
+        /**
+         * Reset all open windows to default size and position
+         * Nuclear option to fix messed up window layouts
+         */
+        if (this.apps.size === 0) {
+            this.showNotification('No windows to reset', 'info');
+            return;
+        }
+
+        let resetCount = 0;
+        
+        // Iterate through all open windows
+        this.apps.forEach((windowElement, appId) => {
+            // Skip minimized windows
+            if (windowElement.dataset.minimized === 'true') {
+                return;
+            }
+
+            // Calculate default position for this window
+            const { x, y, width, height } = this.calculateDefaultWindowPosition(resetCount);
+            
+            // Apply default positioning and sizing
+            windowElement.style.left = `${x}px`;
+            windowElement.style.top = `${y}px`;
+            windowElement.style.width = `${width}px`;
+            windowElement.style.height = `${height}px`;
+            
+            // Ensure window is visible and not maximized
+            windowElement.style.display = 'block';
+            windowElement.classList.remove('maximized');
+            
+            resetCount++;
+        });
+
+        this.showNotification(`Reset ${resetCount} windows to default positions`, 'success');
     }
 }
