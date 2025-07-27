@@ -2,11 +2,6 @@
     <div class="app-header">
         <h2><i class="fas fa-tachometer-alt"></i> Resource Manager</h2>
         <p>Monitor system resources and running applications in real-time</p>
-        <div class="header-actions">
-            <button class="app-btn secondary refresh-resources">
-                <i class="fas fa-sync-alt"></i> Refresh
-            </button>
-        </div>
     </div>
     
     <div class="app-content">
@@ -34,6 +29,26 @@
                     </thead>
                     <tbody class="resource-table-body">
                         <!-- Resource table will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="app-section">
+            <h3>System Services</h3>
+            <div class="resource-table-container">
+                <table class="resource-table">
+                    <thead>
+                        <tr>
+                            <th>Service</th>
+                            <th>Status</th>
+                            <th>Description</th>
+                            <th>Version</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="services-table-body">
+                        <!-- Services table will be populated by JavaScript -->
                     </tbody>
                 </table>
             </div>

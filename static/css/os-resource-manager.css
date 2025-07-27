@@ -66,6 +66,18 @@
     border: 1px solid var(--warning-border);
 }
 
+.status-stopped {
+    background: var(--error-bg);
+    color: var(--error-color);
+    border: 1px solid var(--error-border);
+}
+
+.status-unknown {
+    background: rgba(128, 128, 128, 0.2);
+    color: #888;
+    border: 1px solid rgba(128, 128, 128, 0.3);
+}
+
 .status-error {
     background: var(--error-bg);
     color: var(--error-color);
@@ -92,4 +104,19 @@
     color: var(--text-secondary);
     padding: 40px;
     font-style: italic;
+}
+
+.service-description {
+    color: var(--text-secondary);
+    font-size: 0.9em;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.service-version {
+    color: var(--text-tertiary);
+    font-size: 0.8em;
+    font-family: 'Courier New', monospace;
 }
