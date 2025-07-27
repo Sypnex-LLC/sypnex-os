@@ -75,6 +75,17 @@ def serve_bundled_os():
     Dynamically bundle all os-*.js files in the correct load order
     This replaces loading 10+ individual JavaScript files
     """
+    from flask import request
+    from app_config import validate_session_token
+    
+    # Get session token for bundle injection
+    token = (request.headers.get('X-Session-Token') or 
+            request.cookies.get('session_token'))
+    
+    # Validate session and get actual session token
+    username = validate_session_token(token) if token else None
+    session_token = token if username else 'INVALID_SESSION'
+    
     js_dir = Path(app.static_folder) / 'js'
     
     # Define load order (critical for dependencies)
@@ -98,7 +109,8 @@ def serve_bundled_os():
     ]
     
     bundle_content = "// SYPNEX OS - Dynamically Bundled JavaScript\n"
-    bundle_content += f"// Generated: {__import__('datetime').datetime.now()}\n\n"
+    bundle_content += f"// Generated: {__import__('datetime').datetime.now()}\n"
+    bundle_content += f"// User: {username or 'anonymous'}\n\n"
     
     for js_file in load_order:
         file_path = js_dir / js_file
@@ -112,8 +124,8 @@ def serve_bundled_os():
         else:
             bundle_content += f"// MISSING: {js_file}\n\n"
     
-    # Replace template tokens with actual values
-    bundle_content = bundle_content.replace('{{ACCESS_TOKEN}}', 'testabc')
+    # Replace template tokens with actual session token
+    bundle_content = bundle_content.replace('{{ACCESS_TOKEN}}', session_token)
     
     # Minify the bundle if jsmin is available
     if JSMIN_AVAILABLE:
@@ -139,9 +151,18 @@ def serve_bundled_sypnex_api():
     This replaces loading 8+ individual SypnexAPI modules
     """
     from flask import request
+    from app_config import validate_session_token
     
     # Get bundle parameter, defaults to True
     bundle = request.args.get('bundle', 'true').lower() == 'true'
+    
+    # Get session token for bundle injection
+    token = (request.headers.get('X-Session-Token') or 
+            request.cookies.get('session_token'))
+    
+    # Validate session and get actual session token
+    username = validate_session_token(token) if token else None
+    session_token = token if username else 'INVALID_SESSION'
     
     js_dir = Path(app.static_folder) / 'js'
     
@@ -176,8 +197,8 @@ def serve_bundled_sypnex_api():
         else:
             bundle_content += f"// MISSING: {js_file}\n\n"
     
-    # Replace template tokens with actual values
-    bundle_content = bundle_content.replace('{{ACCESS_TOKEN}}', 'testabc')
+    # Replace template tokens with actual session token
+    bundle_content = bundle_content.replace('{{ACCESS_TOKEN}}', session_token)
     
     # Minify the bundle if jsmin is available AND bundle is True
     if JSMIN_AVAILABLE and bundle:

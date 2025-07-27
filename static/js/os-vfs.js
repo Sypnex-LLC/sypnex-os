@@ -259,9 +259,9 @@ Object.assign(SypnexOS.prototype, {
                 // Create a temporary link element to trigger download
                 const link = document.createElement('a');
                 
-                // Create authenticated URL with token template (will be replaced during bundling)
-                const baseUrl = `/api/virtual-files/serve/${encodeURIComponent(filePath.substring(1))}?token={{ACCESS_TOKEN}}`;
-                link.href = `${baseUrl}&download=true`;
+                // Create download URL (authentication via cookies)
+                const baseUrl = `/api/virtual-files/serve/${encodeURIComponent(filePath.substring(1))}`;
+                link.href = `${baseUrl}?download=true`;
                 
                 link.download = fileName;
                 link.style.display = 'none';

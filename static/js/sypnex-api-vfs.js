@@ -183,7 +183,7 @@ Object.assign(SypnexAPI.prototype, {
      * @returns {string} - Direct URL to serve the file
      */
     getVirtualFileUrl(filePath) {
-        return `${this.baseUrl}/virtual-files/serve/${encodeURIComponent(filePath.substring(1))}?token={{ACCESS_TOKEN}}`;
+        return `${this.baseUrl}/virtual-files/serve/${encodeURIComponent(filePath.substring(1))}`;
     },
     
     /**

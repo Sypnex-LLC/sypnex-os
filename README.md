@@ -155,11 +155,26 @@ cd sypnex-os
 # Install dependencies
 pip install -r requirements.txt
 
+# Set up authentication (create user credentials)
+cp .env.example .env
+python generate_password.py  # Follow prompts to create secure credentials
+
 # Run the application
 python run_dev.py
 
 # Open browser to http://localhost:5000
 ```
+
+### Docker Deployment
+```bash
+# Using docker-compose (includes demo credentials)
+docker-compose up
+
+# Access at http://localhost:5000
+# Demo credentials: username=demo, password=demo123
+```
+
+**⚠️ Security Note**: Change the demo credentials for production use. See [AUTHENTICATION.md](AUTHENTICATION.md) for details.
 
 ## 🤝 Community & Contributing
 

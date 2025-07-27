@@ -17,6 +17,107 @@ import shutil
 import json
 import requests
 import glob
+import hashlib
+import secrets
+import bcrypt
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+# Authentication configuration loaded from environment
+AUTH_CONFIG = {}
+# No more SESSION_STORE - JWT is stateless!
+
+def load_auth_config():
+    """Load authentication configuration from environment variables"""
+    global AUTH_CONFIG
+    
+    AUTH_CONFIG = {
+        'users': {},
+        'instance_name': os.getenv('INSTANCE_NAME', 'default-instance'),
+        'session_secret': os.getenv('SESSION_SECRET_KEY', 'default-secret-change-me')
+    }
+    
+    # Load users from environment (AUTH_USER_1, AUTH_USER_2, etc.)
+    user_count = 1
+    while True:
+        user_env = os.getenv(f'AUTH_USER_{user_count}')
+        if not user_env:
+            break
+        
+        if ':' in user_env:
+            username, password_hash = user_env.split(':', 1)
+            AUTH_CONFIG['users'][username] = password_hash
+            print(f"🔑 Loaded user: {username}")
+        
+        user_count += 1
+    
+    if not AUTH_CONFIG['users']:
+        # No fallback users - if no users configured, authentication is disabled
+        print("❌ ERROR: No users found in environment variables!")
+        print("❌ Please configure AUTH_USER_1, AUTH_USER_2, etc. in your .env file")
+        print("❌ Authentication will fail until users are properly configured")
+        # Do NOT create fallback users - this is a security risk
+    
+    print(f"✅ Auth config loaded for instance: {AUTH_CONFIG['instance_name']}")
+    print(f"👥 {len(AUTH_CONFIG['users'])} users configured")
+
+def verify_password(username, password):
+    """Verify username and password against configuration"""
+    if username not in AUTH_CONFIG['users']:
+        return False
+    
+    stored_hash = AUTH_CONFIG['users'][username].encode('utf-8')
+    return bcrypt.checkpw(password.encode('utf-8'), stored_hash)
+
+def create_session_token(username):
+    """Create a JWT session token for the user"""
+    import jwt
+    import time
+    
+    # JWT payload with 24-hour expiration
+    payload = {
+        'username': username,
+        'created_at': time.time(),
+        'exp': time.time() + (24 * 60 * 60),  # 24 hours
+        'iss': AUTH_CONFIG['instance_name'],  # issuer
+        'iat': time.time()  # issued at
+    }
+    
+    # Sign with our secret key
+    token = jwt.encode(payload, AUTH_CONFIG['session_secret'], algorithm='HS256')
+    
+    print(f"🎫 Created JWT token for {username}: {token[:8]}...")
+    return token
+
+def validate_session_token(token):
+    """Validate JWT session token"""
+    if not token:
+        return None
+        
+    try:
+        import jwt
+        
+        # Decode and validate JWT (handles expiration automatically)
+        payload = jwt.decode(token, AUTH_CONFIG['session_secret'], algorithms=['HS256'])
+        
+        # JWT is valid, return username
+        return payload['username']
+        
+    except jwt.ExpiredSignatureError:
+        print("🕐 JWT token expired")
+        return None
+    except jwt.InvalidTokenError:
+        print("🚫 Invalid JWT token")
+        return None
+
+def get_active_sessions():
+    """JWT is stateless - no session tracking needed"""
+    return {
+        'message': 'JWT tokens are stateless - no server-side session tracking',
+        'note': 'Tokens are validated cryptographically with signature verification'
+    }
 
 # Built-in apps (not plugins)
 BUILTIN_APPS = {
@@ -72,6 +173,9 @@ BUILTIN_APPS = {
 
 def create_app():
     """Create and configure the Flask application"""
+    # Load authentication config first
+    load_auth_config()
+    
     app = Flask(__name__)
     
     # Configure CORS

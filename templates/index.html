@@ -408,6 +408,38 @@
     <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ url_for('static', filename='vendor/socket.io/socket.io.min.js') }}"></script>
 
+    <!-- Session Token Management -->
+    <script>
+        // Ensure session token is available for bundle loading
+        function ensureSessionToken() {
+            // Check if we have a session token from login
+            const storedToken = localStorage.getItem('session_token');
+            
+            if (storedToken) {
+                // Store token in a global variable for immediate use
+                window.SESSION_TOKEN = storedToken;
+                
+                // Refresh cookie with proper expiration (24 hours)
+                const expires = new Date();
+                expires.setTime(expires.getTime() + (24 * 60 * 60 * 1000)); // 24 hours
+                document.cookie = `session_token=${storedToken}; expires=${expires.toUTCString()}; path=/; SameSite=Lax`;
+                
+                console.log('🎫 Session token available for bundle loading');
+                return true;
+            } else {
+                console.warn('⚠️ No session token found - redirecting to login');
+                window.location.href = '/login';
+                return false;
+            }
+        }
+        
+        // Ensure token is available before loading bundles
+        if (!ensureSessionToken()) {
+            // Stop loading if no token (will redirect)
+            throw new Error('Session token required');
+        }
+    </script>
+
     <!-- Sypnex OS Modules - Load in dependency order -->
     <script src="{{ cache_bust_url('serve_bundled_sypnex_api') }}"></script>
     <script src="{{ cache_bust_url('serve_bundled_os') }}"></script>

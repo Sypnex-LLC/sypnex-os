@@ -12,3 +12,6 @@ lxml==6.0.0
 cssutils==2.11.1
 psutil==7.0.0
 jsmin==3.0.1
+bcrypt==3.2.0
+python-dotenv==1.0.0
+PyJWT==2.10.1
