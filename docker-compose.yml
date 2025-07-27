@@ -19,6 +19,8 @@ services:
       # Authentication users (username:bcrypt_hashed_password)
       # Demo user with password: demo123
       - AUTH_USER_1=demo:$$2b$$12$$fmHQckTV.N5z9sFT/4.kM.M24aqSJIqbUAKBcJwJHGoNP9nr32gJC
+      # Developer user with password: devpass
+      - AUTH_USER_2=dev_docker:$$2b$$12$$uXi6Gry4BCQzjHO9/YryY.Fl7rIPgI2HTYZn3KFewnC61e1N1fz1W
       - INSTANCE_NAME=docker-demo-instance
       - SESSION_SECRET_KEY=docker-super-secret-session-key-change-me
     restart: unless-stopped
