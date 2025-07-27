@@ -141,9 +141,6 @@ class SypnexOS {
             } else if (e.key === 'Escape') {
                 this.hideSpotlight();
                 this.hideDashboard();
-            } else if ((e.metaKey || e.ctrlKey) && e.key === 't') {
-                e.preventDefault();
-                this.toggleHeartbeatEndpoint();
             } else if ((e.metaKey || e.ctrlKey) && e.key === 'm') {
                 e.preventDefault();
                 this.toggleTaskbar();
