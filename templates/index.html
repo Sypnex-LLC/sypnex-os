@@ -264,6 +264,11 @@
                     <div id="lock-error-message" class="lock-error" style="display: none;">
                         Incorrect PIN. Please try again.
                     </div>
+                    <div style="margin-top: 20px; text-align: center;">
+                        <a href="#" onclick="handleLogout()" style="color: #888; font-size: 12px; text-decoration: none; opacity: 0.7;">
+                            For best security, logout completely
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -437,6 +442,32 @@
         if (!ensureSessionToken()) {
             // Stop loading if no token (will redirect)
             throw new Error('Session token required');
+        }
+        
+        // Handle logout from lock screen
+        function handleLogout() {
+            fetch('/logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Session-Token': window.SESSION_TOKEN || localStorage.getItem('session_token')
+                }
+            })
+            .then(response => {
+                // Clear client-side storage regardless of response
+                localStorage.removeItem('session_token');
+                document.cookie = 'session_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+                
+                // Redirect to login
+                window.location.href = '/login';
+            })
+            .catch(error => {
+                // Even if logout fails, clear tokens and redirect for security
+                console.warn('Logout request failed, but clearing tokens anyway:', error);
+                localStorage.removeItem('session_token');
+                document.cookie = 'session_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+                window.location.href = '/login';
+            });
         }
     </script>
 
