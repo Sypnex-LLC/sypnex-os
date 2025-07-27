@@ -456,6 +456,20 @@
     border-color: var(--error-border);
 }
 
+.action-btn.danger {
+    background: var(--error-bg);
+    color: var(--error-color);
+    border-color: var(--error-border);
+}
+
+.action-btn.danger:hover {
+    background: var(--error-bg);
+    border-color: var(--error-color);
+    color: var(--error-color);
+    transform: translateY(-1px);
+    opacity: 0.9;
+}
+
 /* Standard Metric Components */
 .metric-value {
     font-weight: 500;

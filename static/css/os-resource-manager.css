@@ -36,10 +36,6 @@
     color: var(--text-secondary);
 }
 
-.resource-table tr:hover {
-    background: var(--glass-hover);
-}
-
 .resource-table tr:last-child td {
     border-bottom: none;
 }
