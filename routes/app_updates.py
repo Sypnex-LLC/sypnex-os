@@ -14,8 +14,20 @@ def register_app_updates_routes(app, managers):
         """
         Get the latest app versions from GitHub releases
         Returns comprehensive version and download information for all apps
+        Caches the data to /system/cache/latest_versions.json in VFS
         """
         try:
+            # Ensure /system/cache directories exist in VFS
+            vfs_manager = managers['virtual_file_manager']
+            
+            # Check and create /system directory if it doesn't exist
+            if not vfs_manager._path_exists('/system'):
+                vfs_manager.create_directory('/system')
+            
+            # Check and create /system/cache directory if it doesn't exist  
+            if not vfs_manager._path_exists('/system/cache'):
+                vfs_manager.create_directory('/system/cache')
+            
             # Fetch latest release from GitHub API
             github_url = "https://api.github.com/repos/Sypnex-LLC/sypnex-os-apps/releases/latest"
             
@@ -70,7 +82,8 @@ def register_app_updates_routes(app, managers):
                 
                 app_details[app_id] = app_info
             
-            return jsonify({
+            # Build the response data
+            response_data = {
                 'success': True,
                 'apps': app_details,        # Comprehensive format with versions, download URLs, and filenames
                 'release_info': {
@@ -79,7 +92,20 @@ def register_app_updates_routes(app, managers):
                     'published_at': release_data.get('published_at'),
                     'html_url': release_data.get('html_url')
                 }
-            })
+            }
+            
+            # Cache the data to /system/cache/latest_versions.json in VFS
+            import json
+            cache_file_path = '/system/cache/latest_versions.json'
+            cache_content = json.dumps(response_data, indent=2).encode('utf-8')
+            
+            # Delete existing cache file if it exists, then create new one
+            if vfs_manager._path_exists(cache_file_path):
+                vfs_manager.delete_path(cache_file_path)
+            
+            vfs_manager.create_file(cache_file_path, cache_content, 'application/json')
+            
+            return jsonify(response_data)
             
         except requests.exceptions.RequestException as e:
             return jsonify({

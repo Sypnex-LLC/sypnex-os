@@ -539,7 +539,7 @@ Object.assign(SypnexOS.prototype, {
                     await fetch('/api/user-apps/refresh', { method: 'POST' });
                     
                     // Refresh the app cache to get latest versions
-                    await this.cacheLatestVersions();
+                    await this.refreshLatestVersionsCache();
                     
                     // Reload the app to apply the update
                     setTimeout(() => {
