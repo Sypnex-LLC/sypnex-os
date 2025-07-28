@@ -56,7 +56,7 @@ Object.assign(SypnexOS.prototype, {
         // Helper function to get DOM node count for an app
         const getAppDOMNodes = (appId) => {
             // Use the app window from SypnexOS apps map, not DOM search
-            const appWindow = this.apps.get(appId);
+            const appWindow = window.sypnexOS.apps.get(appId);
             if (appWindow && appWindow.querySelector) {
                 // Count all elements within the app window
                 const nodeCount = appWindow.querySelectorAll('*').length;
@@ -73,7 +73,7 @@ Object.assign(SypnexOS.prototype, {
                     return window.sypnexApps[appId].getEventListenerCount();
                 }
                 // For built-in apps, count interactive elements using SypnexOS apps map
-                const appWindow = this.apps.get(appId);
+                const appWindow = window.sypnexOS.apps.get(appId);
                 if (appWindow && appWindow.querySelector) {
                     const interactiveElements = appWindow.querySelectorAll('button, input, select, textarea, a, [onclick], [onchange], [oninput]');
                     return interactiveElements.length;
@@ -110,12 +110,12 @@ Object.assign(SypnexOS.prototype, {
 
         // Function to update system overview
         const updateSystemOverview = () => {
-            const apps = Array.from(this.apps.entries());
+            const apps = Array.from(window.sypnexOS.apps.entries());
             
-            const runningApps = Array.from(this.apps.values()).filter(app =>
+            const runningApps = Array.from(window.sypnexOS.apps.values()).filter(app =>
                 app.dataset.minimized !== 'true'
             ).length;
-            const totalApps = this.apps.size;
+            const totalApps = window.sypnexOS.apps.size;
 
             // Calculate fresh metrics for each app
             let totalDOMNodes = 0;
@@ -170,7 +170,7 @@ Object.assign(SypnexOS.prototype, {
         const updateResourceTable = async () => {
             if (!resourceTableBody) return;
 
-            const apps = Array.from(this.apps.entries());
+            const apps = Array.from(window.sypnexOS.apps.entries());
 
             // Get existing rows to avoid complete rebuild
             const existingRows = new Map();

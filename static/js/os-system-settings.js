@@ -386,7 +386,7 @@ Object.assign(SypnexOS.prototype, {
                 this.showNotification('Wallpaper updated successfully', 'success');
                 
                 // Update preview in settings
-                const systemSettingsWindow = document.querySelector('[data-app-id="system-settings"]');
+                const systemSettingsWindow = window.sypnexOS.apps.get('system-settings');
                 if (systemSettingsWindow) {
                     this.updateWallpaperPreview(systemSettingsWindow, wallpaperPath);
                 }
@@ -420,7 +420,7 @@ Object.assign(SypnexOS.prototype, {
                 this.showNotification('Wallpaper removed', 'success');
                 
                 // Update preview in settings
-                const systemSettingsWindow = document.querySelector('[data-app-id="system-settings"]');
+                const systemSettingsWindow = window.sypnexOS.apps.get('system-settings');
                 if (systemSettingsWindow) {
                     this.updateWallpaperPreview(systemSettingsWindow, '');
                 }
