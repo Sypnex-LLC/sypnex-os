@@ -717,9 +717,6 @@ Object.assign(SypnexOS.prototype, {
         this.initBuiltinAppTracking(appId);
         
         switch (appId) {
-            case 'terminal':
-                this.setupTerminalCore(windowElement);
-                break;
             case 'user-app-manager':
                 this.setupUserAppManager(windowElement);
                 break;
