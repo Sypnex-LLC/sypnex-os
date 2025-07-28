@@ -7,14 +7,24 @@ Object.assign(SypnexOS.prototype, {
         const taskbarApps = document.querySelector('.taskbar-apps');
         if (!taskbarApps) return;
 
-        // Check if app is already in taskbar
-        if (taskbarApps.querySelector(`[data-app-id="${appId}"]`)) {
+        // Double-check if app is already in taskbar (race condition protection)
+        const existingTaskbarApp = taskbarApps.querySelector(`[data-app-id="${appId}"]`);
+        if (existingTaskbarApp) {
+            console.log(`addToTaskbar: App ${appId} already in taskbar, skipping`);
             return;
         }
 
         try {
             // Get app data
             const appData = await this.getAppData(appId);
+            
+            // Final check after async operation to prevent race conditions
+            if (taskbarApps.querySelector(`[data-app-id="${appId}"]`)) {
+                console.log(`addToTaskbar: App ${appId} was added to taskbar while getting app data, skipping`);
+                return;
+            }
+            
+            console.log(`addToTaskbar: Adding ${appId} to taskbar`);
             
             const taskbarApp = document.createElement('div');
             taskbarApp.className = 'taskbar-app';

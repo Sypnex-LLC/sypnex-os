@@ -846,7 +846,9 @@ Object.assign(SypnexOS.prototype, {
     async minimizeWindow(appId) {
         const windowElement = this.apps.get(appId);
         if (windowElement) {
+            // Hide the window
             windowElement.style.display = 'none';
+            // Ensure minimized state is set (might already be set by minimizeAllApps)
             windowElement.dataset.minimized = 'true';
             // Add to taskbar
             await this.addToTaskbar(appId);
@@ -874,22 +876,37 @@ Object.assign(SypnexOS.prototype, {
     },
 
     async minimizeAllApps() {
-        // Get all currently open apps that are not minimized
-        const openApps = [];
-        this.apps.forEach((windowElement, appId) => {
-            if (windowElement.dataset.minimized !== 'true') {
-                openApps.push(appId);
-            }
-        });
-
-        // Minimize each open app
-        for (const appId of openApps) {
-            await this.minimizeWindow(appId);
+        // Prevent concurrent execution
+        if (this.isMinimizingAll) {
+            console.log('minimizeAllApps: Already in progress, skipping');
+            return;
         }
+        this.isMinimizingAll = true;
 
-        // Show notification if any apps were minimized
-        if (openApps.length > 0) {
-            this.showNotification(`Minimized ${openApps.length} app${openApps.length > 1 ? 's' : ''}`, 'info');
+        try {
+            // Get all currently open apps that are not minimized
+            const openApps = [];
+            this.apps.forEach((windowElement, appId) => {
+                if (windowElement.dataset.minimized !== 'true') {
+                    // Immediately mark as minimized to prevent race conditions
+                    windowElement.dataset.minimized = 'true';
+                    openApps.push(appId);
+                }
+            });
+
+            console.log(`minimizeAllApps: Found ${openApps.length} apps to minimize:`, openApps);
+
+            // Minimize each open app
+            for (const appId of openApps) {
+                await this.minimizeWindow(appId);
+            }
+
+            // Show notification if any apps were minimized
+            if (openApps.length > 0) {
+                this.showNotification(`Minimized ${openApps.length} app${openApps.length > 1 ? 's' : ''}`, 'info');
+            }
+        } finally {
+            this.isMinimizingAll = false;
         }
     },
 
