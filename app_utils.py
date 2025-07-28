@@ -190,55 +190,82 @@ def install_app_direct(package_file, virtual_file_manager):
         return False
 
 def sanitize_user_app_content(html_content, app_id):
-    """Sanitize user app HTML content to remove dangerous API calls"""
+    """Sanitize user app HTML content to remove blacklisted JavaScript methods"""
     
-    # List of dangerous endpoints that user apps shouldn't access
-    dangerous_endpoints = [
-        '/api/virtual-files/delete/',  # Delete files
-        '/api/preferences/reset',      # Reset all preferences
-        '/api/services/start/',        # Start services
-        '/api/services/stop/',         # Stop services
+    # List of blacklisted JavaScript methods/objects that user apps shouldn't use
+    # Apps must use SypnexAPI methods for remote requests and storage instead
+    blacklisted_methods = [
+        # Remote request methods
+        'fetch(',           # Fetch API
+        'fetch (',          # Fetch API with space
+        'xmlhttprequest',   # XMLHttpRequest object
+        'activexobject',    # ActiveX for IE
+        'websocket',        # WebSocket connections
+        'eventsource',      # Server-sent events
+        'navigator.sendbeacon',  # Beacon API
+        'importscripts',    # Web Workers import
+        'postmessage',      # Cross-frame messaging
+        
+        # Navigation and window methods
+        'window.open',      # Opening new windows/tabs
+        'location.href',    # Page navigation
+        'location.assign',  # Page navigation
+        'location.replace', # Page navigation
+        'document.domain',  # Domain manipulation
+        'iframe',           # Embedding external content
+        
+        # Browser storage methods
+        'localstorage',     # Local storage access
+        'sessionstorage',   # Session storage access
+        'document.cookie',  # Cookie access
+        'indexeddb',        # IndexedDB access
+        'websql',           # WebSQL (deprecated but still blocked)
+        'cache',            # Cache API
+        'serviceworker',    # Service worker registration
+        'navigator.storage', # Storage API
+        'storagemanager',   # Storage Manager API
     ]
     
-    # Check if the HTML content contains any dangerous endpoints
+    # Check if the HTML content contains any blacklisted methods
     content_lower = html_content.lower()
-    found_dangerous = []
+    found_violations = []
+    
+    for blacklisted in blacklisted_methods:
+        if blacklisted in content_lower:
+            found_violations.append(blacklisted)
+    
+    if found_violations:
+        print(f"SECURITY: Blocked user app '{app_id}' for using blacklisted JavaScript methods: {found_violations}")
+        
         # Replace the entire content with a security warning using app-container styles
-    warning_html = f"""
-    <div class="app-container">
-        <div class="app-header">
-            <h2><i class="fas fa-shield-alt"></i> Access Denied</h2>
-            <p>This user app has been blocked for security reasons</p>
-        </div>
-        <div class="app-content">
-            <div style="text-align: center; padding: 40px 20px;">
-                <div style="font-size: 48px; color: #dc3545; margin-bottom: 20px;">
-                    <i class="fas fa-ban"></i>
-                </div>
-                <h3 style="color: #dc3545; margin-bottom: 15px;">Security Restriction</h3>
-                <p style="color: #6c757d; font-size: 16px; margin-bottom: 20px;">
-                    This user app attempted to access restricted system endpoints.
-                </p>
-                <div style="background: rgba(220, 53, 69, 0.1); border: 1px solid rgba(220, 53, 69, 0.3); border-radius: 8px; padding: 15px; margin: 20px 0;">
-                    <p style="color: #6c757d; font-size: 14px; margin: 0;">
-                        <strong>App ID:</strong> {app_id}<br>
-                        <strong>Blocked endpoints:</strong> {', '.join(found_dangerous)}
+        warning_html = f"""
+        <div class="app-container">
+            <div class="app-header">
+                <h2><i class="fas fa-shield-alt"></i> Access Denied</h2>
+                <p>This user app has been blocked for security reasons</p>
+            </div>
+            <div class="app-content">
+                <div style="text-align: center; padding: 40px 20px;">
+                    <div style="font-size: 48px; color: #dc3545; margin-bottom: 20px;">
+                        <i class="fas fa-ban"></i>
+                    </div>
+                    <h3 style="color: #dc3545; margin-bottom: 15px;">Security Restriction</h3>
+                    <p style="color: #6c757d; font-size: 16px; margin-bottom: 20px;">
+                        This user app attempted to use restricted JavaScript methods.
+                    </p>
+                    <div style="background: rgba(220, 53, 69, 0.1); border: 1px solid rgba(220, 53, 69, 0.3); border-radius: 8px; padding: 15px; margin: 20px 0;">
+                        <p style="color: #6c757d; font-size: 14px; margin: 0;">
+                            <strong>App ID:</strong> {app_id}<br>
+                            <strong>Blocked methods:</strong> {', '.join(found_violations)}
+                        </p>
+                    </div>
+                    <p style="color: #6c757d; font-size: 14px;">
+                        User apps must use SypnexAPI methods for remote requests and system interactions.
                     </p>
                 </div>
-                <p style="color: #6c757d; font-size: 14px;">
-                    User apps are not allowed to access system management endpoints for security reasons.
-                </p>
             </div>
         </div>
-    </div>
-    """
-    
-    for dangerous in dangerous_endpoints:
-        if dangerous in content_lower:
-            found_dangerous.append(dangerous)
-    
-    if found_dangerous:
-        print(f"SECURITY: Blocked user app '{app_id}' for accessing dangerous endpoints: {found_dangerous}")
+        """
         return warning_html
     
     # Update HTML class attributes
