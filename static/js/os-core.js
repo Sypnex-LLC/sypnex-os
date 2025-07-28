@@ -437,11 +437,6 @@ class SypnexOS {
                     // Store app data in memory for quick access
                     this.latestVersions = data.apps;
                     
-                    // Update any currently open windows
-                    if (this.updateUpdateButtonsForAllWindows) {
-                        this.updateUpdateButtonsForAllWindows();
-                    }
-                    
                     return true;
                 } else {
                     console.warn('⚠️ Failed to refresh versions:', data.error || 'Unknown error');
@@ -458,27 +453,6 @@ class SypnexOS {
             this.latestVersions = null;
             return false;
         }
-    }
-
-    getLatestVersion(appId) {
-        /**
-         * Get the latest cached version for an app
-         */
-        if (this.latestVersions && this.latestVersions[appId]) {
-            // Access version from app_info structure to match API format
-            return this.latestVersions[appId].app_info?.version || this.latestVersions[appId].version;
-        }
-        return null;
-    }
-
-    getLatestAppData(appId) {
-        /**
-         * Get the complete cached app data (version, download_url, filename)
-         */
-        if (this.latestVersions && this.latestVersions[appId]) {
-            return this.latestVersions[appId];
-        }
-        return null;
     }
 
     async checkWelcomeScreen() {

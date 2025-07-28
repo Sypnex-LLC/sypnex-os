@@ -284,7 +284,6 @@ Object.assign(SypnexOS.prototype, {
         if (!appId.startsWith('settings-')) {
             this.checkAppSettings(appId, windowElement);
             this.checkAppReload(appId, windowElement);
-            this.checkAppUpdate(appId, windowElement);
         }
 
         // Extract script content from user apps before setting innerHTML
@@ -464,7 +463,6 @@ Object.assign(SypnexOS.prototype, {
         const maximizeBtn = windowElement.querySelector('.app-maximize');
         const settingsBtn = windowElement.querySelector('.app-settings');
         const reloadBtn = windowElement.querySelector('.app-reload');
-        const updateBtn = windowElement.querySelector('.app-update');
 
         closeBtn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -500,62 +498,6 @@ Object.assign(SypnexOS.prototype, {
             e.stopPropagation();
             this.focusWindow(appId);  // Focus first
             this.reloadApp(appId);
-        });
-
-        updateBtn.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            this.focusWindow(appId);  // Focus first
-            try {
-                // Get the cached app data with download URL
-                const appData = this.getLatestAppData(appId);
-                if (!appData || !appData.download_url) {
-                    this.showNotification('Update URL not available', 'error');
-                    return;
-                }
-                
-                // Show loading state
-                updateBtn.style.opacity = '0.5';
-                updateBtn.style.pointerEvents = 'none';
-                
-                const response = await fetch(`/api/user-apps/update/${appId}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        download_url: appData.download_url
-                    })
-                });
-                
-                const result = await response.json();
-                
-                if (response.ok) {
-                    this.showNotification(`${result.app_name} updated successfully!`, 'success');
-                    
-                    // Hide update button since app is now up to date
-                    updateBtn.style.display = 'none';
-                    
-                    // Refresh the app registry to recognize the new version
-                    await fetch('/api/user-apps/refresh', { method: 'POST' });
-                    
-                    // Refresh the app cache to get latest versions
-                    await this.refreshLatestVersionsCache();
-                    
-                    // Reload the app to apply the update
-                    setTimeout(() => {
-                        this.reloadApp(appId);
-                    }, 500);
-                } else {
-                    this.showNotification(`Update failed: ${result.error}`, 'error');
-                }
-            } catch (error) {
-                console.error('Update error:', error);
-                this.showNotification(`Update failed: ${error.message}`, 'error');
-            } finally {
-                // Restore button state
-                updateBtn.style.opacity = '';
-                updateBtn.style.pointerEvents = '';
-            }
         });
     },
 
@@ -608,48 +550,6 @@ Object.assign(SypnexOS.prototype, {
         }
     },
 
-    async checkAppUpdate(appId, windowElement) {
-        // Skip for settings windows and non-user apps
-        if (appId.startsWith('settings-')) {
-            return;
-        }
-        
-        try {
-            const response = await fetch(`/api/app-metadata/${appId}`);
-            if (response.ok) {
-                const appData = await response.json();
-                const updateBtn = windowElement.querySelector('.app-update');
-                
-                // Only check updates for user apps
-                if (appData.type === 'user_app') {
-                    // Get current app version from metadata
-                    const currentVersion = appData.version || appData.metadata?.version;
-                    
-                    if (currentVersion) {
-                        // Get latest version from cached data
-                        const latestVersion = this.getLatestVersion(appId);
-                        
-                        if (latestVersion && currentVersion !== latestVersion) {
-                            // Update available - show the red download icon
-                            updateBtn.style.display = 'flex';
-                            updateBtn.title = `Update available: v${latestVersion} (current: v${currentVersion})`;
-                        } else {
-                            updateBtn.style.display = 'none';
-                        }
-                    } else {
-                        // No version info, hide update button
-                        updateBtn.style.display = 'none';
-                    }
-                } else {
-                    // Not a user app, hide update button
-                    updateBtn.style.display = 'none';
-                }
-            }
-        } catch (error) {
-            console.error('Error checking app update:', error);
-        }
-    },
-    
     async isDeveloperModeEnabled() {
         try {
             const response = await fetch('/api/preferences/system/developer_mode');
@@ -673,15 +573,6 @@ Object.assign(SypnexOS.prototype, {
                     const shouldShow = isDeveloperMode && windowElement.dataset.appType === 'user_app';
                     reloadBtn.style.display = shouldShow ? 'flex' : 'none';
                 }
-            }
-        }
-    },
-
-    async updateUpdateButtonsForAllWindows() {
-        // Update update button visibility for all open windows
-        for (const [appId, windowElement] of this.apps) {
-            if (!appId.startsWith('settings-')) {
-                await this.checkAppUpdate(appId, windowElement);
             }
         }
     },
