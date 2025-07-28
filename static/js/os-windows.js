@@ -337,9 +337,11 @@ Object.assign(SypnexOS.prototype, {
                     .replace(/document\.getElementsByClassName\s*\(/g, 'getElementsByClassName(')
                     .replace(/document\.getElementsByTagName\s*\(/g, 'getElementsByTagName(')
                     .replace(/document\.getElementsByName\s*\(/g, 'getElementsByName(')
-                    .replace(/(\w+)\.closest\s*\(/g, '$1.scopedClosest(')
-                    .replace(/(\w+)\.parentNode\b/g, '$1.scopedParentNode')
-                    .replace(/(\w+)\.parentElement\b/g, '$1.scopedParentElement')
+                    // TEMPORARILY DISABLED: DOM navigation scoping - causes cross-app contamination
+                    // TODO: Implement centralized tracking pattern like timer/event tracking
+                    // .replace(/(\w+)\.closest\s*\(/g, '$1.scopedClosest(')
+                    // .replace(/(\w+)\.parentNode\b/g, '$1.scopedParentNode')
+                    // .replace(/(\w+)\.parentElement\b/g, '$1.scopedParentElement')
                     .replace(/localStorage\.setItem\s*\(/g, 'setAppStorage(')
                     .replace(/localStorage\.getItem\s*\(/g, 'getAppStorage(')
                     .replace(/localStorage\.removeItem\s*\(/g, 'removeAppStorage(')

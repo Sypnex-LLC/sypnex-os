@@ -189,7 +189,10 @@
         return [];
     };
     
-    // Enhanced DOM element prototype functions for scoped navigation
+    // TEMPORARILY DISABLED: Enhanced DOM element prototype functions for scoped navigation
+    // These cause cross-app contamination when apps close and clean up global prototypes
+    // TODO: Implement centralized tracking pattern like timer/event tracking
+    /*
     const originalClosest = Element.prototype.closest;
     const originalParentNode = Object.getOwnPropertyDescriptor(Node.prototype, 'parentNode');
     const originalParentElement = Object.getOwnPropertyDescriptor(Element.prototype, 'parentElement');
@@ -246,6 +249,7 @@
         },
         configurable: true
     });
+    */
     
     // App-scoped storage functions (prevents cross-app storage interference)
     const setAppStorage = function(key, value) {
@@ -524,7 +528,9 @@
                 window.sypnexEventTracker.delete(actualAppId);
             }
             
-            // Restore original DOM navigation methods
+            // TEMPORARILY DISABLED: Restore original DOM navigation methods
+            // This was causing cross-app contamination - commenting out until proper fix
+            /*
             try {
                 delete Element.prototype.scopedClosest;
                 delete Element.prototype.scopedParentNode;
@@ -532,6 +538,7 @@
             } catch (error) {
                 console.warn('Error restoring prototype methods:', error);
             }
+            */
             
             
             return { timers: timersCleanedUp, listeners: listenersCleanedUp };
