@@ -176,7 +176,26 @@ Object.assign(SypnexAPI.prototype, {
             throw error;
         }
     },
-    
+
+    /**
+     * Get a file's content as Blob (for binary files, images, etc.)
+     * @param {string} filePath - Path to the file
+     * @returns {Promise<Blob>} - File content as Blob
+     */
+    async readVirtualFileBlob(filePath) {
+        try {
+            const fileUrl = this.getVirtualFileUrl(filePath);
+            const response = await fetch(fileUrl);
+            if (!response.ok) {
+                throw new Error(`Failed to fetch binary file: ${response.status} ${response.statusText}`);
+            }
+            return await response.blob();
+        } catch (error) {
+            console.error(`SypnexAPI [${this.appId}]: Error reading virtual file blob:`, error);
+            throw error;
+        }
+    },
+
     /**
      * Serve a file directly (for binary files, images, etc.)
      * @param {string} filePath - Path to the file
@@ -184,9 +203,7 @@ Object.assign(SypnexAPI.prototype, {
      */
     getVirtualFileUrl(filePath) {
         return `${this.baseUrl}/virtual-files/serve/${encodeURIComponent(filePath.substring(1))}`;
-    },
-    
-    /**
+    },    /**
      * Delete a file or directory
      * @param {string} itemPath - Path to the item to delete
      * @returns {Promise<object>} - Deletion result

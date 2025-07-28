@@ -194,36 +194,46 @@ def sanitize_user_app_content(html_content, app_id):
     
     # List of blacklisted JavaScript methods/objects that user apps shouldn't use
     # Apps must use SypnexAPI methods for remote requests and storage instead
+    # These patterns target actual JavaScript API usage, not comments or variable names
     blacklisted_methods = [
-        # Remote request methods
-        'fetch(',           # Fetch API
-        'fetch (',          # Fetch API with space
-        'xmlhttprequest',   # XMLHttpRequest object
-        'activexobject',    # ActiveX for IE
-        'websocket',        # WebSocket connections
-        'eventsource',      # Server-sent events
-        'navigator.sendbeacon',  # Beacon API
-        'importscripts',    # Web Workers import
-        'postmessage',      # Cross-frame messaging
+        # Remote request methods - specific API calls
+        'fetch(',           # Fetch API call
+        'fetch (',          # Fetch API call with space
+        'xmlhttprequest(',  # XMLHttpRequest constructor
+        'new xmlhttprequest',  # XMLHttpRequest constructor
+        'activexobject(',   # ActiveX constructor
+        'new activexobject', # ActiveX constructor
+        'new websocket(',   # WebSocket constructor (specific)
+        'websocket.prototype', # WebSocket prototype access
+        'window.websocket', # Direct WebSocket access
+        'eventsource(',     # EventSource constructor
+        'new eventsource',  # EventSource constructor
+        'navigator.sendbeacon(', # Beacon API call
+        'importscripts(',   # Web Workers import
+        'window.postmessage(', # Cross-frame messaging (specific to window)
+        'parent.postmessage(', # Cross-frame messaging to parent
+        'top.postmessage(',    # Cross-frame messaging to top
         
-        # Navigation and window methods
-        'window.open',      # Opening new windows/tabs
-        'location.href',    # Page navigation
-        'location.assign',  # Page navigation
-        'location.replace', # Page navigation
-        'document.domain',  # Domain manipulation
-        'iframe',           # Embedding external content
+        # Navigation and window methods - specific API calls
+        'window.open(',     # Opening new windows/tabs
+        'location.href =',  # Page navigation assignment
+        'location.assign(', # Page navigation method
+        'location.replace(', # Page navigation method
+        'document.domain =', # Domain manipulation assignment
+        'document.domain=',  # Domain manipulation assignment (no space)
         
-        # Browser storage methods
-        'localstorage',     # Local storage access
-        'sessionstorage',   # Session storage access
-        'document.cookie',  # Cookie access
-        'indexeddb',        # IndexedDB access
-        'websql',           # WebSQL (deprecated but still blocked)
-        'cache',            # Cache API
+        # Browser storage methods - specific API calls
+        'localstorage.',    # Local storage access (any method)
+        'sessionstorage.',  # Session storage access (any method)
+        'document.cookie =', # Cookie assignment
+        'document.cookie=',  # Cookie assignment (no space)
+        'indexeddb.',       # IndexedDB access
+        'window.indexeddb', # IndexedDB via window
+        'websql(',          # WebSQL (deprecated)
+        'caches.',          # Cache API (specific methods)
         'serviceworker',    # Service worker registration
-        'navigator.storage', # Storage API
-        'storagemanager',   # Storage Manager API
+        'navigator.storage.', # Storage API
+        'storagemanager.',  # Storage Manager API
     ]
     
     # Check if the HTML content contains any blacklisted methods
