@@ -144,62 +144,25 @@ Object.assign(SypnexOS.prototype, {
         }
 
         try {
-            // First, get app metadata to determine the app type
-            const appDataResponse = await fetch('/api/apps');
-            if (appDataResponse.ok) {
-                const allApps = await appDataResponse.json();
-                const appData = allApps.find(app => app.id === appId);
-
-                if (appData.type == "System_Service") {
-                    this.showNotification(`app cannot be open directly`, 'success');
-                    return;
-                }
-                
-                if (appData && appData.type === 'user_app') {
-                    // User app - fetch from user apps endpoint
-                    const userAppResponse = await fetch(`/api/user-apps/${appId}`);
-                    if (userAppResponse.ok) {
-                        const userAppData = await userAppResponse.json();
-                        const appHtml = userAppData.html;
-                        
-                        // Create and show the window
-                        const windowElement = await this.createAppWindow(appId, appHtml);
-                    } else {
-                        throw new Error(`User app ${appId} not found`);
-                    }
-                } else {
-                    // System app or plugin - fetch from apps endpoint
-                    const response = await fetch(`/api/apps/${appId}`);
-                    if (!response.ok) {
-                        throw new Error(`App ${appId} not found`);
-                    }
-                    const appHtml = await response.text();
-                    
-                    // Create and show the window
-                    const windowElement = await this.createAppWindow(appId, appHtml);
-                }
-            } else {
-                // Fallback: try system apps first, then user apps
-                const response = await fetch(`/api/apps/${appId}`);
-                if (response.ok) {
-                    const appHtml = await response.text();
-                    
-                    // Create and show the window
-                    const windowElement = await this.createAppWindow(appId, appHtml);
-                } else {
-                    // Try user apps as fallback
-                    const userAppResponse = await fetch(`/api/user-apps/${appId}`);
-                    if (userAppResponse.ok) {
-                        const userAppData = await userAppResponse.json();
-                        const appHtml = userAppData.html;
-                        
-                        // Create and show the window
-                        const windowElement = await this.createAppWindow(appId, appHtml);
-                    } else {
-                        throw new Error(`App ${appId} not found`);
-                    }
-                }
+            // Use the new consolidated launch endpoint
+            const response = await fetch(`/api/apps/${appId}/launch`);
+            if (!response.ok) {
+                throw new Error(`App ${appId} not found`);
             }
+            
+            const launchData = await response.json();
+            if (!launchData.success) {
+                throw new Error(launchData.error || `Failed to launch ${appId}`);
+            }
+
+            // Check if it's a system service that cannot be opened
+            if (launchData.app.type === "System_Service") {
+                this.showNotification(`app cannot be open directly`, 'success');
+                return;
+            }
+            
+            // Create and show the window using consolidated data
+            const windowElement = await this.createAppWindow(appId, launchData.app.html, launchData);
             
         } catch (error) {
             console.error('Error opening app:', error);
@@ -221,19 +184,12 @@ Object.assign(SypnexOS.prototype, {
         return this.sandboxTemplate;
     },
 
-    async createAppWindow(appId, appHtml) {
+    async createAppWindow(appId, appHtml, launchData) {
         // Initialize global window manager if not already done
         this.initGlobalWindowManager();
         
-        // 1. Fetch the scale value first (before creating the window)
-        let scale = '100';
-        try {
-            const response = await fetch('/api/preferences/ui/app_scale');
-            const data = await response.json();
-            scale = data.value || '100';
-        } catch (e) {
-            scale = '100';
-        }
+        // 1. Get scale value from launch data
+        const scale = launchData.preferences.appScale || '100';
 
         // 2. Create the window element
         const template = document.getElementById('app-window-template');
@@ -246,8 +202,9 @@ Object.assign(SypnexOS.prototype, {
             'scale-125', 'scale-130', 'scale-135', 'scale-140', 'scale-145', 'scale-150');
         windowElement.classList.add(`scale-${scale}`);
 
-        // Load saved window state or use defaults
-        const savedState = await this.loadWindowState(appId);
+        // Load window state from launch data
+        const savedState = launchData.windowState;
+        
         if (savedState) {
             windowElement.style.left = `${savedState.x}px`;
             windowElement.style.top = `${savedState.y}px`;
@@ -268,22 +225,38 @@ Object.assign(SypnexOS.prototype, {
             windowElement.style.height = `${height}px`;
         }
 
-        // Set window title and icon
+        // Set window title and icon from launch data
         if (appId.startsWith('settings-')) {
             // Skip app data fetching for settings windows - they don't exist in backend
             windowElement.querySelector('.app-icon').className = 'app-icon fas fa-cog';
             windowElement.querySelector('.app-name').textContent = 'Settings';
         } else {
-            this.getAppData(appId).then(appData => {
-                windowElement.querySelector('.app-icon').className = `app-icon ${appData.icon}`;
-                windowElement.querySelector('.app-name').textContent = appData.name;
-            });
+            // Use data from launch endpoint
+            windowElement.querySelector('.app-icon').className = `app-icon ${launchData.app.icon}`;
+            windowElement.querySelector('.app-name').textContent = launchData.app.name;
+            // Store app type for reload button logic
+            windowElement.dataset.appType = launchData.app.type;
         }
 
         // Check if app has settings and show/hide settings button (skip for settings windows)
         if (!appId.startsWith('settings-')) {
-            this.checkAppSettings(appId, windowElement);
-            this.checkAppReload(appId, windowElement);
+            // Use metadata from launch data
+            const settingsBtn = windowElement.querySelector('.app-settings');
+            const reloadBtn = windowElement.querySelector('.app-reload');
+            
+            // Show/hide settings button
+            if (launchData.metadata.hasSettings) {
+                settingsBtn.style.display = 'flex';
+            } else {
+                settingsBtn.style.display = 'none';
+            }
+            
+            // Show/hide reload button based on launch data
+            if (launchData.metadata.canReload) {
+                reloadBtn.style.display = 'flex';
+            } else {
+                reloadBtn.style.display = 'none';
+            }
         }
 
         // Extract script content from user apps before setting innerHTML
@@ -501,55 +474,6 @@ Object.assign(SypnexOS.prototype, {
         });
     },
 
-    async checkAppSettings(appId, windowElement) {
-        // Skip for settings windows - they don't have app metadata
-        if (appId.startsWith('settings-')) {
-            return;
-        }
-        
-        try {
-            const response = await fetch(`/api/app-metadata/${appId}`);
-            if (response.ok) {
-                const appData = await response.json();
-                const settingsBtn = windowElement.querySelector('.app-settings');
-                
-                // Show settings button if app has settings defined
-                if (appData.settings && appData.settings.length > 0) {
-                    settingsBtn.style.display = 'flex';
-                } else {
-                    settingsBtn.style.display = 'none';
-                }
-            }
-        } catch (error) {
-            console.error('Error checking app settings:', error);
-        }
-    },
-
-    async checkAppReload(appId, windowElement) {
-        // Skip for settings windows - they don't have app metadata
-        if (appId.startsWith('settings-')) {
-            return;
-        }
-        
-        try {
-            const response = await fetch(`/api/app-metadata/${appId}`);
-            if (response.ok) {
-                const appData = await response.json();
-                const reloadBtn = windowElement.querySelector('.app-reload');
-                
-                // Show reload button for user apps only AND when developer mode is enabled
-                const isDeveloperMode = await this.isDeveloperModeEnabled();
-                if (appData.type === 'user_app' && isDeveloperMode) {
-                    reloadBtn.style.display = 'flex';
-                } else {
-                    reloadBtn.style.display = 'none';
-                }
-            }
-        } catch (error) {
-            console.error('Error checking app reload capability:', error);
-        }
-    },
-
     async isDeveloperModeEnabled() {
         try {
             const response = await fetch('/api/preferences/system/developer_mode');
@@ -624,7 +548,13 @@ Object.assign(SypnexOS.prototype, {
             </form>
         `;
         // Create the app window using the standard template
-        const windowElement = await this.createAppWindow(settingsAppId, windowContent);
+        const currentScale = await fetch('/api/preferences/ui/app_scale').then(res => res.json()).then(data => data.value || '100').catch(() => '100');
+        const windowElement = await this.createAppWindow(settingsAppId, windowContent, {
+            app: { icon: 'fas fa-cog', name: 'Settings', type: 'settings' },
+            metadata: { hasSettings: false, canReload: false },
+            preferences: { appScale: currentScale },
+            windowState: null
+        });
         // Hide the minimize button for settings window
         const minimizeBtn = windowElement.querySelector('.app-minimize');
         if (minimizeBtn) minimizeBtn.style.display = 'none';

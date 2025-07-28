@@ -102,6 +102,120 @@ def register_core_routes(app, managers, builtin_apps):
         
         return jsonify({'error': 'App not found'}), 404
 
+    @app.route('/api/apps/<app_id>/launch')
+    def launch_app(app_id):
+        """Get all data needed to launch an app in a single request"""
+        try:
+            # Get app data and HTML content
+            app_data = None
+            html_content = None
+            app_type = None
+            
+            # Check built-in apps first
+            if app_id in builtin_apps:
+                app_data = builtin_apps[app_id]
+                app_type = 'builtin'
+                # Render the template to get HTML content
+                html_content = render_template(app_data['template'], app=app_data)
+            else:
+                # Check user apps
+                user_app = managers['user_app_manager'].get_user_app(app_id)
+                if user_app:
+                    app_data = user_app
+                    app_type = 'user_app'
+                    # Sanitize the HTML content for security
+                    html_content = sanitize_user_app_content(user_app['html_content'], app_id)
+                else:
+                    return jsonify({'error': 'App not found'}), 404
+            
+            # Get app metadata (settings, etc.)
+            metadata = {
+                'settings': [],
+                'hasSettings': False,
+                'canReload': app_type == 'user_app'
+            }
+            
+            try:
+                # For built-in apps, check BUILTIN_APPS
+                if app_type == 'builtin':
+                    from app_config import BUILTIN_APPS
+                    if app_id in BUILTIN_APPS:
+                        metadata.update({
+                            'settings': [],  # Built-in apps don't have settings
+                            'hasSettings': False,
+                            'canReload': False
+                        })
+                else:
+                    # For user apps, get settings from the app data
+                    if app_data and 'settings' in app_data:
+                        metadata.update({
+                            'settings': app_data['settings'],
+                            'hasSettings': len(app_data['settings']) > 0,
+                            'canReload': True  # Will be updated based on developer mode later
+                        })
+            except Exception as e:
+                print(f"Error getting metadata for {app_id}: {e}")
+                # Keep default metadata if there's an error
+            
+            # Get system preferences
+            preferences = {}
+            try:
+                # Get app scale preference
+                app_scale = managers['user_preferences'].get_preference('ui', 'app_scale', '100')
+                # Get developer mode preference
+                developer_mode = managers['user_preferences'].get_preference('system', 'developer_mode', 'false')
+                
+                preferences = {
+                    'appScale': app_scale,
+                    'developerMode': developer_mode == 'true'
+                }
+            except:
+                # Default preferences if fetch fails
+                preferences = {
+                    'appScale': '100',
+                    'developerMode': False
+                }
+            
+            # Get window state
+            window_state = None
+            try:
+                window_state = managers['user_preferences'].get_window_state(app_id)
+            except:
+                # No saved window state, will use defaults
+                window_state = None
+            
+            # Build response with all data needed for launch
+            launch_data = {
+                'success': True,
+                'app': {
+                    'id': app_id,
+                    'name': app_data.get('name', 'Unknown App'),
+                    'icon': app_data.get('icon', 'fas fa-question'),
+                    'description': app_data.get('description', ''),
+                    'type': app_type,
+                    'version': app_data.get('version', '1.0.0'),
+                    'html': html_content
+                },
+                'metadata': {
+                    'settings': metadata.get('settings', []),
+                    'hasSettings': len(metadata.get('settings', [])) > 0,
+                    'canReload': app_type == 'user_app' and preferences['developerMode']
+                },
+                'preferences': preferences,
+                'windowState': window_state
+            }
+            
+            return jsonify(launch_data)
+            
+        except Exception as e:
+            print(f"Error launching app {app_id}: {e}")
+            import traceback
+            traceback.print_exc()
+            return jsonify({
+                'success': False,
+                'error': f'Failed to launch app: {str(e)}'
+            }), 500
+
     @app.route('/app/<app_id>')
     def app_template(app_id):
         # Check built-in apps first
