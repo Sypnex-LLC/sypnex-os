@@ -55,9 +55,12 @@ Object.assign(SypnexOS.prototype, {
 
         // Helper function to get DOM node count for an app
         const getAppDOMNodes = (appId) => {
-            const appWindow = document.querySelector(`[data-app-id="${appId}"]`);
-            if (appWindow) {
-                return appWindow.querySelectorAll('*').length;
+            // Use the app window from SypnexOS apps map, not DOM search
+            const appWindow = this.apps.get(appId);
+            if (appWindow && appWindow.querySelector) {
+                // Count all elements within the app window
+                const nodeCount = appWindow.querySelectorAll('*').length;
+                return nodeCount;
             }
             return 0;
         };
@@ -69,9 +72,9 @@ Object.assign(SypnexOS.prototype, {
                 if (window.sypnexApps[appId].getEventListenerCount) {
                     return window.sypnexApps[appId].getEventListenerCount();
                 }
-                // For built-in apps, count interactive elements
-                const appWindow = document.querySelector(`[data-app-id="${appId}"]`);
-                if (appWindow) {
+                // For built-in apps, count interactive elements using SypnexOS apps map
+                const appWindow = this.apps.get(appId);
+                if (appWindow && appWindow.querySelector) {
                     const interactiveElements = appWindow.querySelectorAll('button, input, select, textarea, a, [onclick], [onchange], [oninput]');
                     return interactiveElements.length;
                 }
@@ -106,7 +109,7 @@ Object.assign(SypnexOS.prototype, {
         };
 
         // Function to update system overview
-        const updateSystemOverview = (appMetrics) => {
+        const updateSystemOverview = () => {
             const apps = Array.from(this.apps.entries());
             
             const runningApps = Array.from(this.apps.values()).filter(app =>
@@ -114,23 +117,25 @@ Object.assign(SypnexOS.prototype, {
             ).length;
             const totalApps = this.apps.size;
 
-            // Use pre-calculated metrics to avoid DOM counting after modifications
+            // Calculate fresh metrics for each app
             let totalDOMNodes = 0;
             let totalTimers = 0;
             let totalGlobalEvents = 0;
             let activeConnections = 0;
 
             for (const [appId, appWindow] of apps) {
-                const metrics = appMetrics.get(appId);
-                if (metrics) {
-                    
-                    totalDOMNodes += metrics.domNodes;
-                    totalTimers += metrics.timers;
-                    totalGlobalEvents += metrics.events;
-                    
-                    if (metrics.network.connections > 0) {
-                        activeConnections += metrics.network.connections;
-                    }
+                // Get fresh metrics for each app
+                const domNodes = getAppDOMNodes(appId);
+                const timers = getActiveTimers(appId);
+                const events = getEventListeners(appId);
+                const network = getNetworkActivity(appId);
+                
+                totalDOMNodes += domNodes;
+                totalTimers += timers;
+                totalGlobalEvents += events;
+                
+                if (network.connections > 0) {
+                    activeConnections += network.connections;
                 }
             }
 
@@ -162,7 +167,7 @@ Object.assign(SypnexOS.prototype, {
         };
 
         // Function to update resource table
-        const updateResourceTable = async (appMetrics) => {
+        const updateResourceTable = async () => {
             if (!resourceTableBody) return;
 
             const apps = Array.from(this.apps.entries());
@@ -187,16 +192,13 @@ Object.assign(SypnexOS.prototype, {
                         continue;
                     }
 
-                    // Use pre-calculated metrics
-                    const metrics = appMetrics.get(appId);
-                    if (!metrics) continue;
+                    // Get fresh metrics for this app
+                    const domNodes = getAppDOMNodes(appId);
+                    const activeTimers = getActiveTimers(appId);
+                    const globalEvents = getEventListeners(appId);
+                    const network = getNetworkActivity(appId);
                     
                     validAppsCount++; // Increment count for valid apps
-                    
-                    const domNodes = metrics.domNodes;
-                    const activeTimers = metrics.timers;
-                    const globalEvents = metrics.events;
-                    const network = metrics.network;
 
                     // Determine status
                     const isMinimized = appWindow.dataset.minimized === 'true';
@@ -491,26 +493,12 @@ Object.assign(SypnexOS.prototype, {
             isRefreshing = true;
             
             try {
-                // Get measurements for apps BEFORE any DOM changes
-                const apps = Array.from(this.apps.entries());
-                const appMetrics = new Map();
-                
-                // Collect all metrics first to prevent DOM modification affecting counts
-                for (const [appId, appWindow] of apps) {
-                    appMetrics.set(appId, {
-                        domNodes: getAppDOMNodes(appId),
-                        timers: getActiveTimers(appId),
-                        events: getEventListeners(appId),
-                        network: getNetworkActivity(appId)
-                    });
-                }
-                
-                // Update both displays with the same data
+                // Update both displays - let each function get fresh metrics
                 await Promise.all([
-                    updateResourceTable(appMetrics),
+                    updateResourceTable(),
                     updateServicesTable()
                 ]);
-                updateSystemOverview(appMetrics);
+                updateSystemOverview();
                 
             } catch (error) {
                 console.error('Error refreshing resource data:', error);
