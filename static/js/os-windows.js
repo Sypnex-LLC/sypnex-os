@@ -3,6 +3,130 @@
 
 // Extend SypnexOS class with window management methods
 Object.assign(SypnexOS.prototype, {
+    // Initialize global window management system
+    initGlobalWindowManager() {
+        if (this.globalWindowManagerInitialized) return;
+        
+        this.globalDragState = {
+            isDragging: false,
+            offset: { x: 0, y: 0 }
+        };
+        
+        this.globalResizeState = {
+            isResizing: false,
+            direction: '',
+            startX: 0,
+            startY: 0,
+            startWidth: 0,
+            startHeight: 0,
+            startLeft: 0,
+            startTop: 0
+        };
+        
+        // Single set of global listeners for ALL windows
+        document.addEventListener('mousemove', this.handleGlobalMouseMove.bind(this));
+        document.addEventListener('mouseup', this.handleGlobalMouseUp.bind(this));
+        
+        this.globalWindowManagerInitialized = true;
+    },
+    
+    handleGlobalMouseMove(e) {
+        if (!this.activeWindow) return;
+        const activeWindowElement = this.apps.get(this.activeWindow);
+        if (!activeWindowElement) return;
+        
+        // Handle dragging
+        if (this.globalDragState.isDragging) {
+            const x = e.clientX - this.globalDragState.offset.x;
+            const y = e.clientY - this.globalDragState.offset.y;
+            
+            activeWindowElement.style.left = `${x}px`;
+            activeWindowElement.style.top = `${y}px`;
+        }
+        
+        // Handle resizing
+        if (this.globalResizeState.isResizing) {
+            const deltaX = e.clientX - this.globalResizeState.startX;
+            const deltaY = e.clientY - this.globalResizeState.startY;
+            
+            let newWidth = this.globalResizeState.startWidth;
+            let newHeight = this.globalResizeState.startHeight;
+            let newLeft = this.globalResizeState.startLeft;
+            let newTop = this.globalResizeState.startTop;
+            
+            // Calculate new dimensions based on resize direction
+            switch (this.globalResizeState.direction) {
+                case 'se':
+                    newWidth = Math.max(400, this.globalResizeState.startWidth + deltaX);
+                    newHeight = Math.max(300, this.globalResizeState.startHeight + deltaY);
+                    break;
+                case 'sw':
+                    newWidth = Math.max(400, this.globalResizeState.startWidth - deltaX);
+                    newHeight = Math.max(300, this.globalResizeState.startHeight + deltaY);
+                    newLeft = this.globalResizeState.startLeft + this.globalResizeState.startWidth - newWidth;
+                    break;
+                case 'ne':
+                    newWidth = Math.max(400, this.globalResizeState.startWidth + deltaX);
+                    newHeight = Math.max(300, this.globalResizeState.startHeight - deltaY);
+                    newTop = this.globalResizeState.startTop + this.globalResizeState.startHeight - newHeight;
+                    break;
+                case 'nw':
+                    newWidth = Math.max(400, this.globalResizeState.startWidth - deltaX);
+                    newHeight = Math.max(300, this.globalResizeState.startHeight - deltaY);
+                    newLeft = this.globalResizeState.startLeft + this.globalResizeState.startWidth - newWidth;
+                    newTop = this.globalResizeState.startTop + this.globalResizeState.startHeight - newHeight;
+                    break;
+                case 's':
+                    newHeight = Math.max(300, this.globalResizeState.startHeight + deltaY);
+                    break;
+                case 'n':
+                    newHeight = Math.max(300, this.globalResizeState.startHeight - deltaY);
+                    newTop = this.globalResizeState.startTop + this.globalResizeState.startHeight - newHeight;
+                    break;
+                case 'e':
+                    newWidth = Math.max(400, this.globalResizeState.startWidth + deltaX);
+                    break;
+                case 'w':
+                    newWidth = Math.max(400, this.globalResizeState.startWidth - deltaX);
+                    newLeft = this.globalResizeState.startLeft + this.globalResizeState.startWidth - newWidth;
+                    break;
+            }
+            
+            // Apply new dimensions
+            requestAnimationFrame(() => {
+                activeWindowElement.style.width = `${newWidth}px`;
+                activeWindowElement.style.height = `${newHeight}px`;
+                activeWindowElement.style.left = `${newLeft}px`;
+                activeWindowElement.style.top = `${newTop}px`;
+            });
+        }
+    },
+    
+    handleGlobalMouseUp(e) {
+        if (!this.activeWindow) return;
+        
+        // Handle drag end
+        if (this.globalDragState.isDragging) {
+            this.globalDragState.isDragging = false;
+            this.saveWindowState(this.activeWindow);
+        }
+        
+        // Handle resize end
+        if (this.globalResizeState.isResizing) {
+            this.globalResizeState.isResizing = false;
+            this.globalResizeState.direction = '';
+            
+            const activeWindowElement = this.apps.get(this.activeWindow);
+            if (activeWindowElement) {
+                activeWindowElement.classList.remove('resizing');
+                // Debounce the save operation
+                clearTimeout(activeWindowElement.saveTimeout);
+                activeWindowElement.saveTimeout = setTimeout(() => {
+                    this.saveWindowState(this.activeWindow);
+                }, 100);
+            }
+        }
+    },
     async openApp(appId) {
         // Check if app is already open
         if (this.apps.has(appId)) {
@@ -98,6 +222,9 @@ Object.assign(SypnexOS.prototype, {
     },
 
     async createAppWindow(appId, appHtml) {
+        // Initialize global window manager if not already done
+        this.initGlobalWindowManager();
+        
         // 1. Fetch the scale value first (before creating the window)
         let scale = '100';
         try {
@@ -291,121 +418,41 @@ Object.assign(SypnexOS.prototype, {
     },
 
     setupWindowResize(windowElement) {
-        let isResizing = false;
-        let resizeDirection = '';
-        let startX, startY, startWidth, startHeight, startLeft, startTop;
-
         const handleMouseDown = (e) => {
             const handle = e.target;
             if (!handle.classList.contains('resize-handle')) return;
 
+            // Focus the window first
+            this.focusWindow(windowElement.dataset.appId);
+            
             // If window is maximized, un-maximize it when user starts resizing
             if (windowElement.classList.contains('maximized')) {
                 windowElement.classList.remove('maximized');
-                // Save the state change (no longer maximized)
                 this.saveWindowState(windowElement.dataset.appId);
             }
 
-            isResizing = true;
-            resizeDirection = handle.dataset.resizeDirection;
-            
-            // Store initial mouse position and window dimensions
-            startX = e.clientX;
-            startY = e.clientY;
-            startWidth = windowElement.offsetWidth;
-            startHeight = windowElement.offsetHeight;
-            startLeft = windowElement.offsetLeft;
-            startTop = windowElement.offsetTop;
+            // Start global resize state
+            this.globalResizeState.isResizing = true;
+            this.globalResizeState.direction = handle.dataset.resizeDirection;
+            this.globalResizeState.startX = e.clientX;
+            this.globalResizeState.startY = e.clientY;
+            this.globalResizeState.startWidth = windowElement.offsetWidth;
+            this.globalResizeState.startHeight = windowElement.offsetHeight;
+            this.globalResizeState.startLeft = windowElement.offsetLeft;
+            this.globalResizeState.startTop = windowElement.offsetTop;
 
             windowElement.classList.add('resizing');
-            this.focusWindow(windowElement.dataset.appId);
 
             e.preventDefault();
             e.stopPropagation();
         };
 
-        const handleMouseMove = (e) => {
-            if (!isResizing) return;
-
-            const deltaX = e.clientX - startX;
-            const deltaY = e.clientY - startY;
-
-            let newWidth = startWidth;
-            let newHeight = startHeight;
-            let newLeft = startLeft;
-            let newTop = startTop;
-
-            // Calculate new dimensions based on resize direction
-            switch (resizeDirection) {
-                case 'se':
-                    newWidth = Math.max(400, startWidth + deltaX);
-                    newHeight = Math.max(300, startHeight + deltaY);
-                    break;
-                case 'sw':
-                    newWidth = Math.max(400, startWidth - deltaX);
-                    newHeight = Math.max(300, startHeight + deltaY);
-                    newLeft = startLeft + startWidth - newWidth;
-                    break;
-                case 'ne':
-                    newWidth = Math.max(400, startWidth + deltaX);
-                    newHeight = Math.max(300, startHeight - deltaY);
-                    newTop = startTop + startHeight - newHeight;
-                    break;
-                case 'nw':
-                    newWidth = Math.max(400, startWidth - deltaX);
-                    newHeight = Math.max(300, startHeight - deltaY);
-                    newLeft = startLeft + startWidth - newWidth;
-                    newTop = startTop + startHeight - newHeight;
-                    break;
-                case 's':
-                    newHeight = Math.max(300, startHeight + deltaY);
-                    break;
-                case 'n':
-                    newHeight = Math.max(300, startHeight - deltaY);
-                    newTop = startTop + startHeight - newHeight;
-                    break;
-                case 'e':
-                    newWidth = Math.max(400, startWidth + deltaX);
-                    break;
-                case 'w':
-                    newWidth = Math.max(400, startWidth - deltaX);
-                    newLeft = startLeft + startWidth - newWidth;
-                    break;
-            }
-
-            // Apply new dimensions with requestAnimationFrame for smooth performance
-            requestAnimationFrame(() => {
-                windowElement.style.width = `${newWidth}px`;
-                windowElement.style.height = `${newHeight}px`;
-                windowElement.style.left = `${newLeft}px`;
-                windowElement.style.top = `${newTop}px`;
-            });
-        };
-
-        const handleMouseUp = () => {
-            if (isResizing) {
-                isResizing = false;
-                windowElement.classList.remove('resizing');
-                resizeDirection = '';
-                
-                // Debounce the save operation to avoid excessive API calls
-                clearTimeout(windowElement.saveTimeout);
-                windowElement.saveTimeout = setTimeout(() => {
-                    this.saveWindowState(windowElement.dataset.appId);
-                }, 100);
-            }
-        };
-
-        // Add event listeners
+        // Add event listener to the window element
         windowElement.addEventListener('mousedown', handleMouseDown);
-        document.addEventListener('mousemove', handleMouseMove);
-        document.addEventListener('mouseup', handleMouseUp);
-
-        // Store cleanup function
+        
+        // Store cleanup function (though we don't need to clean up global listeners anymore)
         windowElement.cleanupResize = () => {
             windowElement.removeEventListener('mousedown', handleMouseDown);
-            document.removeEventListener('mousemove', handleMouseMove);
-            document.removeEventListener('mouseup', handleMouseUp);
         };
     },
 
@@ -417,11 +464,15 @@ Object.assign(SypnexOS.prototype, {
         const reloadBtn = windowElement.querySelector('.app-reload');
         const updateBtn = windowElement.querySelector('.app-update');
 
-        closeBtn.addEventListener('click', () => {
-            this.closeApp(appId);
+        closeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.focusWindow(appId);  // Focus first
+            this.closeApp(appId);     // Then close
         });
 
-        minimizeBtn.addEventListener('click', async () => {
+        minimizeBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            this.focusWindow(appId);  // Focus first
             if (windowElement.dataset.minimized === 'true') {
                 this.restoreWindow(appId);
                 minimizeBtn.innerHTML = '<i class="fas fa-minus"></i>';
@@ -431,19 +482,27 @@ Object.assign(SypnexOS.prototype, {
             }
         });
 
-        maximizeBtn.addEventListener('click', async () => {
+        maximizeBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            this.focusWindow(appId);  // Focus first
             await this.maximizeWindow(appId);
         });
 
-        settingsBtn.addEventListener('click', () => {
+        settingsBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.focusWindow(appId);  // Focus first
             this.openAppSettings(appId);
         });
 
-        reloadBtn.addEventListener('click', () => {
+        reloadBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.focusWindow(appId);  // Focus first
             this.reloadApp(appId);
         });
 
-        updateBtn.addEventListener('click', async () => {
+        updateBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            this.focusWindow(appId);  // Focus first
             try {
                 // Get the cached app data with download URL
                 const appData = this.getLatestAppData(appId);
@@ -785,36 +844,23 @@ Object.assign(SypnexOS.prototype, {
 
     makeWindowDraggable(windowElement) {
         const header = windowElement.querySelector('.app-window-header');
-        let isDragging = false;
-        let dragOffset = { x: 0, y: 0 };
-
+        
         header.addEventListener('mousedown', (e) => {
-            // Don't start dragging if clicking on resize handles or if window is being resized
-            if (e.target.classList.contains('resize-handle') || windowElement.classList.contains('resizing')) return;
+            // Don't start dragging if clicking on resize handles or window controls
+            if (e.target.classList.contains('resize-handle') || 
+                e.target.closest('.app-window-controls') ||
+                windowElement.classList.contains('resizing')) return;
             
-            isDragging = true;
-            const rect = windowElement.getBoundingClientRect();
-            dragOffset.x = e.clientX - rect.left;
-            dragOffset.y = e.clientY - rect.top;
+            // Focus the window first
             this.focusWindow(windowElement.dataset.appId);
-        });
-
-        document.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
             
-            const x = e.clientX - dragOffset.x;
-            const y = e.clientY - dragOffset.y;
+            // Start global drag state
+            const rect = windowElement.getBoundingClientRect();
+            this.globalDragState.isDragging = true;
+            this.globalDragState.offset.x = e.clientX - rect.left;
+            this.globalDragState.offset.y = e.clientY - rect.top;
             
-            windowElement.style.left = `${x}px`;
-            windowElement.style.top = `${y}px`;
-        });
-
-        document.addEventListener('mouseup', () => {
-            if (isDragging) {
-                isDragging = false;
-                // Save window state after dragging
-                this.saveWindowState(windowElement.dataset.appId);
-            }
+            e.preventDefault();
         });
     },
 
