@@ -8,6 +8,40 @@ Object.assign(SypnexOS.prototype, {
         // Get built-in app tracker if available
         const tracker = window.sypnexApps && window.sypnexApps[appId] ? window.sypnexApps[appId] : null;
 
+        // Cache for app data - refreshed much less frequently than metrics
+        let appDataCache = new Map();
+        let lastAppDataRefresh = 0;
+        const APP_DATA_CACHE_DURATION = 30000; // 30 seconds
+
+        // Function to refresh app data cache
+        const refreshAppDataCache = async () => {
+            try {
+                const response = await fetch('/api/apps/resource-manager-data');
+                if (response.ok) {
+                    const appMap = await response.json();
+                    appDataCache.clear();
+                    for (const [id, data] of Object.entries(appMap)) {
+                        appDataCache.set(id, data);
+                    }
+                    lastAppDataRefresh = Date.now();
+                } else {
+                    console.error('Failed to fetch app data cache');
+                }
+            } catch (error) {
+                console.error('Error refreshing app data cache:', error);
+            }
+        };
+
+        // Function to get app data from cache (with automatic refresh if needed)
+        const getAppDataFromCache = async (appId) => {
+            // Refresh cache if it's stale or empty
+            if (Date.now() - lastAppDataRefresh > APP_DATA_CACHE_DURATION || appDataCache.size === 0) {
+                await refreshAppDataCache();
+            }
+            
+            return appDataCache.get(appId) || null;
+        };
+
         // Resource monitoring data
         let resourceData = {
             apps: new Map(),
@@ -147,8 +181,8 @@ Object.assign(SypnexOS.prototype, {
                 try {
                     activeAppIds.add(appId);
 
-                    // Get app metadata
-                    const appData = await this.getAppData(appId);
+                    // Get app metadata from cache instead of individual API call
+                    const appData = await getAppDataFromCache(appId);
                     if (!appData) {
                         continue;
                     }
@@ -646,9 +680,20 @@ Object.assign(SypnexOS.prototype, {
     // App management function with immediate UI feedback
     async terminateAppFromResourceManager(appId) {
         try {
-            // Get app data for better confirmation message
-            const appData = await this.getAppData(appId);
-            const appName = appData ? appData.name : appId;
+            // Get app data for better confirmation message from the Resource Manager cache
+            const resourceManager = document.querySelector('[data-app-id="resource-manager"]');
+            let appName = appId;
+            
+            if (resourceManager) {
+                // Try to get the app name from the existing table row to avoid API call
+                const row = resourceManager.querySelector(`tr[data-app-id="${appId}"]`);
+                if (row) {
+                    const nameSpan = row.querySelector('.app-name-cell span');
+                    if (nameSpan) {
+                        appName = nameSpan.textContent;
+                    }
+                }
+            }
 
             // Create a temporary SypnexAPI instance to use the confirmation dialog
             const tempAPI = new window.SypnexAPI('resource-manager');

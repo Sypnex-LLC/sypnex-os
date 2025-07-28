@@ -269,4 +269,37 @@ def register_core_routes(app, managers, builtin_apps):
             print(f"Error in get_all_apps: {e}")
             import traceback
             traceback.print_exc()
-            return jsonify({'error': 'Failed to get apps'}), 500 
+            return jsonify({'error': 'Failed to get apps'}), 500
+
+    @app.route('/api/apps/resource-manager-data')
+    def get_resource_manager_apps():
+        """Get lightweight app data specifically for Resource Manager"""
+        try:
+            all_apps = []
+            
+            # Add built-in apps
+            for app_id, app_data in builtin_apps.items():
+                all_apps.append({
+                    'id': app_id,
+                    'name': app_data['name'],
+                    'icon': app_data['icon']
+                })
+            
+            # Add user apps
+            user_apps = managers['user_app_manager'].get_user_apps_for_search()
+            for app in user_apps:
+                all_apps.append({
+                    'id': app['id'],
+                    'name': app['name'],
+                    'icon': app['icon']
+                })
+            
+            # Return as a map for quick lookup by app ID
+            app_map = {app['id']: {'name': app['name'], 'icon': app['icon']} for app in all_apps}
+            
+            return jsonify(app_map)
+        except Exception as e:
+            print(f"Error in get_resource_manager_apps: {e}")
+            import traceback
+            traceback.print_exc()
+            return jsonify({'error': 'Failed to get resource manager data'}), 500 
