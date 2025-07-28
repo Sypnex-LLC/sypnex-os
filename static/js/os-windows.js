@@ -198,10 +198,39 @@ Object.assign(SypnexOS.prototype, {
                 
                 // Load and process sandbox template with variable substitution
                 const sandboxTemplate = await this.loadSandboxTemplate();
+                
+                // PRE-PROCESS: Automatically replace document.getElementById calls with scoped version
+                // This allows developers to use vanilla JavaScript without knowing about scoping
+                const processedScriptContent = scriptContent
+                    .replace(/document\.getElementById\s*\(/g, 'getElementById(')
+                    .replace(/document\.querySelector\s*\(/g, 'querySelector(')
+                    .replace(/document\.querySelectorAll\s*\(/g, 'querySelectorAll(')
+                    .replace(/document\.head\.appendChild\s*\(/g, 'appendToHead(')
+                    .replace(/document\.body\.appendChild\s*\(/g, 'appendToBody(')
+                    .replace(/document\.getElementsByClassName\s*\(/g, 'getElementsByClassName(')
+                    .replace(/document\.getElementsByTagName\s*\(/g, 'getElementsByTagName(')
+                    .replace(/document\.getElementsByName\s*\(/g, 'getElementsByName(')
+                    .replace(/(\w+)\.closest\s*\(/g, '$1.scopedClosest(')
+                    .replace(/(\w+)\.parentNode\b/g, '$1.scopedParentNode')
+                    .replace(/(\w+)\.parentElement\b/g, '$1.scopedParentElement')
+                    .replace(/localStorage\.setItem\s*\(/g, 'setAppStorage(')
+                    .replace(/localStorage\.getItem\s*\(/g, 'getAppStorage(')
+                    .replace(/localStorage\.removeItem\s*\(/g, 'removeAppStorage(')
+                    .replace(/localStorage\.clear\s*\(\)/g, 'clearAppStorage()')
+                    .replace(/sessionStorage\.setItem\s*\(/g, 'setAppSessionStorage(')
+                    .replace(/sessionStorage\.getItem\s*\(/g, 'getAppSessionStorage(')
+                    .replace(/sessionStorage\.removeItem\s*\(/g, 'removeAppSessionStorage(')
+                    .replace(/sessionStorage\.clear\s*\(\)/g, 'clearAppSessionStorage()')
+                    .replace(/window\.location\.href\s*=\s*([^;=]+);/g, 'setAppLocation($1);')
+                    .replace(/document\.location\s*=\s*([^;=]+);/g, 'setAppLocation($1);')
+                    .replace(/window\.location\.reload\s*\(/g, 'reloadApp(')
+                    .replace(/window\.history\.pushState\s*\(/g, 'appPushState(')
+                    .replace(/window\.history\.replaceState\s*\(/g, 'appReplaceState(');
+                
                 const sandboxedScript = sandboxTemplate
                     .replace(/\$\{appId\}/g, appId)
                     .replace(/\$\{sypnexAPIContent\}/g, sypnexAPIContent)
-                    .replace(/\$\{scriptContent\}/g, scriptContent)
+                    .replace(/\$\{scriptContent\}/g, processedScriptContent)
                     .replace(/\$\{functionNames\}/g, JSON.stringify(functionNames));
                 
                 // Create a new script element and execute it

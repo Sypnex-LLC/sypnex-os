@@ -1,7 +1,7 @@
 (async function() {
     // Create a local scope with access to the window element
-    const windowElement = document.querySelector('[data-app-id="${appId}"]');
-    const appContainer = windowElement ? windowElement.querySelector('.app-window-content') : null;
+    const windowElement = document.querySelector('.app-window[data-app-id="${appId}"]');
+    const appContainer = windowElement ? windowElement.querySelector('.app-window-content .app-container') : null;
     
     // Determine the correct app ID for settings (extract original app ID from settings window ID)
     const actualAppId = '${appId}'.startsWith('settings-') ? '${appId}'.replace('settings-', '') : '${appId}';
@@ -112,6 +112,241 @@
     
     window.removeEventListener = function(type, listener, options) {
         return trackingRemoveEventListener(window, type, listener, options);
+    };
+
+    // Create app-scoped DOM selection functions available as local variables
+    const getElementById = function(id) {
+        // Only find elements within the app container
+        if (appContainer) {
+            return appContainer.querySelector(`#${id}`);
+        }
+        // If no app container, return null (no access to global elements)  
+        return null;
+    };
+    
+    const querySelector = function(selector) {
+        // Only find elements within the app container
+        if (appContainer) {
+            return appContainer.querySelector(selector);
+        }
+        // If no app container, return null (no access to global elements)
+        return null;
+    };
+    
+    const querySelectorAll = function(selector) {
+        // Only find elements within the app container
+        if (appContainer) {
+            return appContainer.querySelectorAll(selector);
+        }
+        // If no app container, return empty NodeList
+        return document.createDocumentFragment().querySelectorAll(selector);
+    };
+    
+    const appendToHead = function(element) {
+        // SANDBOX PROTECTION: Prevent apps from modifying global document head
+        // Instead, append to the app container to keep styles/scripts scoped
+        if (appContainer && element) {
+            console.warn('App attempted to append to document.head - redirecting to app container for isolation');
+            appContainer.appendChild(element);
+            return element;
+        }
+        return null;
+    };
+    
+    const appendToBody = function(element) {
+        // SANDBOX PROTECTION: Prevent apps from modifying global document body
+        // Instead, append to the app container to keep elements scoped
+        if (appContainer && element) {
+            console.warn('App attempted to append to document.body - redirecting to app container for isolation');
+            appContainer.appendChild(element);
+            return element;
+        }
+        return null;
+    };
+    
+    const getElementsByClassName = function(className) {
+        // Only find elements within the app container
+        if (appContainer) {
+            return appContainer.getElementsByClassName(className);
+        }
+        return document.createDocumentFragment().getElementsByClassName(className);
+    };
+    
+    const getElementsByTagName = function(tagName) {
+        // Only find elements within the app container
+        if (appContainer) {
+            return appContainer.getElementsByTagName(tagName);
+        }
+        return document.createDocumentFragment().getElementsByTagName(tagName);
+    };
+    
+    const getElementsByName = function(name) {
+        // SANDBOX PROTECTION: Prevent access to global named elements
+        // Search only within app container
+        if (appContainer) {
+            return appContainer.querySelectorAll(`[name="${name}"]`);
+        }
+        return [];
+    };
+    
+    // Enhanced DOM element prototype functions for scoped navigation
+    const originalClosest = Element.prototype.closest;
+    const originalParentNode = Object.getOwnPropertyDescriptor(Node.prototype, 'parentNode');
+    const originalParentElement = Object.getOwnPropertyDescriptor(Element.prototype, 'parentElement');
+    
+    // Create scoped navigation functions that work with any element
+    const scopedClosest = function(element, selector) {
+        if (!element || !appContainer) return null;
+        
+        // Only search within app container boundaries
+        let result = originalClosest.call(element, selector);
+        if (result && appContainer.contains(result)) {
+            return result;
+        }
+        return null; // Don't return elements outside app container
+    };
+    
+    const scopedParentNode = function(element) {
+        if (!element || !appContainer) return null;
+        
+        const parent = element.parentNode;
+        // Only return parent if it's within app container
+        if (parent && (parent === appContainer || appContainer.contains(parent))) {
+            return parent;
+        }
+        return null; // Don't allow access to parents outside container
+    };
+    
+    const scopedParentElement = function(element) {
+        if (!element || !appContainer) return null;
+        
+        const parent = element.parentElement;
+        // Only return parent if it's within app container
+        if (parent && (parent === appContainer || appContainer.contains(parent))) {
+            return parent;
+        }
+        return null; // Don't allow access to parents outside container
+    };
+    
+    // Override the global methods within this app's scope to use scoped versions
+    Element.prototype.scopedClosest = function(selector) {
+        return scopedClosest(this, selector);
+    };
+    
+    Object.defineProperty(Element.prototype, 'scopedParentNode', {
+        get: function() {
+            return scopedParentNode(this);
+        },
+        configurable: true
+    });
+    
+    Object.defineProperty(Element.prototype, 'scopedParentElement', {
+        get: function() {
+            return scopedParentElement(this);
+        },
+        configurable: true
+    });
+    
+    // App-scoped storage functions (prevents cross-app storage interference)
+    const setAppStorage = function(key, value) {
+        const scopedKey = `app_${actualAppId}_${key}`;
+        try {
+            localStorage.setItem(scopedKey, value);
+            return true;
+        } catch (error) {
+            console.warn('App storage failed:', error);
+            return false;
+        }
+    };
+    
+    const getAppStorage = function(key) {
+        const scopedKey = `app_${actualAppId}_${key}`;
+        try {
+            return localStorage.getItem(scopedKey);
+        } catch (error) {
+            console.warn('App storage retrieval failed:', error);
+            return null;
+        }
+    };
+    
+    const removeAppStorage = function(key) {
+        const scopedKey = `app_${actualAppId}_${key}`;
+        try {
+            localStorage.removeItem(scopedKey);
+            return true;
+        } catch (error) {
+            console.warn('App storage removal failed:', error);
+            return false;
+        }
+    };
+    
+    const clearAppStorage = function() {
+        try {
+            const prefix = `app_${actualAppId}_`;
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith(prefix)) {
+                    keysToRemove.push(key);
+                }
+            }
+            keysToRemove.forEach(key => localStorage.removeItem(key));
+            return true;
+        } catch (error) {
+            console.warn('App storage clear failed:', error);
+            return false;
+        }
+    };
+    
+    const setAppSessionStorage = function(key, value) {
+        const scopedKey = `app_${actualAppId}_${key}`;
+        try {
+            sessionStorage.setItem(scopedKey, value);
+            return true;
+        } catch (error) {
+            console.warn('App session storage failed:', error);
+            return false;
+        }
+    };
+    
+    const getAppSessionStorage = function(key) {
+        const scopedKey = `app_${actualAppId}_${key}`;
+        try {
+            return sessionStorage.getItem(scopedKey);
+        } catch (error) {
+            console.warn('App session storage retrieval failed:', error);
+            return null;
+        }
+    };
+    
+    // Navigation protection functions (prevent apps from hijacking page navigation)
+    const setAppLocation = function(url) {
+        console.warn(`App "${actualAppId}" attempted to navigate to: ${url} - blocked for security`);
+        showNotification(`App "${actualAppId}" tried to navigate away - blocked for security`, 'warning');
+        return false;
+    };
+    
+    const reloadApp = function() {
+        console.info(`App "${actualAppId}" requested reload - reloading app only`);
+        // Trigger app reload through OS instead of page reload
+        if (window.sypnexOS && typeof window.sypnexOS.reloadApp === 'function') {
+            window.sypnexOS.reloadApp(actualAppId);
+        } else {
+            showNotification(`App "${actualAppId}" reload requested but OS method not available`, 'warning');
+        }
+        return false;
+    };
+    
+    const appPushState = function(state, title, url) {
+        console.warn(`App "${actualAppId}" attempted to push browser state - blocked for security`);
+        showNotification(`App "${actualAppId}" tried to modify browser history - blocked`, 'warning');
+        return false;
+    };
+    
+    const appReplaceState = function(state, title, url) {
+        console.warn(`App "${actualAppId}" attempted to replace browser state - blocked for security`);
+        showNotification(`App "${actualAppId}" tried to modify browser history - blocked`, 'warning');
+        return false;
     };
     
     // Create app-specific helper functions (local to this scope)
@@ -287,6 +522,15 @@
             }
             if (window.sypnexEventTracker) {
                 window.sypnexEventTracker.delete(actualAppId);
+            }
+            
+            // Restore original DOM navigation methods
+            try {
+                delete Element.prototype.scopedClosest;
+                delete Element.prototype.scopedParentNode;
+                delete Element.prototype.scopedParentElement;
+            } catch (error) {
+                console.warn('Error restoring prototype methods:', error);
             }
             
             
