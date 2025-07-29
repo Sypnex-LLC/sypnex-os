@@ -182,6 +182,14 @@ data/*.db
 data/*.sqlite
 data/*.sqlite3
 
+# SQLite WAL (Write-Ahead Logging) files - created by WAL mode
+*.db-wal
+*.db-shm
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite3-wal
+*.sqlite3-shm
+
 # Performance testing files - temporary databases and reports
 test_performance/*.db*
 test_performance/performance_report*.json
