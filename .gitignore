@@ -182,6 +182,10 @@ data/*.db
 data/*.sqlite
 data/*.sqlite3
 
+# Performance testing files - temporary databases and reports
+test_performance/*.db*
+test_performance/performance_report*.json
+
 # Log files (if any get created locally during development)
 *.log
 logs/

@@ -17,6 +17,12 @@ class UserPreferences:
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
             
+            # Enable WAL mode for better concurrency and performance
+            cursor.execute('PRAGMA journal_mode=WAL')
+            cursor.execute('PRAGMA synchronous=NORMAL')
+            cursor.execute('PRAGMA cache_size=5000')
+            cursor.execute('PRAGMA temp_store=MEMORY')
+            
             # Create preferences table
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS preferences (
@@ -57,6 +63,10 @@ class UserPreferences:
                     UNIQUE(app_id, setting_key)
                 )
             ''')
+            
+            # Add performance indexes
+            cursor.execute('CREATE INDEX IF NOT EXISTS idx_preferences_category_key ON preferences(category, key)')
+            cursor.execute('CREATE INDEX IF NOT EXISTS idx_app_settings_app_key ON app_settings(app_id, setting_key)')
             
             conn.commit()
             

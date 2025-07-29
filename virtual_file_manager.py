@@ -89,6 +89,15 @@ class VirtualFileManager:
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
             
+            # Enable WAL mode for better concurrency and performance
+            cursor.execute('PRAGMA journal_mode=WAL')
+            cursor.execute('PRAGMA synchronous=NORMAL')
+            
+            # Optimized configuration (best performance + low memory)
+            cursor.execute('PRAGMA cache_size=2000')    # 2MB cache
+            cursor.execute('PRAGMA mmap_size=67108864')  # 64MB memory map
+            cursor.execute('PRAGMA temp_store=FILE')     # Use disk for temp storage
+            
             # Create files table
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS virtual_files (
@@ -123,6 +132,9 @@ class VirtualFileManager:
             cursor.execute('CREATE INDEX IF NOT EXISTS idx_virtual_files_path ON virtual_files(path)')
             cursor.execute('CREATE INDEX IF NOT EXISTS idx_virtual_files_parent ON virtual_files(parent_path)')
             cursor.execute('CREATE INDEX IF NOT EXISTS idx_virtual_files_directory ON virtual_files(is_directory)')
+            cursor.execute('CREATE INDEX IF NOT EXISTS idx_virtual_files_name ON virtual_files(name)')
+            cursor.execute('CREATE INDEX IF NOT EXISTS idx_virtual_files_size ON virtual_files(size)')
+            cursor.execute('CREATE INDEX IF NOT EXISTS idx_metadata_file_key ON file_metadata(file_id, key)')
             
             conn.commit()
     
