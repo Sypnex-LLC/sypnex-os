@@ -305,58 +305,45 @@ class VirtualFileManager:
                     if not mime_type:
                         mime_type = 'application/octet-stream'
                 
-                # REAL streaming: Use SQLite incremental BLOB writes
-                total_size = 0
+                # TRUE streaming: Build file incrementally with empty initial BLOB
                 content_hash = hashlib.sha256()
+                current_size = 0
                 
                 with sqlite3.connect(self.db_path) as conn:
                     cursor = conn.cursor()
                     
-                    # First pass: calculate size without storing content
-                    file_stream.seek(0)  # Reset stream to beginning
-                    temp_size = 0
-                    temp_hash = hashlib.sha256()
-                    
-                    while True:
-                        chunk = file_stream.read(chunk_size)
-                        if not chunk:
-                            break
-                        temp_size += len(chunk)
-                        temp_hash.update(chunk)
-                    
-                    # Create record with correct size and empty content initially
-                    empty_content = b'\x00' * temp_size  # Placeholder of correct size
+                    # Create record with minimal empty BLOB (1 byte)
                     cursor.execute('''
                         INSERT INTO virtual_files 
                         (path, name, parent_path, is_directory, size, content, mime_type, hash) 
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                    ''', (normalized_path, name, parent_path, False, temp_size, empty_content, mime_type, temp_hash.hexdigest()))
+                    ''', (normalized_path, name, parent_path, False, 0, b'', mime_type, ''))
                     
                     file_id = cursor.lastrowid
                     conn.commit()
                     
-                    # Second pass: Stream data directly into BLOB using incremental I/O
-                    file_stream.seek(0)  # Reset stream again
-                    
-                    # Open BLOB for incremental writing
-                    blob = conn.blobopen("virtual_files", "content", file_id, readonly=False)
-                    
-                    position = 0
+                    # Stream data by expanding BLOB incrementally
                     while True:
                         chunk = file_stream.read(chunk_size)
                         if not chunk:
                             break
                         
-                        # Write chunk directly to BLOB at current position
-                        blob.seek(position)
-                        blob.write(chunk)
-                        position += len(chunk)
+                        content_hash.update(chunk)
+                        new_size = current_size + len(chunk)
                         
-                        print(f"TRUE streaming: wrote {len(chunk)} bytes at position {position-len(chunk)}")
+                        # Expand the BLOB to accommodate new chunk
+                        cursor.execute('UPDATE virtual_files SET size = ?, content = content || ? WHERE id = ?', 
+                                     (new_size, chunk, file_id))
+                        current_size = new_size
+                        
+                        print(f"TRUE streaming: appended {len(chunk)} bytes, total: {current_size}")
                     
-                    blob.close()
+                    # Update final hash
+                    cursor.execute('UPDATE virtual_files SET hash = ? WHERE id = ?', 
+                                 (content_hash.hexdigest(), file_id))
+                    conn.commit()
                 
-                print(f"File created with TRUE streaming: {normalized_path}, size: {temp_size} bytes")
+                print(f"File created with TRUE streaming: {normalized_path}, size: {current_size} bytes")
                 return True
                 
             except Exception as e:
