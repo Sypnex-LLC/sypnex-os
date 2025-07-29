@@ -8,10 +8,10 @@ services:
       resources:
         limits:
           memory: 256M
-          cpus: '0.2'        # Max 0.2 CPU (20% of one core)
+          cpus: '0.5'        # Max 0.5 CPU (50% of one core)
         reservations:
           memory: 128M
-          cpus: '0.1'        # Guaranteed 0.1 CPU (10% of one core)
+          cpus: '0.3'        # Guaranteed 0.3 CPU (30% of one core)
     ports:
       - "5000:5000"
     volumes:
