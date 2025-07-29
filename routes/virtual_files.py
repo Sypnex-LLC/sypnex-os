@@ -167,6 +167,67 @@ def register_virtual_file_routes(app, managers):
             traceback.print_exc()
             return jsonify({'error': 'Failed to upload file'}), 500
 
+    @app.route('/api/virtual-files/upload-file-streaming', methods=['POST'])
+    def upload_virtual_file_streaming():
+        """Upload a file from the host system with memory-efficient streaming"""
+        try:
+            if 'file' not in request.files:
+                return jsonify({'error': 'No file provided'}), 400
+            
+            file = request.files['file']
+            parent_path = request.form.get('parent_path', '/')
+            
+            if file.filename == '':
+                return jsonify({'error': 'No file selected'}), 400
+            
+            file_name = file.filename
+            
+            # Validate file name
+            is_valid, error_message = validate_filename(file_name)
+            if not is_valid:
+                return jsonify({'error': error_message}), 400
+            
+            # Construct full path
+            if parent_path == '/':
+                full_path = f'/{file_name}'
+            else:
+                full_path = f'{parent_path}/{file_name}'
+            
+            # Check if file already exists
+            existing_file = managers['virtual_file_manager'].get_file_info(full_path)
+            if existing_file:
+                return jsonify({'error': f'File {file_name} already exists'}), 400
+            
+            # Stream the file directly to VFS without loading into memory
+            total_size = 0
+            chunk_size = 8192  # 8KB chunks
+            
+            # Create file with streaming approach
+            success = managers['virtual_file_manager'].create_file_streaming(
+                full_path, 
+                file.stream, 
+                chunk_size
+            )
+            
+            if success:
+                # Get the final file size
+                file_info = managers['virtual_file_manager'].get_file_info(full_path)
+                file_size = file_info['size'] if file_info else 0
+                
+                return jsonify({
+                    'message': f'File {file_name} uploaded successfully (streaming)',
+                    'path': full_path,
+                    'size': file_size
+                })
+            else:
+                return jsonify({'error': f'Failed to upload file {file_name}'}), 400
+                
+        except Exception as e:
+            print(f"Error uploading virtual file (streaming): {e}")
+            import traceback
+            traceback.print_exc()
+            return jsonify({'error': 'Failed to upload file'}), 500
+
     @app.route('/api/virtual-files/read/<path:file_path>', methods=['GET'])
     def read_virtual_file(file_path):
         """Read a file's content"""

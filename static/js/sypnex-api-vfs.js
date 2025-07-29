@@ -110,7 +110,7 @@ Object.assign(SypnexAPI.prototype, {
             formData.append('file', file);
             formData.append('parent_path', parentPath);
             
-            const response = await fetch(`${this.baseUrl}/virtual-files/upload-file`, {
+            const response = await fetch(`${this.baseUrl}/virtual-files/upload-file-streaming`, {
                 method: 'POST',
                 body: formData
             });
