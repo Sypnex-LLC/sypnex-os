@@ -220,6 +220,12 @@ def initialize_managers():
     # If this was first boot, seed the system
     if first_boot:
         seed_first_boot(managers)
+        
+        # Re-discover services after first boot seeding to pick up any services
+        # installed via essential apps (fixes race condition)
+        print("🔄 Re-discovering services after first boot seeding...")
+        managers['service_manager'].discover_services()
+        print("✅ Service re-discovery complete")
     
     return managers
 
