@@ -276,7 +276,7 @@ class VirtualFileManager:
                 return False
     
     def create_file_streaming(self, path: str, file_stream, chunk_size: int = 8192, mime_type: str = None) -> bool:
-        """Create a file from a stream with TRUE memory-efficient streaming - never loads full file into memory."""
+        """Create a file from a stream without loading the entire content into memory."""
         with self.lock:
             try:
                 normalized_path = self._normalize_path(path)
@@ -287,7 +287,7 @@ class VirtualFileManager:
                 if parent_path is None and normalized_path != '/':
                     parent_path = '/'
                 
-                print(f"Creating file (TRUE streaming): path={normalized_path}, parent={parent_path}, name={name}")
+                print(f"Creating file (streaming): path={normalized_path}, parent={parent_path}, name={name}")
                 
                 # Check if parent exists
                 if parent_path and not self._path_exists(parent_path):
@@ -305,49 +305,54 @@ class VirtualFileManager:
                     if not mime_type:
                         mime_type = 'application/octet-stream'
                 
-                # TRUE streaming: Build file incrementally with empty initial BLOB
+                # Stream the file content in chunks
+                total_size = 0
                 content_hash = hashlib.sha256()
-                current_size = 0
                 
+                # First, create the file record with empty content
                 with sqlite3.connect(self.db_path) as conn:
                     cursor = conn.cursor()
                     
-                    # Create record with minimal empty BLOB (1 byte)
+                    # Insert initial record
                     cursor.execute('''
                         INSERT INTO virtual_files 
                         (path, name, parent_path, is_directory, size, content, mime_type, hash) 
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                     ''', (normalized_path, name, parent_path, False, 0, b'', mime_type, ''))
                     
+                    # Get the row ID for updating
                     file_id = cursor.lastrowid
-                    conn.commit()
                     
-                    # Stream data by expanding BLOB incrementally
+                    # Now stream and build content
+                    content_chunks = []
+                    
                     while True:
                         chunk = file_stream.read(chunk_size)
                         if not chunk:
                             break
-                        
+                            
+                        content_chunks.append(chunk)
                         content_hash.update(chunk)
-                        new_size = current_size + len(chunk)
-                        
-                        # Expand the BLOB to accommodate new chunk
-                        cursor.execute('UPDATE virtual_files SET size = ?, content = content || ? WHERE id = ?', 
-                                     (new_size, chunk, file_id))
-                        current_size = new_size
-                        
-                        print(f"TRUE streaming: appended {len(chunk)} bytes, total: {current_size}")
+                        total_size += len(chunk)
                     
-                    # Update final hash
-                    cursor.execute('UPDATE virtual_files SET hash = ? WHERE id = ?', 
-                                 (content_hash.hexdigest(), file_id))
+                    # Combine all chunks
+                    full_content = b''.join(content_chunks)
+                    final_hash = content_hash.hexdigest()
+                    
+                    # Update the record with final content
+                    cursor.execute('''
+                        UPDATE virtual_files 
+                        SET size = ?, content = ?, hash = ?
+                        WHERE rowid = ?
+                    ''', (total_size, full_content, final_hash, file_id))
+                    
                     conn.commit()
                 
-                print(f"File created with TRUE streaming: {normalized_path}, size: {current_size} bytes")
+                print(f"File created successfully (streaming): {normalized_path}, size: {total_size} bytes")
                 return True
                 
             except Exception as e:
-                print(f"Error creating file (TRUE streaming) {path}: {e}")
+                print(f"Error creating file (streaming) {path}: {e}")
                 import traceback
                 traceback.print_exc()
                 return False
