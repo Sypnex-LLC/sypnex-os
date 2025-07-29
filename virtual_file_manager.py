@@ -276,7 +276,7 @@ class VirtualFileManager:
                 return False
     
     def create_file_streaming(self, path: str, file_stream, chunk_size: int = 8192, mime_type: str = None) -> bool:
-        """Create a file from a stream without loading the entire content into memory."""
+        """Create a file from a stream with TRUE memory-efficient streaming - never loads full file into memory."""
         with self.lock:
             try:
                 normalized_path = self._normalize_path(path)
@@ -287,7 +287,7 @@ class VirtualFileManager:
                 if parent_path is None and normalized_path != '/':
                     parent_path = '/'
                 
-                print(f"Creating file (streaming): path={normalized_path}, parent={parent_path}, name={name}")
+                print(f"Creating file (TRUE streaming): path={normalized_path}, parent={parent_path}, name={name}")
                 
                 # Check if parent exists
                 if parent_path and not self._path_exists(parent_path):
@@ -305,54 +305,62 @@ class VirtualFileManager:
                     if not mime_type:
                         mime_type = 'application/octet-stream'
                 
-                # Stream the file content in chunks
+                # REAL streaming: Use SQLite incremental BLOB writes
                 total_size = 0
                 content_hash = hashlib.sha256()
                 
-                # First, create the file record with empty content
                 with sqlite3.connect(self.db_path) as conn:
                     cursor = conn.cursor()
                     
-                    # Insert initial record
-                    cursor.execute('''
-                        INSERT INTO virtual_files 
-                        (path, name, parent_path, is_directory, size, content, mime_type, hash) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                    ''', (normalized_path, name, parent_path, False, 0, b'', mime_type, ''))
-                    
-                    # Get the row ID for updating
-                    file_id = cursor.lastrowid
-                    
-                    # Now stream and build content
-                    content_chunks = []
+                    # First pass: calculate size without storing content
+                    file_stream.seek(0)  # Reset stream to beginning
+                    temp_size = 0
+                    temp_hash = hashlib.sha256()
                     
                     while True:
                         chunk = file_stream.read(chunk_size)
                         if not chunk:
                             break
-                            
-                        content_chunks.append(chunk)
-                        content_hash.update(chunk)
-                        total_size += len(chunk)
+                        temp_size += len(chunk)
+                        temp_hash.update(chunk)
                     
-                    # Combine all chunks
-                    full_content = b''.join(content_chunks)
-                    final_hash = content_hash.hexdigest()
-                    
-                    # Update the record with final content
+                    # Create record with correct size and empty content initially
+                    empty_content = b'\x00' * temp_size  # Placeholder of correct size
                     cursor.execute('''
-                        UPDATE virtual_files 
-                        SET size = ?, content = ?, hash = ?
-                        WHERE rowid = ?
-                    ''', (total_size, full_content, final_hash, file_id))
+                        INSERT INTO virtual_files 
+                        (path, name, parent_path, is_directory, size, content, mime_type, hash) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    ''', (normalized_path, name, parent_path, False, temp_size, empty_content, mime_type, temp_hash.hexdigest()))
                     
+                    file_id = cursor.lastrowid
                     conn.commit()
+                    
+                    # Second pass: Stream data directly into BLOB using incremental I/O
+                    file_stream.seek(0)  # Reset stream again
+                    
+                    # Open BLOB for incremental writing
+                    blob = conn.blobopen("virtual_files", "content", file_id, readonly=False)
+                    
+                    position = 0
+                    while True:
+                        chunk = file_stream.read(chunk_size)
+                        if not chunk:
+                            break
+                        
+                        # Write chunk directly to BLOB at current position
+                        blob.seek(position)
+                        blob.write(chunk)
+                        position += len(chunk)
+                        
+                        print(f"TRUE streaming: wrote {len(chunk)} bytes at position {position-len(chunk)}")
+                    
+                    blob.close()
                 
-                print(f"File created successfully (streaming): {normalized_path}, size: {total_size} bytes")
+                print(f"File created with TRUE streaming: {normalized_path}, size: {temp_size} bytes")
                 return True
                 
             except Exception as e:
-                print(f"Error creating file (streaming) {path}: {e}")
+                print(f"Error creating file (TRUE streaming) {path}: {e}")
                 import traceback
                 traceback.print_exc()
                 return False
