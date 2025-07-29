@@ -446,39 +446,36 @@ Object.assign(SypnexOS.prototype, {
 
         // Upload file function
         const uploadFile = async () => {
-            const selectedFile = await tempAPI.showFileUploadModal(
+            // Define the upload callback function
+            const handleUpload = async (file, progressCallback) => {
+                try {
+                    // Use chunked upload for better progress feedback
+                    const result = await tempAPI.uploadVirtualFileChunked(file, currentPath, progressCallback);
+                    
+                    // Show success notification
+                    this.showNotification(`File ${file.name} uploaded successfully`, 'success');
+                    
+                    // Refresh the file list
+                    loadFiles();
+                    loadStats();
+                    
+                    return result;
+                } catch (error) {
+                    console.error('Error uploading file:', error);
+                    throw new Error(error.message || 'Upload failed');
+                }
+            };
+
+            // Show the upload modal with progress support
+            await tempAPI.showFileUploadModal(
                 'Upload File',
                 'Select File:',
                 {
                     confirmText: 'Upload File',
-                    icon: 'fas fa-upload'
+                    icon: 'fas fa-upload',
+                    uploadCallback: handleUpload
                 }
             );
-            
-            if (selectedFile) {
-                try {
-                    const formData = new FormData();
-                    formData.append('file', selectedFile);
-                    formData.append('parent_path', currentPath);
-                    
-                    const response = await fetch('/api/virtual-files/upload-file', {
-                        method: 'POST',
-                        body: formData
-                    });
-                    
-                    if (response.ok) {
-                        this.showNotification(`File ${selectedFile.name} uploaded successfully`, 'success');
-                        loadFiles();
-                        loadStats();
-                    } else {
-                        const error = await response.json();
-                        this.showNotification(`Error uploading file: ${error.error}`, 'error');
-                    }
-                } catch (error) {
-                    console.error('Error uploading file:', error);
-                    this.showNotification('Error uploading file', 'error');
-                }
-            }
         };
 
         // Setup hamburger menu

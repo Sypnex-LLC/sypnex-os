@@ -434,7 +434,8 @@ Object.assign(SypnexAPI.prototype, {
             confirmText = 'Upload',
             cancelText = 'Cancel',
             icon = 'fas fa-upload',
-            accept = '*'
+            accept = '*',
+            uploadCallback = null
         } = options;
 
         return new Promise((resolve) => {
@@ -599,10 +600,56 @@ Object.assign(SypnexAPI.prototype, {
                 margin-top: 10px;
             `;
 
+            // Progress bar container (hidden initially)
+            const progressContainer = document.createElement('div');
+            progressContainer.style.cssText = `
+                display: none;
+                margin-top: 15px;
+            `;
+
+            const progressLabel = document.createElement('div');
+            progressLabel.style.cssText = `
+                color: var(--text-primary);
+                font-size: 14px;
+                margin-bottom: 8px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            `;
+            progressLabel.innerHTML = `
+                <span>Uploading...</span>
+                <span class="progress-percent">0%</span>
+            `;
+
+            const progressBarBg = document.createElement('div');
+            progressBarBg.style.cssText = `
+                width: 100%;
+                height: 8px;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 4px;
+                overflow: hidden;
+                border: 1px solid var(--glass-border);
+            `;
+
+            const progressBarFill = document.createElement('div');
+            progressBarFill.style.cssText = `
+                width: 0%;
+                height: 100%;
+                background: linear-gradient(90deg, var(--accent-color), #00ff88);
+                border-radius: 4px;
+                transition: width 0.3s ease;
+                box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+            `;
+
+            progressBarBg.appendChild(progressBarFill);
+            progressContainer.appendChild(progressLabel);
+            progressContainer.appendChild(progressBarBg);
+
             modalBody.appendChild(label);
             modalBody.appendChild(customFileBtn);
             modalBody.appendChild(fileInput);
             modalBody.appendChild(fileInfo);
+            modalBody.appendChild(progressContainer);
 
             // Modal footer
             const modalFooter = document.createElement('div');
@@ -685,9 +732,54 @@ Object.assign(SypnexAPI.prototype, {
             // Event listeners
             closeBtn.addEventListener('click', () => closeModal(null));
             cancelBtn.addEventListener('click', () => closeModal(null));
-            confirmBtn.addEventListener('click', () => {
+            confirmBtn.addEventListener('click', async () => {
                 const file = fileInput.files[0];
-                if (file) {
+                if (file && uploadCallback) {
+                    // Show progress UI
+                    progressContainer.style.display = 'block';
+                    confirmBtn.disabled = true;
+                    cancelBtn.disabled = true;
+                    customFileBtn.style.display = 'none';
+                    
+                    // Progress callback function
+                    const updateProgress = (percent) => {
+                        progressBarFill.style.width = percent + '%';
+                        progressContainer.querySelector('.progress-percent').textContent = Math.round(percent) + '%';
+                    };
+                    
+                    try {
+                        // Call the upload function with progress callback
+                        const result = await uploadCallback(file, updateProgress);
+                        closeModal(result);
+                    } catch (error) {
+                        // Hide progress and show error
+                        progressContainer.style.display = 'none';
+                        confirmBtn.disabled = false;
+                        cancelBtn.disabled = false;
+                        customFileBtn.style.display = 'block';
+                        
+                        // Show error in the modal
+                        const errorDiv = document.createElement('div');
+                        errorDiv.style.cssText = `
+                            background: rgba(255, 71, 87, 0.1);
+                            border: 1px solid rgba(255, 71, 87, 0.3);
+                            border-radius: 6px;
+                            padding: 10px;
+                            margin-top: 10px;
+                            color: #ff4757;
+                        `;
+                        errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Upload failed: ${error.message}`;
+                        modalBody.appendChild(errorDiv);
+                        
+                        // Remove error after 5 seconds
+                        setTimeout(() => {
+                            if (errorDiv.parentNode) {
+                                errorDiv.remove();
+                            }
+                        }, 5000);
+                    }
+                } else if (file) {
+                    // Fallback to regular modal behavior if no upload callback
                     closeModal(file);
                 }
             });
