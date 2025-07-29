@@ -131,7 +131,7 @@ def register_virtual_file_routes(app, managers):
             if file.filename == '':
                 return jsonify({'error': 'No file selected'}), 400
             
-            # Get file content
+            # Get file content (revert to working approach)
             file_content = file.read()
             file_name = file.filename
             
@@ -214,17 +214,26 @@ def register_virtual_file_routes(app, managers):
             # Check if this is a download request
             download = request.args.get('download', 'false').lower() == 'true'
 
-            response = Response(content, mimetype=mime_type)
-            
             if download:
-                # Set attachment disposition for downloads
-                response.headers['Content-Disposition'] = f'attachment; filename=\"{file_data['name']}\"'
-            else:
-                # Set inline disposition for viewing
-                response.headers['Content-Disposition'] = f'inline; filename=\"{file_data['name']}\"'
+                # For downloads, use streaming response for memory efficiency
+                def generate_chunks():
+                    chunk_size = 8192  # 8KB chunks for optimal streaming
+                    for i in range(0, len(content), chunk_size):
+                        yield content[i:i + chunk_size]
                 
-            response.headers['Content-Length'] = str(len(content))
-            return response
+                response = Response(generate_chunks(), mimetype=mime_type)
+                response.headers['Content-Disposition'] = f'attachment; filename=\"{file_data['name']}\"'
+                response.headers['Content-Length'] = str(len(content))
+                # Add headers for better browser download handling
+                response.headers['Cache-Control'] = 'no-cache'
+                response.headers['Accept-Ranges'] = 'bytes'
+                return response
+            else:
+                # For viewing, keep current behavior (small files typically)
+                response = Response(content, mimetype=mime_type)
+                response.headers['Content-Disposition'] = f'inline; filename=\"{file_data['name']}\"'
+                response.headers['Content-Length'] = str(len(content))
+                return response
         except Exception as e:
             print(f"Error serving virtual file: {e}")
             return jsonify({'error': 'Failed to serve file'}), 500
