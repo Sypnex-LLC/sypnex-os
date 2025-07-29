@@ -4,33 +4,50 @@
 // Extend SypnexOS class with dashboard methods
 Object.assign(SypnexOS.prototype, {
     async showDashboard() {
-        const overlay = document.getElementById('dashboard-overlay');
-        
-        if (!overlay) {
-            console.error('Dashboard overlay not found!');
+        // Prevent concurrent execution
+        if (this.isDashboardLoading) {
+            console.log('showDashboard: Already loading, skipping');
             return;
         }
-        
-        // Get the last selected category from preferences FIRST
-        const lastCategory = await this.getDashboardCategory();
-        
-        // Update UI to show the correct active button BEFORE showing dashboard
-        this.setActiveCategoryButton(lastCategory);
-        
-        overlay.classList.remove('dashboard-hidden');
-        overlay.classList.add('dashboard-visible');
-        
-        // Force a repaint
-        overlay.offsetHeight;
-        
-        // Populate dashboard with apps using the saved category
-        this.populateDashboard(lastCategory);
-        
-        // Setup category filtering
-        this.setupDashboardCategories();
+        this.isDashboardLoading = true;
+
+        try {
+            const overlay = document.getElementById('dashboard-overlay');
+            
+            if (!overlay) {
+                console.error('Dashboard overlay not found!');
+                return;
+            }
+            
+            // Get the last selected category from preferences FIRST
+            const lastCategory = await this.getDashboardCategory();
+            
+            // Update UI to show the correct active button BEFORE showing dashboard
+            this.setActiveCategoryButton(lastCategory);
+            
+            overlay.classList.remove('dashboard-hidden');
+            overlay.classList.add('dashboard-visible');
+            
+            // Force a repaint
+            overlay.offsetHeight;
+            
+            // Populate dashboard with apps using the saved category
+            this.populateDashboard(lastCategory);
+            
+            // Setup category filtering
+            this.setupDashboardCategories();
+        } finally {
+            this.isDashboardLoading = false;
+        }
     },
 
     hideDashboard() {
+        // Prevent hiding while dashboard is still loading
+        if (this.isDashboardLoading) {
+            console.log('hideDashboard: Dashboard is loading, skipping hide');
+            return;
+        }
+
         const overlay = document.getElementById('dashboard-overlay');
         
         if (!overlay) {
@@ -43,13 +60,20 @@ Object.assign(SypnexOS.prototype, {
     },
 
     async populateDashboard(category = 'all') {
-        const appGrid = document.getElementById('dashboard-app-grid');
-        if (!appGrid) return;
-
-        // Clear existing tiles
-        appGrid.innerHTML = '';
+        // Prevent concurrent execution
+        if (this.isPopulatingDashboard) {
+            console.log('populateDashboard: Already populating, skipping');
+            return;
+        }
+        this.isPopulatingDashboard = true;
 
         try {
+            const appGrid = document.getElementById('dashboard-app-grid');
+            if (!appGrid) return;
+
+            // Clear existing tiles
+            appGrid.innerHTML = '';
+
             // Fetch all available apps using the new endpoint
             const response = await fetch('/api/apps');
             const allApps = await response.json();
@@ -99,7 +123,12 @@ Object.assign(SypnexOS.prototype, {
 
         } catch (error) {
             console.error('Error populating dashboard:', error);
-            appGrid.innerHTML = '<div style="text-align: center; color: #888; padding: 40px;">Error loading apps</div>';
+            const appGrid = document.getElementById('dashboard-app-grid');
+            if (appGrid) {
+                appGrid.innerHTML = '<div style="text-align: center; color: #888; padding: 40px;">Error loading apps</div>';
+            }
+        } finally {
+            this.isPopulatingDashboard = false;
         }
     },
 
