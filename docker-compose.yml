@@ -4,6 +4,14 @@ services:
   sypnex-os:
     build: .
     container_name: sypnex-os
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.2'        # Max 0.2 CPU (20% of one core)
+        reservations:
+          memory: 128M
+          cpus: '0.1'        # Guaranteed 0.1 CPU (10% of one core)
     ports:
       - "5000:5000"
     volumes:
