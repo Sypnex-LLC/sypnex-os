@@ -180,6 +180,16 @@ def register_system_routes(app, managers):
                 copied_files = []
                 for target_db, temp_db in temp_db_files.items():
                     if os.path.exists(temp_db):
+                        # Clean up any old WAL files before copying
+                        for ext in ['-wal', '-shm']:
+                            old_wal = target_db + ext
+                            if os.path.exists(old_wal):
+                                try:
+                                    os.remove(old_wal)
+                                    print(f"    - Cleaned up {old_wal}")
+                                except Exception as e:
+                                    print(f"    Warning: Could not remove {old_wal}: {e}")
+                        
                         shutil.copy2(temp_db, target_db)
                         os.remove(temp_db)  # Clean up temp file
                         copied_files.append(target_db)
