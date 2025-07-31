@@ -176,9 +176,7 @@ docker-compose up
 
 **⚠️ Security Note**: Change the demo credentials for production use. See [AUTHENTICATION.md](AUTHENTICATION.md) for details.
 
-## 🤝 Community & Contributing
-
-[![Discord](https://img.shields.io/badge/Join_our_Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/5eJ65MF7Ty)
+## 🤝 Contributing
 
 We're building a community around Sypnex OS and welcome contributions of all kinds.
 
