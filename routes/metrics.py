@@ -5,6 +5,7 @@ These endpoints are designed to be consumed by orchestration systems for SaaS de
 from flask import jsonify
 import os
 from datetime import datetime
+from app_config import SYPNEX_OS_VERSION
 
 def register_metrics_routes(app, managers):
     """Register metrics routes"""
@@ -28,13 +29,16 @@ def register_metrics_routes(app, managers):
             # Get VFS stats from the virtual file manager
             vfs_stats = managers['virtual_file_manager'].get_system_stats()
             
+            # Add version to VFS stats data
+            vfs_stats['version'] = SYPNEX_OS_VERSION
+            
             # Get instance name directly from environment
             instance_name = os.getenv('INSTANCE_NAME', 'unknown')
             
             return jsonify({
                 'success': True,
                 'instance_name': instance_name,
-                'version': os.getenv('SYPNEX_OS_VERSION', '1.0.0'),
+                'version': SYPNEX_OS_VERSION,
                 'data': vfs_stats
             })
             
@@ -88,12 +92,13 @@ def register_metrics_routes(app, managers):
             return jsonify({
                 'success': True,
                 'instance_name': instance_name,
-                'version': os.getenv('SYPNEX_OS_VERSION', '1.0.0'),
+                'version': SYPNEX_OS_VERSION,
                 'data': {
                     'last_login': last_login,
                     'days_since_login': days_since_login,
                     'failed_login_count': failed_count,
                     'last_failed_login': last_failed,
+                    'version': SYPNEX_OS_VERSION,
                     'system_config': {
                         'developer_mode': developer_mode,
                         'app_scale': app_scale,
