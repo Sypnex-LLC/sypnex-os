@@ -34,6 +34,7 @@ def register_metrics_routes(app, managers):
             return jsonify({
                 'success': True,
                 'instance_name': instance_name,
+                'version': os.getenv('SYPNEX_OS_VERSION', '1.0.0'),
                 'data': vfs_stats
             })
             
@@ -87,6 +88,7 @@ def register_metrics_routes(app, managers):
             return jsonify({
                 'success': True,
                 'instance_name': instance_name,
+                'version': os.getenv('SYPNEX_OS_VERSION', '1.0.0'),
                 'data': {
                     'last_login': last_login,
                     'days_since_login': days_since_login,

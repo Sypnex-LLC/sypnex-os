@@ -1,6 +1,10 @@
 """
 Configuration and constants for the Sypnex OS application
 """
+
+# Sypnex OS Version - Update this manually when deploying new versions
+SYPNEX_OS_VERSION = "0.8.0"
+
 from flask import Flask
 from flask_cors import CORS
 from user_app_manager import UserAppManager
