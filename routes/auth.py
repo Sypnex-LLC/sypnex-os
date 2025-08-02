@@ -5,6 +5,7 @@ Handles login, logout, and session management
 from flask import request, jsonify, render_template, redirect, url_for, make_response
 from app_config import verify_password, create_session_token, validate_session_token, get_active_sessions
 import json
+from datetime import datetime
 
 def register_auth_routes(app, managers):
     """Register authentication routes"""
@@ -27,6 +28,9 @@ def register_auth_routes(app, managers):
             
             # Verify credentials
             if verify_password(username, password):
+                # Track successful login
+                managers['user_preferences'].set_preference('system', 'last_login', datetime.now().isoformat())
+                
                 # Create session token
                 session_token = create_session_token(username)
                 
@@ -46,6 +50,11 @@ def register_auth_routes(app, managers):
                                       max_age=24*60*60, httponly=False, secure=False, samesite='Lax')
                     return response
             else:
+                # Track failed login attempt
+                current_count = managers['user_preferences'].get_preference('system', 'failed_login_count', 0)
+                managers['user_preferences'].set_preference('system', 'failed_login_count', current_count + 1)
+                managers['user_preferences'].set_preference('system', 'last_failed_login', datetime.now().isoformat())
+                
                 error_msg = 'Invalid username or password'
                 if request.is_json:
                     return jsonify({'error': error_msg}), 401

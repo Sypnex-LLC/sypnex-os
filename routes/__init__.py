@@ -11,6 +11,7 @@ from .system import register_system_routes
 from .app_updates import register_app_updates_routes
 from .app_discovery import register_app_discovery_routes
 from .auth import register_auth_routes
+from .metrics import register_metrics_routes
 from app_config import validate_session_token
 
 def register_all_routes(app, managers, builtin_apps):
@@ -77,6 +78,9 @@ def register_all_routes(app, managers, builtin_apps):
     
     # Register system routes
     register_system_routes(app, managers)
+    
+    # Register metrics routes
+    register_metrics_routes(app, managers)
     
     # Register app updates routes
     register_app_updates_routes(app, managers)
