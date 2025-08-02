@@ -128,7 +128,7 @@ Object.assign(SypnexAPI.prototype, {
     },
 
     /**
-     * Upload a file with chunked upload and progress tracking
+     * Upload a file with real progress tracking based on actual upload progress
      * @param {File} file - File object from input element
      * @param {string} parentPath - Parent directory path (defaults to '/')
      * @param {Function} progressCallback - Callback for progress updates (percent)
@@ -136,34 +136,54 @@ Object.assign(SypnexAPI.prototype, {
      */
     async uploadVirtualFileChunked(file, parentPath = '/', progressCallback = null) {
         try {
-            // For now, use the regular upload but simulate chunked progress
-            // This gives us progress feedback without the complexity of server-side reassembly
-            
             if (progressCallback) progressCallback(0);
             
-            // Simulate chunked progress for better UX
-            const simulateProgress = async () => {
-                for (let i = 0; i < 90; i += 10) {
-                    if (progressCallback) progressCallback(i);
-                    await new Promise(resolve => setTimeout(resolve, 50)); // Small delay for visual effect
-                }
-            };
+            // Create FormData for the upload
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('parent_path', parentPath);
             
-            // Start progress simulation
-            const progressPromise = simulateProgress();
-            
-            // Perform the actual upload
-            const uploadPromise = this.uploadVirtualFile(file, parentPath);
-            
-            // Wait for both to complete
-            await Promise.all([progressPromise, uploadPromise]);
-            
-            // Complete progress
-            if (progressCallback) progressCallback(100);
-            
-            // Return the upload result
-            const result = await uploadPromise;
-            return result;
+            // Create XMLHttpRequest for progress tracking
+            return new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                
+                // Track upload progress
+                xhr.upload.addEventListener('progress', (event) => {
+                    if (event.lengthComputable && progressCallback) {
+                        const percentComplete = Math.round((event.loaded / event.total) * 100);
+                        progressCallback(percentComplete);
+                    }
+                });
+                
+                // Handle successful completion
+                xhr.addEventListener('load', () => {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        try {
+                            const result = JSON.parse(xhr.responseText);
+                            if (progressCallback) progressCallback(100);
+                            resolve(result);
+                        } catch (parseError) {
+                            reject(new Error('Invalid JSON response from server'));
+                        }
+                    } else {
+                        try {
+                            const errorData = JSON.parse(xhr.responseText);
+                            reject(new Error(errorData.error || `Upload failed with status: ${xhr.status}`));
+                        } catch (parseError) {
+                            reject(new Error(`Upload failed with status: ${xhr.status}`));
+                        }
+                    }
+                });
+                
+                // Handle errors
+                xhr.addEventListener('error', () => {
+                    reject(new Error('Network error during upload'));
+                });
+                
+                // Start the upload
+                xhr.open('POST', `${this.baseUrl}/virtual-files/upload-file-streaming`);
+                xhr.send(formData);
+            });
             
         } catch (error) {
             console.error(`SypnexAPI [${this.appId}]: Error uploading chunked file:`, error);
