@@ -28,13 +28,12 @@ class SypnexOS {
         this.apps = new Map();
         this.activeWindow = null;
         this.windowCounter = 0;
-        this.networkLatency = 0;
-        this.lastHeartbeat = 0;
-        this.useHeartbeat = true; // Use unified heartbeat endpoint
         this.sypnexAPIContent = null; // Cache for SypnexAPI content
-        this.websocketStatus = 'unknown'; // WebSocket server status
-        this.lastWebSocketCheck = 0; // Last WebSocket status check time
         this.latestVersions = null; // Cached latest app versions
+        
+        // NOTE: Heartbeat and status monitoring properties removed
+        // Status checking is now handled contextually within apps/operations
+        
         this.init();
         this.initModalEvents();
     }
@@ -42,10 +41,8 @@ class SypnexOS {
     init() {
         this.setupEventListeners();
         
-        // Small delay to ensure fetch override is fully applied
-        setTimeout(() => {
-            this.updateTime();
-        }, 100);
+        // Initial time update (no delay needed since it's client-side now)
+        this.updateTime();
         
         this.checkWelcomeScreen(); // Check if welcome screen should be shown
         this.loadWallpaper();
@@ -53,14 +50,10 @@ class SypnexOS {
         // Setup page unload cleanup
         this.setupPageUnloadCleanup();
         
-        // Update time and network status every 5 seconds (with small initial delay)
-        setTimeout(() => {
-            setInterval(() => {
-                this.updateTime();
-                this.updateNetworkStatus();
-                this.updateWebSocketStatus();
-            }, 5000);
-        }, 200);
+        // Update time every 10 seconds (frequent enough to feel responsive, light since it's just client time)
+        setInterval(() => {
+            this.updateTime();
+        }, 10000);
     }
 
     setupEventListeners() {
@@ -355,13 +348,6 @@ class SypnexOS {
         // - Track error patterns
         // - Show debugging info in developer mode
         // - Store errors for later analysis
-    }
-
-    toggleHeartbeatEndpoint() {
-        this.useHeartbeat = !this.useHeartbeat;
-        
-        // Update immediately
-        this.updateTime();
     }
 
     async loadSypnexAPI() {
