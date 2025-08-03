@@ -7,6 +7,7 @@ import os
 import json
 import requests
 from utils.app_utils import install_app_direct, sanitize_user_app_content
+from utils.performance_utils import monitor_performance, monitor_critical_performance
 
 def register_user_app_routes(app, managers):
     """Register user app management routes"""
@@ -41,6 +42,7 @@ def register_user_app_routes(app, managers):
             return jsonify({'error': f'User app {app_id} not found'}), 404
 
     @app.route('/api/user-apps/refresh', methods=['POST'])
+    @monitor_performance(threshold=3.0)  # App discovery can take a few seconds
     def refresh_user_apps():
         """Refresh the user apps discovery"""
         try:
@@ -56,6 +58,7 @@ def register_user_app_routes(app, managers):
             return jsonify({'error': str(e)}), 500
 
     @app.route('/api/user-apps/install', methods=['POST'])
+    @monitor_critical_performance(threshold=5.0)  # App installations can take several seconds
     def install_user_app():
         """Install a packaged app from uploaded file"""
         try:

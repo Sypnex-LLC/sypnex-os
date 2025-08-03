@@ -2,6 +2,7 @@
 Service management routes for the Sypnex OS application
 """
 from flask import request, jsonify
+from utils.performance_utils import monitor_critical_performance
 
 def register_service_routes(app, managers):
     """Register service management routes"""
@@ -32,6 +33,7 @@ def register_service_routes(app, managers):
             return jsonify({'error': 'Failed to get service'}), 500
 
     @app.route('/api/services/<service_id>/start', methods=['POST'])
+    @monitor_critical_performance(threshold=1.0)  # Service starts should be under 1 second
     def start_service(service_id):
         """Start a service"""
         try:
@@ -45,6 +47,7 @@ def register_service_routes(app, managers):
             return jsonify({'error': 'Failed to start service'}), 500
 
     @app.route('/api/services/<service_id>/stop', methods=['POST'])
+    @monitor_critical_performance(threshold=1.0)  # Service stops should be under 1 second  
     def stop_service(service_id):
         """Stop a service"""
         try:

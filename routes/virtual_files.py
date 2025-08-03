@@ -3,6 +3,7 @@ Virtual file system routes for the Sypnex OS application
 """
 from flask import request, jsonify, Response
 from core.virtual_file_manager import validate_filename
+from utils.performance_utils import monitor_performance, monitor_critical_performance
 
 def register_virtual_file_routes(app, managers):
     """Register virtual file system routes"""
@@ -229,6 +230,7 @@ def register_virtual_file_routes(app, managers):
             return jsonify({'error': 'Failed to upload file'}), 500
 
     @app.route('/api/virtual-files/read/<path:file_path>', methods=['GET'])
+    @monitor_performance(threshold=0.5)  # File reads should be fast
     def read_virtual_file(file_path):
         """Read a file's content"""
         try:
@@ -384,6 +386,7 @@ def register_virtual_file_routes(app, managers):
             return jsonify({'error': 'Failed to get item info'}), 500 
 
     @app.route('/api/virtual-files/write/<path:file_path>', methods=['PUT'])
+    @monitor_critical_performance(threshold=0.3)  # VFS writes should be under 300ms
     def write_virtual_file(file_path):
         """Write/update file content (creates file if it doesn't exist)"""
         try:
