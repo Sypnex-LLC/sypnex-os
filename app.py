@@ -9,6 +9,7 @@ from flask import Response, url_for
 from pathlib import Path
 import time
 import hashlib
+from performance_utils import monitor_performance
 
 try:
     from jsmin import jsmin
@@ -31,6 +32,9 @@ managers['websocket_manager'].register_routes(app)
 
 # Register logs manager routes
 managers['logs_manager'].register_routes(app)
+
+# Make logs_manager accessible to decorators
+app.logs_manager = managers['logs_manager']
 
 # Register all application routes
 register_all_routes(app, managers, BUILTIN_APPS)
@@ -67,6 +71,7 @@ def cache_bust_url(endpoint, **values):
     return url_for(endpoint, **values)
 
 @app.route('/static/js/os.js')
+@monitor_performance(threshold=1.0)  # 1 second for OS bundle
 def serve_bundled_os():
     """
     Dynamically bundle all os-*.js files in the correct load order
@@ -140,6 +145,7 @@ def serve_bundled_os():
     return response
 
 @app.route('/static/js/sypnex-api.js')
+@monitor_performance(threshold=1.0)  # 1 second for API bundle
 def serve_bundled_sypnex_api():
     """
     Dynamically bundle all sypnex-api-*.js files in the correct load order
@@ -213,6 +219,7 @@ def serve_bundled_sypnex_api():
     return response
 
 @app.route('/static/css/os.css')
+@monitor_performance(threshold=0.5)  # 500ms for CSS bundle (smaller than JS)
 def serve_bundled_css():
     """
     Dynamically bundle all OS CSS files in the correct load order

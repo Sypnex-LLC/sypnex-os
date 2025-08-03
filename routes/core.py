@@ -3,6 +3,7 @@ Core routes for the Sypnex OS application
 """
 from flask import render_template, request, jsonify
 from app_utils import get_system_uptime, get_current_time_info, sanitize_user_app_content
+from performance_utils import monitor_performance, monitor_critical_performance
 
 def register_core_routes(app, managers, builtin_apps):
     """Register core application routes"""
@@ -103,6 +104,7 @@ def register_core_routes(app, managers, builtin_apps):
         return jsonify({'error': 'App not found'}), 404
 
     @app.route('/api/apps/<app_id>/launch')
+    @monitor_critical_performance(threshold=0.5)  # App launches should be under 500ms
     def launch_app(app_id):
         """Get all data needed to launch an app in a single request"""
         try:
