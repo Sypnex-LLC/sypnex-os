@@ -163,6 +163,7 @@ python generate_password.py  # Follow prompts to create secure credentials
 python run_dev.py
 
 # Open browser to http://localhost:5000
+# Demo credentials: username=demo, password=test123
 ```
 
 ### Docker Deployment
@@ -171,7 +172,7 @@ python run_dev.py
 docker-compose up
 
 # Access at http://localhost:5000
-# Demo credentials: username=demo, password=demo123
+# Demo credentials: username=demo, password=test123
 ```
 
 **⚠️ Security Note**: Change the demo credentials for production use. See [AUTHENTICATION.md](docs/AUTHENTICATION.md) for details.
