@@ -738,8 +738,11 @@ Object.assign(SypnexAPI.prototype, {
                     // Show progress UI
                     progressContainer.style.display = 'block';
                     confirmBtn.disabled = true;
-                    cancelBtn.disabled = true;
                     customFileBtn.style.display = 'none';
+                    
+                    // Change cancel button to indicate it can cancel upload
+                    cancelBtn.textContent = 'Cancel Upload';
+                    let currentUpload = null;
                     
                     // Progress callback function
                     const updateProgress = (percent) => {
@@ -747,36 +750,64 @@ Object.assign(SypnexAPI.prototype, {
                         progressContainer.querySelector('.progress-percent').textContent = Math.round(percent) + '%';
                     };
                     
+                    // Update cancel button handler for upload cancellation
+                    const uploadCancelHandler = () => {
+                        if (currentUpload && currentUpload.abort) {
+                            currentUpload.abort();
+                        }
+                        closeModal(null);
+                    };
+                    
+                    // Replace cancel button event listener
+                    cancelBtn.removeEventListener('click', closeModal);
+                    cancelBtn.addEventListener('click', uploadCancelHandler);
+                    
                     try {
                         // Call the upload function with progress callback
-                        const result = await uploadCallback(file, updateProgress);
-                        closeModal(result);
+                        const uploadResult = uploadCallback(file, updateProgress);
+                        
+                        // Check if uploadCallback returns an object with promise and abort
+                        if (uploadResult && uploadResult.promise && uploadResult.abort) {
+                            currentUpload = uploadResult;
+                            const result = await uploadResult.promise;
+                            closeModal(result);
+                        } else {
+                            // Fallback for legacy uploadCallback that returns just a promise
+                            const result = await uploadResult;
+                            closeModal(result);
+                        }
                     } catch (error) {
                         // Hide progress and show error
                         progressContainer.style.display = 'none';
                         confirmBtn.disabled = false;
-                        cancelBtn.disabled = false;
+                        cancelBtn.textContent = cancelText; // Reset cancel button text
                         customFileBtn.style.display = 'block';
                         
-                        // Show error in the modal
-                        const errorDiv = document.createElement('div');
-                        errorDiv.style.cssText = `
-                            background: rgba(255, 71, 87, 0.1);
-                            border: 1px solid rgba(255, 71, 87, 0.3);
-                            border-radius: 6px;
-                            padding: 10px;
-                            margin-top: 10px;
-                            color: #ff4757;
-                        `;
-                        errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Upload failed: ${error.message}`;
-                        modalBody.appendChild(errorDiv);
+                        // Restore original cancel handler
+                        cancelBtn.removeEventListener('click', uploadCancelHandler);
+                        cancelBtn.addEventListener('click', () => closeModal(null));
                         
-                        // Remove error after 5 seconds
-                        setTimeout(() => {
-                            if (errorDiv.parentNode) {
-                                errorDiv.remove();
-                            }
-                        }, 5000);
+                        // Show error in the modal unless it was cancelled
+                        if (error.message !== 'Upload cancelled by user') {
+                            const errorDiv = document.createElement('div');
+                            errorDiv.style.cssText = `
+                                background: rgba(255, 71, 87, 0.1);
+                                border: 1px solid rgba(255, 71, 87, 0.3);
+                                border-radius: 6px;
+                                padding: 10px;
+                                margin-top: 10px;
+                                color: #ff4757;
+                            `;
+                            errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Upload failed: ${error.message}`;
+                            modalBody.appendChild(errorDiv);
+                            
+                            // Remove error after 5 seconds
+                            setTimeout(() => {
+                                if (errorDiv.parentNode) {
+                                    errorDiv.remove();
+                                }
+                            }, 5000);
+                        }
                     }
                 } else if (file) {
                     // Fallback to regular modal behavior if no upload callback

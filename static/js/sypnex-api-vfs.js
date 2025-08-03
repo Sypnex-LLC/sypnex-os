@@ -132,9 +132,9 @@ Object.assign(SypnexAPI.prototype, {
      * @param {File} file - File object from input element
      * @param {string} parentPath - Parent directory path (defaults to '/')
      * @param {Function} progressCallback - Callback for progress updates (percent)
-     * @returns {Promise<object>} - Upload result
+     * @returns {Object} - Object with promise and abort method { promise: Promise<object>, abort: Function }
      */
-    async uploadVirtualFileChunked(file, parentPath = '/', progressCallback = null) {
+    uploadVirtualFileChunked(file, parentPath = '/', progressCallback = null) {
         try {
             if (progressCallback) progressCallback(0);
             
@@ -144,8 +144,10 @@ Object.assign(SypnexAPI.prototype, {
             formData.append('parent_path', parentPath);
             
             // Create XMLHttpRequest for progress tracking
-            return new Promise((resolve, reject) => {
-                const xhr = new XMLHttpRequest();
+            let xhr = null;
+            
+            const promise = new Promise((resolve, reject) => {
+                xhr = new XMLHttpRequest();
                 
                 // Track upload progress
                 xhr.upload.addEventListener('progress', (event) => {
@@ -180,10 +182,25 @@ Object.assign(SypnexAPI.prototype, {
                     reject(new Error('Network error during upload'));
                 });
                 
+                // Handle abort
+                xhr.addEventListener('abort', () => {
+                    reject(new Error('Upload cancelled by user'));
+                });
+                
                 // Start the upload
                 xhr.open('POST', `${this.baseUrl}/virtual-files/upload-file-streaming`);
                 xhr.send(formData);
             });
+            
+            // Return both promise and abort function
+            return {
+                promise: promise,
+                abort: () => {
+                    if (xhr) {
+                        xhr.abort();
+                    }
+                }
+            };
             
         } catch (error) {
             console.error(`SypnexAPI [${this.appId}]: Error uploading chunked file:`, error);

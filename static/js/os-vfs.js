@@ -447,11 +447,12 @@ Object.assign(SypnexOS.prototype, {
         // Upload file function
         const uploadFile = async () => {
             // Define the upload callback function
-            const handleUpload = async (file, progressCallback) => {
-                try {
-                    // Use chunked upload for better progress feedback
-                    const result = await tempAPI.uploadVirtualFileChunked(file, currentPath, progressCallback);
-                    
+            const handleUpload = (file, progressCallback) => {
+                // Use chunked upload for better progress feedback - returns {promise, abort}
+                const uploadControl = tempAPI.uploadVirtualFileChunked(file, currentPath, progressCallback);
+                
+                // Wrap the promise to add success handling
+                const wrappedPromise = uploadControl.promise.then((result) => {
                     // Show success notification
                     this.showNotification(`File ${file.name} uploaded successfully`, 'success');
                     
@@ -460,10 +461,16 @@ Object.assign(SypnexOS.prototype, {
                     loadStats();
                     
                     return result;
-                } catch (error) {
+                }).catch((error) => {
                     console.error('Error uploading file:', error);
                     throw new Error(error.message || 'Upload failed');
-                }
+                });
+                
+                // Return control object with wrapped promise
+                return {
+                    promise: wrappedPromise,
+                    abort: uploadControl.abort
+                };
             };
 
             // Show the upload modal with progress support
