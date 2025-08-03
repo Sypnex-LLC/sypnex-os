@@ -128,6 +128,17 @@ Object.assign(SypnexOS.prototype, {
         }
     },
     async openApp(appId) {
+        // Prevent concurrent execution for the same app
+        if (this.openingApps && this.openingApps.has(appId)) {
+            console.log(`openApp: App ${appId} is already being opened, skipping`);
+            return;
+        }
+        
+        // Initialize tracking if not exists
+        if (!this.openingApps) {
+            this.openingApps = new Set();
+        }
+        
         // Check if app is already open
         if (this.apps.has(appId)) {
             const windowElement = this.apps.get(appId);
@@ -142,6 +153,9 @@ Object.assign(SypnexOS.prototype, {
             }
             return;
         }
+
+        // Mark app as being opened
+        this.openingApps.add(appId);
 
         try {
             // Use the new consolidated launch endpoint
@@ -167,6 +181,9 @@ Object.assign(SypnexOS.prototype, {
         } catch (error) {
             console.error('Error opening app:', error);
             this.showNotification(`Failed to open ${appId}`, 'error');
+        } finally {
+            // Always remove from opening tracker
+            this.openingApps.delete(appId);
         }
     },
 
@@ -504,11 +521,28 @@ Object.assign(SypnexOS.prototype, {
     async openAppSettings(appId) {
         // Unique settings window ID
         const settingsAppId = `settings-${appId}`;
+        
+        // Prevent concurrent execution for the same settings window
+        if (this.openingApps && this.openingApps.has(settingsAppId)) {
+            console.log(`openAppSettings: Settings for ${appId} is already being opened, skipping`);
+            return;
+        }
+        
+        // Initialize tracking if not exists
+        if (!this.openingApps) {
+            this.openingApps = new Set();
+        }
+        
         // If already open, focus it
         if (this.apps.has(settingsAppId)) {
             this.focusWindow(settingsAppId);
             return;
         }
+        
+        // Mark settings window as being opened
+        this.openingApps.add(settingsAppId);
+
+        try {
         // Fetch app metadata for settings structure
         const appData = await fetch(`/api/app-metadata/${appId}`).then(res => res.json());
         // Fetch current settings from database
@@ -591,6 +625,13 @@ Object.assign(SypnexOS.prototype, {
                 this.showNotification('Failed to save some settings.', 'error');
             }
         });
+        } catch (error) {
+            console.error('Error opening app settings:', error);
+            this.showNotification(`Failed to open settings for ${appId}`, 'error');
+        } finally {
+            // Always remove from opening tracker
+            this.openingApps.delete(settingsAppId);
+        }
     },
 
     initModalEvents() {
@@ -748,6 +789,20 @@ Object.assign(SypnexOS.prototype, {
     },
 
     async reloadApp(appId) {
+        // Prevent concurrent execution for the same app
+        if (this.reloadingApps && this.reloadingApps.has(appId)) {
+            console.log(`reloadApp: App ${appId} is already being reloaded, skipping`);
+            return;
+        }
+        
+        // Initialize tracking if not exists
+        if (!this.reloadingApps) {
+            this.reloadingApps = new Set();
+        }
+        
+        // Mark app as being reloaded
+        this.reloadingApps.add(appId);
+
         try {
             // Show loading state
             const windowElement = this.apps.get(appId);
@@ -770,6 +825,9 @@ Object.assign(SypnexOS.prototype, {
         } catch (error) {
             console.error('Error reloading app:', error);
             this.showNotification(`Failed to reload app: ${error.message}`, 'error');
+        } finally {
+            // Always remove from reloading tracker
+            this.reloadingApps.delete(appId);
         }
     },
 
@@ -841,8 +899,23 @@ Object.assign(SypnexOS.prototype, {
     },
 
     async maximizeWindow(appId) {
+        // Prevent concurrent execution for the same app
+        if (this.maximizingApps && this.maximizingApps.has(appId)) {
+            console.log(`maximizeWindow: App ${appId} is already being maximized/restored, skipping`);
+            return;
+        }
+        
+        // Initialize tracking if not exists
+        if (!this.maximizingApps) {
+            this.maximizingApps = new Set();
+        }
+        
         const windowElement = this.apps.get(appId);
         if (windowElement) {
+            // Mark app as being maximized/restored
+            this.maximizingApps.add(appId);
+            
+            try {
             if (windowElement.classList.contains('maximized')) {
                 // Restore window - load saved state
                 const savedState = await this.loadWindowState(appId);
@@ -888,6 +961,10 @@ Object.assign(SypnexOS.prototype, {
             }
             // Save state when maximizing/restoring
             this.saveWindowState(appId);
+            } finally {
+                // Always remove from maximizing tracker
+                this.maximizingApps.delete(appId);
+            }
         }
     },
 
