@@ -239,6 +239,58 @@ class UserPreferences:
             print(f"Error getting all preferences: {e}")
             return {}
     
+    # Developer JWT token management
+    def generate_dev_jwt_token(self, username: str = None) -> str:
+        """Generate a new 1-year JWT token for development"""
+        try:
+            import jwt
+            import time
+            from config.app_config import AUTH_CONFIG
+            
+            # Use provided username or default to 'developer' if not available
+            if not username:
+                username = 'developer'
+            
+            # JWT payload with 1-year expiration
+            payload = {
+                'username': username,
+                'purpose': 'development',
+                'created_at': time.time(),
+                'exp': time.time() + (365 * 24 * 60 * 60),  # 1 year
+                'iss': AUTH_CONFIG.get('instance_name', 'sypnex-dev'),
+                'iat': time.time()
+            }
+            
+            # Sign with our secret key
+            token = jwt.encode(payload, AUTH_CONFIG['session_secret'], algorithm='HS256')
+            
+            # Store the token in preferences
+            self.set_preference('system', 'dev_jwt_token', token)
+            
+            print(f"🔧 Generated new dev JWT token for user '{username}': {token[:20]}...")
+            return token
+            
+        except Exception as e:
+            print(f"Error generating dev JWT token: {e}")
+            return None
+    
+    def get_dev_jwt_token(self) -> str:
+        """Get the current development JWT token"""
+        try:
+            token = self.get_preference('system', 'dev_jwt_token')
+            return token if token else None
+        except Exception as e:
+            print(f"Error getting dev JWT token: {e}")
+            return None
+    
+    def clear_dev_jwt_token(self) -> bool:
+        """Clear the development JWT token"""
+        try:
+            return self.delete_preference('system', 'dev_jwt_token')
+        except Exception as e:
+            print(f"Error clearing dev JWT token: {e}")
+            return False
+    
     # Window state management
     def save_window_state(self, app_id: str, x: int, y: int, width: int, height: int, maximized: bool = False) -> bool:
         """Save window position and size for an app"""

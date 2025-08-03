@@ -205,4 +205,40 @@ def register_preference_routes(app, managers):
     def reset_preferences():
         """Reset all preferences"""
         success = managers['user_preferences'].reset_all_preferences()
-        return jsonify({'success': success}) 
+        return jsonify({'success': success})
+
+    # Developer JWT token management
+    @app.route('/api/dev-token/generate', methods=['POST'])
+    def generate_dev_token():
+        """Generate a new development JWT token"""
+        try:
+            # Get the current authenticated user from request context
+            username = getattr(request, 'current_user', None)
+            token = managers['user_preferences'].generate_dev_jwt_token(username)
+            if token:
+                return jsonify({'success': True, 'token': token})
+            else:
+                return jsonify({'success': False, 'error': 'Failed to generate token'}), 500
+        except Exception as e:
+            print(f"Error generating dev token: {e}")
+            return jsonify({'success': False, 'error': str(e)}), 500
+
+    @app.route('/api/dev-token', methods=['GET'])
+    def get_dev_token():
+        """Get the current development JWT token"""
+        try:
+            token = managers['user_preferences'].get_dev_jwt_token()
+            return jsonify({'success': True, 'token': token})
+        except Exception as e:
+            print(f"Error getting dev token: {e}")
+            return jsonify({'success': False, 'error': str(e)}), 500
+
+    @app.route('/api/dev-token', methods=['DELETE'])
+    def clear_dev_token():
+        """Clear the development JWT token"""
+        try:
+            success = managers['user_preferences'].clear_dev_jwt_token()
+            return jsonify({'success': success})
+        except Exception as e:
+            print(f"Error clearing dev token: {e}")
+            return jsonify({'success': False, 'error': str(e)}), 500 

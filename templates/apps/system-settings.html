@@ -126,6 +126,29 @@
                     </div>
                 </div>
 
+                <!-- Developer JWT Token Section -->
+                <div class="preference-item" id="dev-token-section" style="display: none;">
+                    <div class="preference-info">
+                        <div class="preference-label">Development API Token</div>
+                        <div class="preference-description">JWT token for API access during development (expires in 1 year)</div>
+                    </div>
+                    <div class="preference-control">
+                        <div class="dev-token-controls">
+                            <div class="dev-token-input-container">
+                                <input type="text" id="dev-token-display" readonly class="dev-token-input" placeholder="No token generated">
+                            </div>
+                            <div class="dev-token-actions">
+                                <button id="copy-dev-token" class="btn-secondary" disabled>
+                                    <i class="fas fa-copy"></i> Copy Token
+                                </button>
+                                <button id="regenerate-dev-token" class="btn-primary">
+                                    <i class="fas fa-refresh"></i> Generate New
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="preference-item">
                     <div class="preference-info">
                         <div class="preference-label">Default Text Editor</div>

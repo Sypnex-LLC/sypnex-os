@@ -425,3 +425,127 @@ input:checked + .toggle-slider:before {
     border-color: var(--accent-color);
     background: rgba(0, 212, 255, 0.05);
 }
+
+/* Developer Token Styles */
+.dev-token-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-end;
+}
+
+.dev-token-input-container {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    max-width: 400px;
+}
+
+.dev-token-input {
+    width: 100%;
+    padding: 12px 15px;
+    font-size: 0.85em;
+    font-family: 'Courier New', monospace;
+    border: 2px solid var(--glass-border);
+    border-radius: 8px;
+    background: var(--glass-bg);
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+    letter-spacing: 0.5px;
+    word-break: break-all;
+    line-height: 1.2;
+}
+
+.dev-token-input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.2);
+}
+
+.dev-token-input:hover {
+    border-color: var(--accent-color);
+}
+
+.dev-token-input:not(:placeholder-shown) {
+    background: rgba(0, 212, 255, 0.05);
+    border-color: var(--accent-color);
+}
+
+.dev-token-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.dev-token-actions .btn-primary,
+.dev-token-actions .btn-secondary {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.85em;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 110px;
+    justify-content: center;
+}
+
+.dev-token-actions .btn-primary {
+    background: var(--accent-color);
+    color: white;
+    border: 1px solid var(--accent-color);
+}
+
+.dev-token-actions .btn-primary:hover {
+    background: rgba(0, 212, 255, 0.8);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+}
+
+.dev-token-actions .btn-secondary {
+    background: var(--glass-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--glass-border);
+}
+
+.dev-token-actions .btn-secondary:hover:not(:disabled) {
+    background: var(--glass-hover-bg);
+    border-color: var(--accent-color);
+    transform: translateY(-1px);
+}
+
+.dev-token-actions .btn-secondary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+}
+
+.dev-token-actions .btn-primary:active,
+.dev-token-actions .btn-secondary:active {
+    transform: translateY(0);
+}
+
+/* Responsive adjustments for dev token section */
+@media (max-width: 768px) {
+    .dev-token-controls {
+        align-items: stretch;
+    }
+    
+    .dev-token-input-container {
+        max-width: none;
+    }
+    
+    .dev-token-actions {
+        justify-content: center;
+    }
+    
+    .dev-token-actions .btn-primary,
+    .dev-token-actions .btn-secondary {
+        flex: 1;
+        min-width: 0;
+    }
+}

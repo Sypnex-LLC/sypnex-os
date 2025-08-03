@@ -27,6 +27,21 @@ Object.assign(SypnexOS.prototype, {
             });
         }
 
+        // Dev token management
+        const copyDevTokenBtn = windowElement.querySelector('#copy-dev-token');
+        if (copyDevTokenBtn) {
+            copyDevTokenBtn.addEventListener('click', () => {
+                this.copyDevToken();
+            });
+        }
+
+        const regenerateDevTokenBtn = windowElement.querySelector('#regenerate-dev-token');
+        if (regenerateDevTokenBtn) {
+            regenerateDevTokenBtn.addEventListener('click', () => {
+                this.generateDevToken();
+            });
+        }
+
         // Show notifications toggle
         const showNotificationsToggle = windowElement.querySelector('#show-notifications-toggle');
         if (showNotificationsToggle) {
@@ -137,6 +152,14 @@ Object.assign(SypnexOS.prototype, {
             const developerModeToggle = windowElement.querySelector('#developer-mode-toggle');
             if (developerModeToggle) {
                 developerModeToggle.checked = data.value === 'true';
+                
+                // Show/hide dev token section based on developer mode
+                this.showDevTokenSection(data.value === 'true');
+                
+                // If developer mode is enabled, load the current token
+                if (data.value === 'true') {
+                    await this.loadDevToken();
+                }
             }
 
             // Load show notifications setting
@@ -206,6 +229,15 @@ Object.assign(SypnexOS.prototype, {
             
             if (response.ok) {
                 this.showNotification(`Developer mode ${enabled ? 'enabled' : 'disabled'}`, 'success');
+                
+                // Handle dev token based on developer mode state
+                if (enabled) {
+                    await this.generateDevToken();
+                    this.showDevTokenSection(true);
+                } else {
+                    await this.clearDevToken();
+                    this.showDevTokenSection(false);
+                }
                 
                 // Broadcast the change to other parts of the system
                 this.broadcastDeveloperModeChange(enabled);
@@ -1067,6 +1099,102 @@ Object.assign(SypnexOS.prototype, {
                 } catch (revertError) {
                     console.error('Error reverting default text editor selection:', revertError);
                 }
+            }
+        }
+    },
+
+    // Developer JWT Token Management
+    async generateDevToken() {
+        try {
+            const response = await fetch('/api/dev-token/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (data.success && data.token) {
+                this.updateDevTokenDisplay(data.token);
+                this.showNotification('New development token generated', 'success');
+            } else {
+                throw new Error(data.error || 'Failed to generate token');
+            }
+            
+        } catch (error) {
+            console.error('Error generating dev token:', error);
+            this.showNotification('Failed to generate development token', 'error');
+        }
+    },
+
+    async loadDevToken() {
+        try {
+            const response = await fetch('/api/dev-token');
+            const data = await response.json();
+            
+            if (data.success) {
+                this.updateDevTokenDisplay(data.token);
+            }
+        } catch (error) {
+            console.error('Error loading dev token:', error);
+        }
+    },
+
+    async clearDevToken() {
+        try {
+            const response = await fetch('/api/dev-token', {
+                method: 'DELETE'
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                this.updateDevTokenDisplay(null);
+            }
+        } catch (error) {
+            console.error('Error clearing dev token:', error);
+        }
+    },
+
+    updateDevTokenDisplay(token) {
+        const tokenDisplay = document.querySelector('#dev-token-display');
+        const copyButton = document.querySelector('#copy-dev-token');
+        
+        if (tokenDisplay && copyButton) {
+            if (token) {
+                tokenDisplay.value = token;
+                tokenDisplay.placeholder = '';
+                copyButton.disabled = false;
+            } else {
+                tokenDisplay.value = '';
+                tokenDisplay.placeholder = 'No token generated';
+                copyButton.disabled = true;
+            }
+        }
+    },
+
+    showDevTokenSection(show) {
+        const tokenSection = document.querySelector('#dev-token-section');
+        if (tokenSection) {
+            tokenSection.style.display = show ? 'flex' : 'none';
+        }
+    },
+
+    async copyDevToken() {
+        const tokenDisplay = document.querySelector('#dev-token-display');
+        
+        if (tokenDisplay && tokenDisplay.value) {
+            try {
+                await navigator.clipboard.writeText(tokenDisplay.value);
+                this.showNotification('Development token copied to clipboard', 'success');
+            } catch (error) {
+                console.error('Error copying token:', error);
+                
+                // Fallback: select the text
+                tokenDisplay.select();
+                document.execCommand('copy');
+                this.showNotification('Development token copied to clipboard', 'success');
             }
         }
     }
