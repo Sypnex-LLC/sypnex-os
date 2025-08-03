@@ -366,20 +366,20 @@ Object.assign(SypnexAPI.prototype, {
      */
     async writeVirtualFile(filePath, content) {
         try {
-            // First check if file exists
-            const exists = await this.virtualItemExists(filePath);
+            const response = await fetch(`${this.baseUrl}/virtual-files/write${filePath}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ content })
+            });
             
-            if (exists) {
-                // For now, we'll delete and recreate since we don't have a direct write endpoint
-                await this.deleteVirtualItem(filePath);
+            if (response.ok) {
+                return await response.json();
+            } else {
+                const errorData = await response.json();
+                throw new Error(errorData.error || `Failed to write file: ${response.status}`);
             }
-            
-            // Extract name and parent path
-            const pathParts = filePath.split('/');
-            const name = pathParts.pop();
-            const parentPath = pathParts.length > 0 ? pathParts.join('/') || '/' : '/';
-            
-            return await this.createVirtualFile(name, content, parentPath);
         } catch (error) {
             console.error(`SypnexAPI [${this.appId}]: Error writing virtual file:`, error);
             throw error;

@@ -382,3 +382,92 @@ def register_virtual_file_routes(app, managers):
         except Exception as e:
             print(f"Error getting virtual item info: {e}")
             return jsonify({'error': 'Failed to get item info'}), 500 
+
+    @app.route('/api/virtual-files/write/<path:file_path>', methods=['PUT'])
+    def write_virtual_file(file_path):
+        """Write/update file content (creates file if it doesn't exist)"""
+        try:
+            # Ensure path starts with /
+            if not file_path.startswith('/'):
+                file_path = '/' + file_path
+            
+            data = request.json
+            content = data.get('content', '')
+            
+            # Convert content to bytes
+            content_bytes = content.encode('utf-8')
+            
+            # Check if file exists first
+            file_exists = managers['virtual_file_manager'].get_file_info(file_path)
+            
+            if file_exists:
+                # File exists - use write_file to update atomically
+                success = managers['virtual_file_manager'].write_file(file_path, content_bytes)
+                operation = "updated"
+            else:
+                # File doesn't exist - use create_file
+                success = managers['virtual_file_manager'].create_file(file_path, content_bytes)
+                operation = "created"
+            
+            if success:
+                return jsonify({
+                    'message': f'File {file_path} {operation} successfully',
+                    'path': file_path
+                })
+            else:
+                return jsonify({'error': f'Failed to {operation.rstrip("d")} file {file_path}'}), 500
+                
+        except Exception as e:
+            print(f"Error writing virtual file: {e}")
+            import traceback
+            traceback.print_exc()
+            return jsonify({'error': f'Failed to write file: {str(e)}'}), 500
+
+    @app.route('/api/virtual-files/write-test/<path:file_path>', methods=['PUT'])
+    def write_virtual_file_test(file_path):
+        """Test endpoint for writing/updating file content"""
+        try:
+            # Ensure path starts with /
+            if not file_path.startswith('/'):
+                file_path = '/' + file_path
+            
+            data = request.json
+            content = data.get('content', '')
+            
+            print(f"Test write endpoint called for: {file_path}")
+            print(f"Content length: {len(content)}")
+            
+            # Convert content to bytes
+            content_bytes = content.encode('utf-8')
+            
+            # Check if file exists first
+            file_exists = managers['virtual_file_manager'].get_file_info(file_path)
+            print(f"File exists: {file_exists is not None}")
+            
+            if file_exists:
+                # File exists - use write_file to update
+                success = managers['virtual_file_manager'].write_file(file_path, content_bytes)
+                operation = "updated"
+            else:
+                # File doesn't exist - use create_file
+                success = managers['virtual_file_manager'].create_file(file_path, content_bytes)
+                operation = "created"
+            
+            print(f"Operation result: {operation} = {success}")
+            
+            if success:
+                # Get updated file info
+                updated_info = managers['virtual_file_manager'].get_file_info(file_path)
+                return jsonify({
+                    'message': f'File {file_path} {operation} successfully',
+                    'operation': operation,
+                    'file_info': updated_info
+                })
+            else:
+                return jsonify({'error': f'Failed to {operation.rstrip("d")} file {file_path}'}), 500
+                
+        except Exception as e:
+            print(f"Error in write test endpoint: {e}")
+            import traceback
+            traceback.print_exc()
+            return jsonify({'error': f'Failed to write file: {str(e)}'}), 500
