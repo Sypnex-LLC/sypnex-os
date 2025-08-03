@@ -147,6 +147,16 @@ class UserPreferences:
                     INSERT OR REPLACE INTO preferences (category, key, value, updated_at)
                     VALUES (?, ?, ?, ?)
                 ''', (category, key, json.dumps(stored_value), datetime.now().isoformat()))
+                
+                # Special handling: If removing PIN code, also unlock the system
+                # This prevents the race condition where system is locked but no PIN exists
+                if category == 'security' and key == 'pin_code' and value == '':
+                    cursor.execute('''
+                        INSERT OR REPLACE INTO preferences (category, key, value, updated_at)
+                        VALUES (?, ?, ?, ?)
+                    ''', ('system', 'locked', json.dumps('false'), datetime.now().isoformat()))
+                    print("System automatically unlocked due to PIN removal")
+                
                 conn.commit()
                 return True
         except Exception as e:
