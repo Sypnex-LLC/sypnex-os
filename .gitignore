@@ -191,8 +191,8 @@ data/*.sqlite3
 *.sqlite3-shm
 
 # Performance testing files - temporary databases and reports
-test_performance/*.db*
-test_performance/performance_report*.json
+test/test_performance/*.db*
+test/test_performance/performance_report*.json
 
 # Log files (if any get created locally during development)
 *.log
