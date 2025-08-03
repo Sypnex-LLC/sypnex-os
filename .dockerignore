@@ -10,9 +10,10 @@ docker-compose*.yml
 
 # Documentation (not needed inside the container)
 README.md
-CONTRIBUTING.md
-ROADMAP.md
-*.md
+docs/
+
+# Development and testing files  
+test/
 
 # Python
 __pycache__/
