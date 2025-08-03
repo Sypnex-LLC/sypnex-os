@@ -5,7 +5,7 @@ These endpoints are designed to be consumed by orchestration systems for SaaS de
 from flask import jsonify
 import os
 from datetime import datetime
-from app_config import SYPNEX_OS_VERSION
+from config.app_config import SYPNEX_OS_VERSION
 
 def register_metrics_routes(app, managers):
     """Register metrics routes"""

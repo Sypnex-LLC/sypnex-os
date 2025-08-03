@@ -1,4 +1,4 @@
-from virtual_file_manager import VirtualFileManager
+from core.virtual_file_manager import VirtualFileManager
 
 vfm = VirtualFileManager()
 items = vfm.list_directory('/nodes')

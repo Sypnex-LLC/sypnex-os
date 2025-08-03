@@ -20,8 +20,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 # Add the parent directory to Python path to import our modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from virtual_file_manager import VirtualFileManager
-from user_preferences import UserPreferences
+from core.virtual_file_manager import VirtualFileManager
+from utils.user_preferences import UserPreferences
 
 class SQLitePerformanceTester:
     def __init__(self):

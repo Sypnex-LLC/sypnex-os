@@ -2,14 +2,14 @@
 Main application file for Sypnex OS
 This is the refactored version that uses modular route organization
 """
-from app_config import create_app, initialize_managers, initialize_system, BUILTIN_APPS
+from config.app_config import create_app, initialize_managers, initialize_system, BUILTIN_APPS
 from routes import register_all_routes
-from swagger_config import setup_auto_swagger
+from config.swagger_config import setup_auto_swagger
 from flask import Response, url_for
 from pathlib import Path
 import time
 import hashlib
-from performance_utils import monitor_performance
+from utils.performance_utils import monitor_performance
 
 try:
     from jsmin import jsmin
@@ -78,7 +78,7 @@ def serve_bundled_os():
     This replaces loading 10+ individual JavaScript files
     """
     from flask import request
-    from app_config import validate_session_token
+    from config.app_config import validate_session_token
     
     # Get session token for bundle injection
     token = (request.headers.get('X-Session-Token') or 
@@ -152,7 +152,7 @@ def serve_bundled_sypnex_api():
     This replaces loading 8+ individual SypnexAPI modules
     """
     from flask import request
-    from app_config import validate_session_token
+    from config.app_config import validate_session_token
     
     # Get bundle parameter, defaults to True
     bundle = request.args.get('bundle', 'true').lower() == 'true'
@@ -266,7 +266,7 @@ def serve_bundled_css():
             bundle_content += f"/* MISSING: {css_file} */\n\n"
     
     # Load and scope system app CSS files
-    from app_utils import scope_system_app_css
+    from utils.app_utils import scope_system_app_css
     
     for css_file, app_id in system_app_css:
         file_path = css_dir / css_file

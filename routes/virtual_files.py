@@ -2,7 +2,7 @@
 Virtual file system routes for the Sypnex OS application
 """
 from flask import request, jsonify, Response
-from virtual_file_manager import validate_filename
+from core.virtual_file_manager import validate_filename
 
 def register_virtual_file_routes(app, managers):
     """Register virtual file system routes"""

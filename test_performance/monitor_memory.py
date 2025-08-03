@@ -12,7 +12,7 @@ import psutil
 # Add the parent directory to Python path to import our modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from virtual_file_manager import VirtualFileManager
+from core.virtual_file_manager import VirtualFileManager
 
 def format_bytes(bytes_val):
     """Format bytes into human readable format"""

@@ -3,7 +3,7 @@ Authentication routes for Sypnex OS
 Handles login, logout, and session management
 """
 from flask import request, jsonify, render_template, redirect, url_for, make_response
-from app_config import verify_password, create_session_token, validate_session_token, get_active_sessions
+from config.app_config import verify_password, create_session_token, validate_session_token, get_active_sessions
 import json
 from datetime import datetime
 

@@ -20,7 +20,9 @@ def check_file_exists(file_path, description):
 def main():
     """Main verification function"""
     script_dir = Path(__file__).parent
-    vendor_dir = script_dir / 'static' / 'vendor'
+    # Go up one level since we're now in scripts/ folder
+    project_root = script_dir.parent
+    vendor_dir = project_root / 'static' / 'vendor'
     
     print("🔍 Sypnex OS Vendor Verification")
     print("=" * 50)

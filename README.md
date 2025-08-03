@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.7+](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads/)
-[![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](docs/CONTRIBUTING.md)
 
 A web-based operating system interface built with Flask and vanilla JavaScript, providing a desktop-like experience with window management, app sandboxing, and API system for user applications.
 
@@ -174,7 +174,7 @@ docker-compose up
 # Demo credentials: username=demo, password=demo123
 ```
 
-**⚠️ Security Note**: Change the demo credentials for production use. See [AUTHENTICATION.md](AUTHENTICATION.md) for details.
+**⚠️ Security Note**: Change the demo credentials for production use. See [AUTHENTICATION.md](docs/AUTHENTICATION.md) for details.
 
 ## 🤝 Contributing
 
@@ -193,7 +193,7 @@ We welcome contributions in these areas:
 - **Documentation**: System guides, API documentation, and tutorials
 - **UI/UX**: Interface improvements and accessibility enhancements
 
-See our [Contributing Guide](CONTRIBUTING.md) for detailed information on contributing to the core OS.
+See our [Contributing Guide](docs/CONTRIBUTING.md) for detailed information on contributing to the core OS.
 
 ### Areas Where You Can Make a Significant Impact
 1. **Cross-browser Testing**: Ensuring compatibility across all major browsers
@@ -209,10 +209,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📚 Documentation
 
 ### Core System Documentation
-- **[🚀 Roadmap](ROADMAP.md)** - Project vision and development milestones
-- **[🤝 Contributing Guide](CONTRIBUTING.md)** - How to contribute to the core OS
-- **[⚙️ Core Components](SYPNEX_OS_CORE_COMPONENTS.md)** - Detailed architecture and system components
-- **[🖥️ Frontend Architecture](SYPNEX_OS_FRONTEND_ARCHITECTURE.md)** - Frontend system design and APIs
+- **[🚀 Roadmap](docs/ROADMAP.md)** - Project vision and development milestones
+- **[🤝 Contributing Guide](docs/CONTRIBUTING.md)** - How to contribute to the core OS
+- **[⚙️ Core Components](docs/SYPNEX_OS_CORE_COMPONENTS.md)** - Detailed architecture and system components
+- **[🖥️ Frontend Architecture](docs/SYPNEX_OS_FRONTEND_ARCHITECTURE.md)** - Frontend system design and APIs
 
 ### App Development Documentation
 - **[📱 User App Development Guide](https://github.com/Sypnex-LLC/sypnex-os-apps/blob/master/USER_APP_DEVELOPMENT_GUIDE.md)** - Complete guide for creating apps (in apps repository)

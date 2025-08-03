@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Test enhanced UserAppManager discovery"""
 
-from user_app_manager import UserAppManager
+from core.user_app_manager import UserAppManager
 
 def test_discovery():
     print("🧪 Testing Enhanced UserAppManager Discovery")

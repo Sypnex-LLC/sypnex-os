@@ -7,7 +7,7 @@ import json
 import os
 from datetime import datetime
 from flask import Blueprint, request, jsonify
-from virtual_file_manager import VirtualFileManager
+from core.virtual_file_manager import VirtualFileManager
 
 
 class LogsManager:

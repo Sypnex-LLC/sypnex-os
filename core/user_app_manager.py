@@ -58,7 +58,7 @@ class UserAppManager:
     def _discover_from_vfs(self):
         """Discover apps stored in VFS"""
         try:
-            from virtual_file_manager import get_virtual_file_manager
+            from core.virtual_file_manager import get_virtual_file_manager
             vfs = get_virtual_file_manager()
         except ImportError as e:
             print(f"⚠️  VFS manager not available: {e}")
@@ -173,7 +173,7 @@ class UserAppManager:
         import re
         
         # Import user_preferences here to avoid circular imports
-        from user_preferences import UserPreferences
+        from utils.user_preferences import UserPreferences
         user_prefs = UserPreferences()
         
         # Create a mapping of setting keys to values

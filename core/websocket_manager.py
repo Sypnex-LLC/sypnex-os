@@ -4,7 +4,7 @@ import json
 import threading
 import time
 from datetime import datetime
-from system_boot_manager import get_system_boot_manager
+from core.system_boot_manager import get_system_boot_manager
 
 class WebSocketManager:
     def __init__(self, logs_manager=None):

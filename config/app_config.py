@@ -7,14 +7,14 @@ SYPNEX_OS_VERSION = "0.8.3"
 
 from flask import Flask
 from flask_cors import CORS
-from user_app_manager import UserAppManager
-from user_preferences import UserPreferences
-from websocket_manager import WebSocketManager
-from service_manager import get_service_manager
-from virtual_file_manager import get_virtual_file_manager
-from system_boot_manager import get_system_boot_manager
-from logs_manager import LogsManager
-from app_utils import load_user_requirements, install_app_direct
+from core.user_app_manager import UserAppManager
+from utils.user_preferences import UserPreferences
+from core.websocket_manager import WebSocketManager
+from core.service_manager import get_service_manager
+from core.virtual_file_manager import get_virtual_file_manager
+from core.system_boot_manager import get_system_boot_manager
+from core.logs_manager import LogsManager
+from utils.app_utils import load_user_requirements, install_app_direct
 import os
 import shutil
 import json
@@ -163,7 +163,12 @@ def create_app():
     # Load authentication config first
     load_auth_config()
     
-    app = Flask(__name__)
+    # Create Flask app with proper template and static folders relative to project root
+    import os
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    app = Flask(__name__, 
+                template_folder=os.path.join(project_root, 'templates'),
+                static_folder=os.path.join(project_root, 'static'))
     
     # Configure CORS
     CORS(app, 

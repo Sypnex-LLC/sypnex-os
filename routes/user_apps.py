@@ -6,7 +6,7 @@ import tempfile
 import os
 import json
 import requests
-from app_utils import install_app_direct, sanitize_user_app_content
+from utils.app_utils import install_app_direct, sanitize_user_app_content
 
 def register_user_app_routes(app, managers):
     """Register user app management routes"""

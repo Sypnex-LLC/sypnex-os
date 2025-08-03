@@ -148,7 +148,7 @@ def register_preference_routes(app, managers):
         """Get app metadata including settings from .app files"""
         try:
             # Check built-in apps first
-            from app_config import BUILTIN_APPS
+            from config.app_config import BUILTIN_APPS
             if app_id in BUILTIN_APPS:
                 return jsonify({
                     'id': app_id,

@@ -87,7 +87,9 @@ def main():
     """Main function to download all vendor dependencies"""
     # Get the script directory and find the static/vendor path
     script_dir = Path(__file__).parent
-    vendor_dir = script_dir / 'static' / 'vendor'
+    # Go up one level since we're now in scripts/ folder
+    project_root = script_dir.parent
+    vendor_dir = project_root / 'static' / 'vendor'
     
     print("🚀 Sypnex OS Vendor Management")
     print("=" * 50)

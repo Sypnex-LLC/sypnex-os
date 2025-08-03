@@ -2,8 +2,8 @@
 Core routes for the Sypnex OS application
 """
 from flask import render_template, request, jsonify
-from app_utils import get_system_uptime, get_current_time_info, sanitize_user_app_content
-from performance_utils import monitor_performance, monitor_critical_performance
+from utils.app_utils import get_system_uptime, get_current_time_info, sanitize_user_app_content
+from utils.performance_utils import monitor_performance, monitor_critical_performance
 
 def register_core_routes(app, managers, builtin_apps):
     """Register core application routes"""
@@ -140,7 +140,7 @@ def register_core_routes(app, managers, builtin_apps):
             try:
                 # For built-in apps, check BUILTIN_APPS
                 if app_type == 'builtin':
-                    from app_config import BUILTIN_APPS
+                    from config.app_config import BUILTIN_APPS
                     if app_id in BUILTIN_APPS:
                         metadata.update({
                             'settings': [],  # Built-in apps don't have settings

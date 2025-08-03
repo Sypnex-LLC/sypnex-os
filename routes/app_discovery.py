@@ -33,7 +33,7 @@ def register_app_discovery_routes(app, managers):
                     })
             
             # Also check built-in apps
-            from app_config import BUILTIN_APPS
+            from config.app_config import BUILTIN_APPS
             for app_id, builtin_app in BUILTIN_APPS.items():
                 app_keywords = builtin_app.get('keywords', [])
                 
@@ -80,7 +80,7 @@ def register_app_discovery_routes(app, managers):
                 all_keywords.update(app_keywords)
             
             # Get keywords from built-in apps
-            from app_config import BUILTIN_APPS
+            from config.app_config import BUILTIN_APPS
             for builtin_app in BUILTIN_APPS.values():
                 app_keywords = builtin_app.get('keywords', [])
                 all_keywords.update(app_keywords)

@@ -90,7 +90,7 @@ def register_system_routes(app, managers):
             
             # Try to explicitly close VFS manager if it exists
             try:
-                from virtual_file_manager import virtual_file_manager_instance
+                from core.virtual_file_manager import virtual_file_manager_instance
                 if virtual_file_manager_instance is not None:
                     print("    - Detected active VFS manager instance")
                     # Force cleanup of the global instance
@@ -139,11 +139,11 @@ def register_system_routes(app, managers):
                         os.remove(temp_db)
                 
                 # Initialize temporary managers to create fresh databases
-                from user_preferences import UserPreferences
-                from virtual_file_manager import VirtualFileManager
-                from logs_manager import LogsManager
-                from websocket_manager import WebSocketManager
-                from system_boot_manager import SystemBootManager
+                from utils.user_preferences import UserPreferences
+                from core.virtual_file_manager import VirtualFileManager
+                from core.logs_manager import LogsManager
+                from core.websocket_manager import WebSocketManager
+                from core.system_boot_manager import SystemBootManager
                 
                 # Create temp instances with temp database files
                 temp_vfs = VirtualFileManager(db_path='temp_vfs.db')
@@ -167,7 +167,7 @@ def register_system_routes(app, managers):
                 
                 # Seed the temporary databases
                 print("  - Seeding temporary databases...")
-                from app_config import seed_first_boot
+                from config.app_config import seed_first_boot
                 seed_first_boot(temp_managers)
                 
                 # Close temp database connections

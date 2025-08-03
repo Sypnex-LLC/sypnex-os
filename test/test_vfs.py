@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Test VFS structure and installed apps"""
 
-from virtual_file_manager import get_virtual_file_manager
+from core.virtual_file_manager import get_virtual_file_manager
 import json
 
 def test_vfs():
