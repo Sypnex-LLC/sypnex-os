@@ -98,6 +98,10 @@ class VirtualFileManager:
             cursor.execute('PRAGMA mmap_size=67108864')  # 64MB memory map
             cursor.execute('PRAGMA temp_store=FILE')     # Use disk for temp storage
             
+            # Check current schema version
+            cursor.execute('PRAGMA user_version')
+            current_version = cursor.fetchone()[0]
+            
             # Create files table
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS virtual_files (
@@ -128,6 +132,9 @@ class VirtualFileManager:
                 )
             ''')
             
+            # Run schema migrations
+            self._run_schema_migrations(cursor, current_version)
+            
             # Create indexes for performance
             cursor.execute('CREATE INDEX IF NOT EXISTS idx_virtual_files_path ON virtual_files(path)')
             cursor.execute('CREATE INDEX IF NOT EXISTS idx_virtual_files_parent ON virtual_files(parent_path)')
@@ -137,6 +144,70 @@ class VirtualFileManager:
             cursor.execute('CREATE INDEX IF NOT EXISTS idx_metadata_file_key ON file_metadata(file_id, key)')
             
             conn.commit()
+    
+    def _run_schema_migrations(self, cursor, current_version):
+        """Run database schema migrations based on current version."""
+        target_version = 2  # Latest schema version
+        
+        print(f"🔄 Database schema: current={current_version}, target={target_version}")
+        
+        if current_version < 1:
+            # Migration 1: Add is_chunked column to virtual_files table
+            self._migrate_to_version_1(cursor)
+            
+        if current_version < 2:
+            # Migration 2: Add file_chunks table for chunked storage
+            self._migrate_to_version_2(cursor)
+            
+        # Update schema version
+        if current_version < target_version:
+            cursor.execute(f'PRAGMA user_version = {target_version}')
+            print(f"✅ Database schema updated to version {target_version}")
+    
+    def _migrate_to_version_1(self, cursor):
+        """Migration 1: Add is_chunked column to virtual_files table."""
+        try:
+            # Check if column already exists
+            cursor.execute("PRAGMA table_info(virtual_files)")
+            columns = [column[1] for column in cursor.fetchall()]
+            
+            if 'is_chunked' not in columns:
+                print("📝 Adding is_chunked column to virtual_files table...")
+                cursor.execute('ALTER TABLE virtual_files ADD COLUMN is_chunked BOOLEAN DEFAULT 0')
+                print("✅ Added is_chunked column")
+            else:
+                print("✅ is_chunked column already exists")
+                
+        except Exception as e:
+            print(f"❌ Error in migration 1: {e}")
+            raise
+    
+    def _migrate_to_version_2(self, cursor):
+        """Migration 2: Add file_chunks table for chunked storage."""
+        try:
+            print("📝 Creating file_chunks table...")
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS file_chunks (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    file_id INTEGER NOT NULL,
+                    chunk_index INTEGER NOT NULL,
+                    chunk_data BLOB NOT NULL,
+                    chunk_size INTEGER NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (file_id) REFERENCES virtual_files(id) ON DELETE CASCADE,
+                    UNIQUE(file_id, chunk_index)
+                )
+            ''')
+            
+            # Create index for chunk retrieval performance
+            cursor.execute('CREATE INDEX IF NOT EXISTS idx_file_chunks_file_id ON file_chunks(file_id)')
+            cursor.execute('CREATE INDEX IF NOT EXISTS idx_file_chunks_index ON file_chunks(file_id, chunk_index)')
+            
+            print("✅ Created file_chunks table and indexes")
+            
+        except Exception as e:
+            print(f"❌ Error in migration 2: {e}")
+            raise
     
     def _ensure_root_directory(self):
         """Ensure the root directory exists."""
@@ -276,7 +347,7 @@ class VirtualFileManager:
                 return False
     
     def create_file_streaming(self, path: str, file_stream, chunk_size: int = 8192, mime_type: str = None) -> bool:
-        """Create a file from a stream without loading the entire content into memory."""
+        """Create a file from a stream with intelligent chunked storage for large files."""
         with self.lock:
             try:
                 normalized_path = self._normalize_path(path)
@@ -305,56 +376,158 @@ class VirtualFileManager:
                     if not mime_type:
                         mime_type = 'application/octet-stream'
                 
-                # Stream the file content in chunks
+                # Stream the file content with true memory efficiency
                 total_size = 0
                 content_hash = hashlib.sha256()
+                chunk_storage_size = 1024 * 1024  # 1MB chunks for chunked storage
+                small_file_buffer = []  # Only for files < 1MB
                 
-                # First, create the file record with empty content
                 with sqlite3.connect(self.db_path) as conn:
                     cursor = conn.cursor()
                     
-                    # Insert initial record
+                    # Start with a placeholder record to get file_id
                     cursor.execute('''
                         INSERT INTO virtual_files 
-                        (path, name, parent_path, is_directory, size, content, mime_type, hash) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                    ''', (normalized_path, name, parent_path, False, 0, b'', mime_type, ''))
+                        (path, name, parent_path, is_directory, size, content, mime_type, hash, is_chunked) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ''', (normalized_path, name, parent_path, False, 0, None, mime_type, '', None))
                     
-                    # Get the row ID for updating
                     file_id = cursor.lastrowid
+                    chunk_index = 0
+                    current_chunk_buffer = b''
                     
-                    # Now stream and build content
-                    content_chunks = []
+                    print(f"📥 Streaming file in {chunk_size} byte chunks...")
                     
+                    # Stream and process chunks immediately
                     while True:
                         chunk = file_stream.read(chunk_size)
                         if not chunk:
                             break
-                            
-                        content_chunks.append(chunk)
+                        
                         content_hash.update(chunk)
                         total_size += len(chunk)
+                        
+                        # Check if we should switch to chunked storage
+                        if total_size >= (1024 * 1024) and len(small_file_buffer) > 0:
+                            # Convert from small file buffer to chunked storage
+                            print(f"🔄 Converting to chunked storage at {total_size} bytes")
+                            
+                            # Process accumulated small file buffer first
+                            accumulated_data = b''.join(small_file_buffer) + current_chunk_buffer + chunk
+                            small_file_buffer = []  # Clear buffer
+                            
+                            # Store first chunk(s) from accumulated data
+                            offset = 0
+                            while offset < len(accumulated_data):
+                                chunk_data = accumulated_data[offset:offset + chunk_storage_size]
+                                
+                                cursor.execute('''
+                                    INSERT INTO file_chunks 
+                                    (file_id, chunk_index, chunk_data, chunk_size) 
+                                    VALUES (?, ?, ?, ?)
+                                ''', (file_id, chunk_index, chunk_data, len(chunk_data)))
+                                
+                                print(f"  📦 Stored chunk {chunk_index}: {len(chunk_data)} bytes")
+                                chunk_index += 1
+                                offset += chunk_storage_size
+                            
+                            current_chunk_buffer = b''
+                            
+                        elif total_size < (1024 * 1024):
+                            # Still in small file territory - buffer it
+                            small_file_buffer.append(chunk)
+                            
+                        else:
+                            # Already in chunked mode - process directly
+                            current_chunk_buffer += chunk
+                            
+                            # When buffer reaches chunk size, store it
+                            while len(current_chunk_buffer) >= chunk_storage_size:
+                                chunk_data = current_chunk_buffer[:chunk_storage_size]
+                                current_chunk_buffer = current_chunk_buffer[chunk_storage_size:]
+                                
+                                cursor.execute('''
+                                    INSERT INTO file_chunks 
+                                    (file_id, chunk_index, chunk_data, chunk_size) 
+                                    VALUES (?, ?, ?, ?)
+                                ''', (file_id, chunk_index, chunk_data, len(chunk_data)))
+                                
+                                print(f"  📦 Stored chunk {chunk_index}: {len(chunk_data)} bytes")
+                                chunk_index += 1
                     
-                    # Combine all chunks
-                    full_content = b''.join(content_chunks)
+                    # Handle final data
                     final_hash = content_hash.hexdigest()
+                    use_chunked_storage = total_size >= (1024 * 1024)
                     
-                    # Update the record with final content
-                    cursor.execute('''
-                        UPDATE virtual_files 
-                        SET size = ?, content = ?, hash = ?
-                        WHERE rowid = ?
-                    ''', (total_size, full_content, final_hash, file_id))
+                    if use_chunked_storage:
+                        # Store any remaining data in final chunk
+                        if current_chunk_buffer:
+                            cursor.execute('''
+                                INSERT INTO file_chunks 
+                                (file_id, chunk_index, chunk_data, chunk_size) 
+                                VALUES (?, ?, ?, ?)
+                            ''', (file_id, chunk_index, current_chunk_buffer, len(current_chunk_buffer)))
+                            
+                            print(f"  📦 Stored final chunk {chunk_index}: {len(current_chunk_buffer)} bytes")
+                            chunk_index += 1
+                        
+                        # Update file record for chunked storage
+                        cursor.execute('''
+                            UPDATE virtual_files 
+                            SET size = ?, hash = ?, is_chunked = ?
+                            WHERE id = ?
+                        ''', (total_size, final_hash, True, file_id))
+                        
+                        print(f"✅ Stored {chunk_index} chunks for large file ({total_size / (1024*1024):.2f} MB)")
+                        
+                    else:
+                        # Small file - use traditional storage
+                        full_content = b''.join(small_file_buffer)
+                        cursor.execute('''
+                            UPDATE virtual_files 
+                            SET size = ?, content = ?, hash = ?, is_chunked = ?
+                            WHERE id = ?
+                        ''', (total_size, full_content, final_hash, False, file_id))
+                        
+                        print(f"✅ Stored small file using traditional storage ({total_size} bytes)")
                     
                     conn.commit()
                 
-                print(f"File created successfully (streaming): {normalized_path}, size: {total_size} bytes")
+                storage_type = "chunked" if use_chunked_storage else "traditional"
+                print(f"✅ File created successfully ({storage_type}): {normalized_path}, size: {total_size} bytes, max memory: ~1MB")
                 return True
                 
             except Exception as e:
-                print(f"Error creating file (streaming) {path}: {e}")
+                print(f"❌ Error creating file (streaming) {path}: {e}")
                 import traceback
                 traceback.print_exc()
+                
+                # Clean up any partial data on failure/cancellation
+                try:
+                    with sqlite3.connect(self.db_path) as cleanup_conn:
+                        cleanup_cursor = cleanup_conn.cursor()
+                        
+                        # Get the file_id if it exists
+                        cleanup_cursor.execute('SELECT id FROM virtual_files WHERE path = ?', (normalized_path,))
+                        file_record = cleanup_cursor.fetchone()
+                        
+                        if file_record:
+                            file_id_to_clean = file_record[0]
+                            print(f"🧹 Cleaning up orphaned data for file_id: {file_id_to_clean}")
+                            
+                            # Delete any chunks that were stored
+                            cleanup_cursor.execute('DELETE FROM file_chunks WHERE file_id = ?', (file_id_to_clean,))
+                            chunks_deleted = cleanup_cursor.rowcount
+                            
+                            # Delete the incomplete file record
+                            cleanup_cursor.execute('DELETE FROM virtual_files WHERE id = ?', (file_id_to_clean,))
+                            
+                            cleanup_conn.commit()
+                            print(f"✅ Cleaned up orphaned file record and {chunks_deleted} chunks")
+                        
+                except Exception as cleanup_error:
+                    print(f"⚠️ Warning: Failed to clean up orphaned data: {cleanup_error}")
+                
                 return False
     
     def _path_exists(self, path: str) -> bool:
@@ -406,14 +579,14 @@ class VirtualFileManager:
             return []
     
     def read_file(self, path: str) -> Optional[Dict[str, Any]]:
-        """Read a file and return its content and metadata."""
+        """Read a file and return its content and metadata, handling both chunked and traditional storage."""
         try:
             normalized_path = self._normalize_path(path)
             
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
                 cursor.execute('''
-                    SELECT path, name, is_directory, size, content, mime_type, hash, created_at, updated_at, accessed_at
+                    SELECT path, name, is_directory, size, content, mime_type, hash, created_at, updated_at, accessed_at, is_chunked, id
                     FROM virtual_files 
                     WHERE path = ? AND is_directory = 0
                 ''', (normalized_path,))
@@ -422,7 +595,24 @@ class VirtualFileManager:
                 if not row:
                     return None
                 
-                path, name, is_directory, size, content, mime_type, content_hash, created_at, updated_at, accessed_at = row
+                path, name, is_directory, size, content, mime_type, content_hash, created_at, updated_at, accessed_at, is_chunked, file_id = row
+                
+                # Handle chunked vs traditional storage
+                if is_chunked:
+                    print(f"📖 Reading chunked file: {normalized_path}")
+                    # Reconstruct content from chunks
+                    cursor.execute('''
+                        SELECT chunk_data FROM file_chunks 
+                        WHERE file_id = ? 
+                        ORDER BY chunk_index
+                    ''', (file_id,))
+                    
+                    chunk_rows = cursor.fetchall()
+                    content_chunks = [row[0] for row in chunk_rows]
+                    content = b''.join(content_chunks)
+                    print(f"📦 Reconstructed content from {len(content_chunks)} chunks")
+                else:
+                    print(f"📄 Reading traditional file: {normalized_path}")
                 
                 # Update access time
                 cursor.execute('''
@@ -442,10 +632,103 @@ class VirtualFileManager:
                     'hash': content_hash,
                     'created_at': created_at,
                     'updated_at': updated_at,
-                    'accessed_at': accessed_at
+                    'accessed_at': accessed_at,
+                    'is_chunked': bool(is_chunked) if is_chunked is not None else False
                 }
         except Exception as e:
-            print(f"Error reading file {path}: {e}")
+            print(f"❌ Error reading file {path}: {e}")
+            import traceback
+            traceback.print_exc()
+            return None
+    
+    def read_file_streaming(self, path: str):
+        """Generator that yields file content in chunks for memory-efficient streaming."""
+        try:
+            normalized_path = self._normalize_path(path)
+            
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    SELECT name, is_directory, size, mime_type, hash, created_at, updated_at, accessed_at, is_chunked, id
+                    FROM virtual_files 
+                    WHERE path = ? AND is_directory = 0
+                ''', (normalized_path,))
+                
+                row = cursor.fetchone()
+                if not row:
+                    return None
+                
+                name, is_directory, size, mime_type, content_hash, created_at, updated_at, accessed_at, is_chunked, file_id = row
+                
+                # Update access time
+                cursor.execute('''
+                    UPDATE virtual_files 
+                    SET accessed_at = CURRENT_TIMESTAMP 
+                    WHERE path = ?
+                ''', (normalized_path,))
+                conn.commit()
+                
+                # Return metadata and content generator
+                metadata = {
+                    'path': normalized_path,
+                    'name': name,
+                    'is_directory': bool(is_directory),
+                    'size': size,
+                    'mime_type': mime_type,
+                    'hash': content_hash,
+                    'created_at': created_at,
+                    'updated_at': updated_at,
+                    'accessed_at': accessed_at,
+                    'is_chunked': bool(is_chunked) if is_chunked is not None else False
+                }
+                
+                def content_generator():
+                    """Generator that yields file content in chunks."""
+                    if is_chunked:
+                        print(f"📺 Streaming chunked file: {normalized_path} ({size} bytes)")
+                        # Stream chunks from database
+                        with sqlite3.connect(self.db_path) as stream_conn:
+                            stream_cursor = stream_conn.cursor()
+                            stream_cursor.execute('''
+                                SELECT chunk_data FROM file_chunks 
+                                WHERE file_id = ? 
+                                ORDER BY chunk_index
+                            ''', (file_id,))
+                            
+                            chunk_count = 0
+                            for chunk_row in stream_cursor:
+                                chunk_data = chunk_row[0]
+                                chunk_count += 1
+                                print(f"  📦 Streaming chunk {chunk_count}: {len(chunk_data)} bytes")
+                                yield chunk_data
+                            
+                            print(f"✅ Streamed {chunk_count} chunks for chunked file")
+                    else:
+                        print(f"📺 Streaming traditional file: {normalized_path} ({size} bytes)")
+                        # Stream traditional file in chunks
+                        with sqlite3.connect(self.db_path) as stream_conn:
+                            stream_cursor = stream_conn.cursor()
+                            stream_cursor.execute('''
+                                SELECT content FROM virtual_files 
+                                WHERE path = ? AND is_directory = 0
+                            ''', (normalized_path,))
+                            
+                            content_row = stream_cursor.fetchone()
+                            if content_row and content_row[0]:
+                                content = content_row[0]
+                                # Yield in 64KB chunks for optimal streaming
+                                chunk_size = 64 * 1024  # 64KB
+                                for i in range(0, len(content), chunk_size):
+                                    yield content[i:i + chunk_size]
+                            
+                            print(f"✅ Streamed traditional file in chunks")
+                
+                return metadata, content_generator()
+                
+        except Exception as e:
+            print(f"❌ Error streaming file {path}: {e}")
+            import traceback
+            traceback.print_exc()
             return None
     
     def write_file(self, path: str, content: bytes) -> bool:

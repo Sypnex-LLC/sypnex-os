@@ -260,45 +260,43 @@ def register_virtual_file_routes(app, managers):
 
     @app.route('/api/virtual-files/serve/<path:file_path>', methods=['GET'])
     def serve_virtual_file(file_path):
-        """Serve a file directly to the browser (for binary files, images, etc.)"""
+        """Serve a file directly to the browser with memory-efficient streaming"""
         try:
             # Ensure path starts with /
             if not file_path.startswith('/'):
                 file_path = '/' + file_path
 
-            file_data = managers['virtual_file_manager'].read_file(file_path)
-            if not file_data:
+            # Use streaming read for memory efficiency
+            stream_result = managers['virtual_file_manager'].read_file_streaming(file_path)
+            if not stream_result:
                 return jsonify({'error': 'File not found'}), 404
 
-            # Get the content as bytes
-            content = file_data['content'] or b''
-            mime_type = file_data['mime_type'] or 'application/octet-stream'
+            metadata, content_generator = stream_result
+            mime_type = metadata['mime_type'] or 'application/octet-stream'
 
             # Check if this is a download request
             download = request.args.get('download', 'false').lower() == 'true'
 
+            print(f"🎯 Serving file: {file_path} ({metadata['size']} bytes, chunked={metadata['is_chunked']})")
+
+            # Create streaming response
+            response = Response(content_generator, mimetype=mime_type)
+            
             if download:
-                # For downloads, use streaming response for memory efficiency
-                def generate_chunks():
-                    chunk_size = 8192  # 8KB chunks for optimal streaming
-                    for i in range(0, len(content), chunk_size):
-                        yield content[i:i + chunk_size]
-                
-                response = Response(generate_chunks(), mimetype=mime_type)
-                response.headers['Content-Disposition'] = f'attachment; filename=\"{file_data['name']}\"'
-                response.headers['Content-Length'] = str(len(content))
-                # Add headers for better browser download handling
-                response.headers['Cache-Control'] = 'no-cache'
-                response.headers['Accept-Ranges'] = 'bytes'
-                return response
+                response.headers['Content-Disposition'] = f'attachment; filename="{metadata["name"]}"'
             else:
-                # For viewing, keep current behavior (small files typically)
-                response = Response(content, mimetype=mime_type)
-                response.headers['Content-Disposition'] = f'inline; filename=\"{file_data['name']}\"'
-                response.headers['Content-Length'] = str(len(content))
-                return response
+                response.headers['Content-Disposition'] = f'inline; filename="{metadata["name"]}"'
+            
+            response.headers['Content-Length'] = str(metadata['size'])
+            response.headers['Cache-Control'] = 'no-cache'
+            response.headers['Accept-Ranges'] = 'bytes'
+            
+            return response
+            
         except Exception as e:
-            print(f"Error serving virtual file: {e}")
+            print(f"❌ Error serving virtual file: {e}")
+            import traceback
+            traceback.print_exc()
             return jsonify({'error': 'Failed to serve file'}), 500
 
     @app.route('/api/virtual-files/delete/<path:item_path>', methods=['DELETE'])
