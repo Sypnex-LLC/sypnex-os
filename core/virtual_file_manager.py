@@ -980,19 +980,18 @@ class VirtualFileManager:
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
                 
-                # Get total files and directories
-                cursor.execute('SELECT COUNT(*) FROM virtual_files')
-                total_items = cursor.fetchone()[0]
+                # Single query for all file/directory stats
+                cursor.execute('''
+                    SELECT 
+                        COUNT(*) as total_items,
+                        SUM(CASE WHEN is_directory = 1 THEN 1 ELSE 0 END) as total_directories,
+                        SUM(CASE WHEN is_directory = 0 THEN 1 ELSE 0 END) as total_files,
+                        COALESCE(SUM(CASE WHEN is_directory = 0 THEN size ELSE 0 END), 0) as total_size
+                    FROM virtual_files
+                ''')
                 
-                cursor.execute('SELECT COUNT(*) FROM virtual_files WHERE is_directory = 1')
-                total_directories = cursor.fetchone()[0]
-                
-                cursor.execute('SELECT COUNT(*) FROM virtual_files WHERE is_directory = 0')
-                total_files = cursor.fetchone()[0]
-                
-                # Get total size
-                cursor.execute('SELECT COALESCE(SUM(size), 0) FROM virtual_files WHERE is_directory = 0')
-                total_size = cursor.fetchone()[0]
+                stats_row = cursor.fetchone()
+                total_items, total_directories, total_files, total_size = stats_row
                 
                 # Get database size
                 cursor.execute('PRAGMA page_count')
