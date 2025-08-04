@@ -28,10 +28,17 @@ def register_app_updates_routes(app, managers):
             if not vfs_manager._path_exists('/system/cache'):
                 vfs_manager.create_directory('/system/cache')
             
-            # Fetch latest release from GitHub API
-            github_url = "https://api.github.com/repos/Sypnex-LLC/sypnex-os-apps/releases/latest"
+            # Fetch latest release from configured source (GitHub for open source, SaaS API for hosted instances)
+            import os
+            github_url = os.getenv('APPS_RELEASE_URL', "https://api.github.com/repos/Sypnex-LLC/sypnex-os-apps/releases/latest")
             
-            response = requests.get(github_url, timeout=10)
+            # Setup headers for authentication (needed for private SaaS repos)
+            headers = {}
+            github_token = os.getenv('GITHUB_TOKEN')
+            if github_token:
+                headers['Authorization'] = f'token {github_token}'
+            
+            response = requests.get(github_url, headers=headers, timeout=10)
             response.raise_for_status()
             
             release_data = response.json()
@@ -57,7 +64,7 @@ def register_app_updates_routes(app, managers):
                     'success': False
                 }), 404
             
-            versions_response = requests.get(versions_url, timeout=10)
+            versions_response = requests.get(versions_url, headers=headers, timeout=10)
             versions_response.raise_for_status()
             
             versions_data = versions_response.json()
