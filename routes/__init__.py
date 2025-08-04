@@ -12,6 +12,7 @@ from .app_updates import register_app_updates_routes
 from .app_discovery import register_app_discovery_routes
 from .auth import register_auth_routes
 from .metrics import register_metrics_routes
+from .flow_runner import register_flow_runner_routes
 from config.app_config import validate_session_token
 
 def register_all_routes(app, managers, builtin_apps):
@@ -87,3 +88,6 @@ def register_all_routes(app, managers, builtin_apps):
     
     # Register app discovery routes
     register_app_discovery_routes(app, managers) 
+    
+    # Register Flow Runner proxy routes
+    register_flow_runner_routes(app, managers) 
