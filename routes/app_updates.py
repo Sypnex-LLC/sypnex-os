@@ -57,14 +57,20 @@ def register_app_updates_routes(app, managers):
                 }), 404
             
             # Download versions.json content
-            versions_url = versions_asset.get('browser_download_url')
+            # For private repos, browser_download_url doesn't work with tokens
+            # Must use GitHub API asset endpoint instead
+            versions_url = versions_asset.get('url')  # This is the API endpoint, not browser_download_url
             if not versions_url:
                 return jsonify({
-                    'error': 'Download URL not found for versions.json',
+                    'error': 'API URL not found for versions.json',
                     'success': False
                 }), 404
             
-            versions_response = requests.get(versions_url, headers=headers, timeout=10)
+            # Add Accept header to get the asset content instead of metadata
+            asset_headers = headers.copy()
+            asset_headers['Accept'] = 'application/octet-stream'
+            
+            versions_response = requests.get(versions_url, headers=asset_headers, timeout=10)
             versions_response.raise_for_status()
             
             versions_data = versions_response.json()
@@ -83,7 +89,8 @@ def register_app_updates_routes(app, managers):
                     asset_name = asset.get('name', '')
                     # Look for the app's binary file (pattern: app_id_packaged.bin)
                     if asset_name.startswith(f"{app_id}_packaged") and asset_name.endswith('.bin'):
-                        app_info['download_url'] = asset.get('browser_download_url')
+                        # Use API URL instead of browser_download_url for private repos
+                        app_info['download_url'] = asset.get('url')  # This is the API endpoint
                         app_info['filename'] = asset_name
                         break
                 

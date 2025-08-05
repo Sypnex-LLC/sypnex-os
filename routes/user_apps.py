@@ -115,9 +115,28 @@ def register_user_app_routes(app, managers):
             
             download_url = data['download_url']
             
+            # Setup headers for authentication (needed for private repos)
+            headers = {}
+            github_token = os.getenv('GITHUB_TOKEN')  # Same token as your /latest endpoint
+            if github_token:
+                headers['Authorization'] = f'token {github_token}'
+            
+            # For private repos, we need to use the API endpoint, not browser_download_url
+            # The download_url should be the API asset URL, not the browser download URL
+            if 'github.com' in download_url and '/releases/download/' in download_url:
+                # This is a browser_download_url, we need to convert it to API URL
+                # Pattern: https://github.com/owner/repo/releases/download/tag/filename
+                # Convert to: https://api.github.com/repos/owner/repo/releases/assets/{asset_id}
+                # But we need the asset_id, so we'll need to get it from the releases API
+                return jsonify({'error': 'Please use API asset URL instead of browser download URL for private repos'}), 400
+            
+            # Add Accept header for asset download if this is an API URL
+            if 'api.github.com' in download_url and '/releases/assets/' in download_url:
+                headers['Accept'] = 'application/octet-stream'
+            
             # Download the .bin file
             print(f"Downloading update for {app_id} from {download_url}")
-            download_response = requests.get(download_url, timeout=30)
+            download_response = requests.get(download_url, headers=headers, timeout=30)
             download_response.raise_for_status()
             
             # Save downloaded content to temporary file with .app extension
