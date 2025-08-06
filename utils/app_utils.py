@@ -280,7 +280,7 @@ def sanitize_user_app_content(html_content, app_id):
     
     # Update HTML class attributes
     #print(html_content)
-    html_content = scope_app_styles(html_content, app_id)
+    #html_content = scope_app_styles(html_content, app_id)
     if not html_content:
         return warning_html #temp need to update this to return better message
     
@@ -400,6 +400,7 @@ def scope_system_app_css(css_content: str, app_id: str) -> str:
         return css_content
 
 
+#moved from sypnex-os/routes/core.py to devtools
 def scope_app_styles(payload: str, appid: str) -> str:
     if not payload or not appid:
         return payload
