@@ -211,7 +211,7 @@ def initialize_managers():
     
     # Initialize core managers with logger dependency
     user_app_manager = UserAppManager(logs_manager)
-    user_preferences = UserPreferences(logs_manager)
+    user_preferences = UserPreferences(logs_manager, user_app_manager=user_app_manager)
     websocket_manager = WebSocketManager(logs_manager)
 
     # Initialize service manager with logger and VFS manager

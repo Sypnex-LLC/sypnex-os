@@ -558,10 +558,14 @@ Object.assign(SypnexOS.prototype, {
                 const currentValue = currentSettings.settings && currentSettings.settings[setting.key] !== undefined 
                     ? currentSettings.settings[setting.key] 
                     : (setting.value !== undefined ? setting.value : '');
+                
+                // Use password input type for encrypted fields
+                const inputType = setting.encrypt ? 'password' : 'text';
+                
                 formHtml += `
                     <div class="form-group">
                         <label for="${fieldId}">${label}</label>
-                        <input type="text" id="${fieldId}" name="${setting.key}" value="${currentValue}" class="form-control" />
+                        <input type="${inputType}" id="${fieldId}" name="${setting.key}" value="${currentValue}" class="form-control" />
                     </div>
                 `;
             });

@@ -181,10 +181,23 @@ class UserAppManager:
         for setting in settings:
             key = setting.get('key', '')
             default_value = setting.get('value', '')
+            should_encrypt = setting.get('encrypt', False)
+            
             if key:
                 # Get the actual value from SQLite, fall back to default from .app file
                 actual_value = user_prefs.get_app_setting(app_id, key, default_value)
-                setting_map[key] = actual_value
+                
+                # If this setting should be encrypted and we got a value, try to decrypt it
+                if should_encrypt and actual_value and isinstance(actual_value, str):
+                    try:
+                        decrypted_value = user_prefs._decrypt_value(actual_value)
+                        setting_map[key] = decrypted_value
+                        print(f"Template: Decrypted {key} for display")
+                    except Exception as e:
+                        print(f"Template: Failed to decrypt {key}, using as-is: {e}")
+                        setting_map[key] = actual_value
+                else:
+                    setting_map[key] = actual_value
         
         # Replace all {{KEY}} placeholders with their values
         def replace_placeholder(match):

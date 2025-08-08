@@ -7,9 +7,10 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 
 class UserPreferences:
-    def __init__(self, logs_manager=None, db_path: str = "data/user_preferences.db"):
+    def __init__(self, logs_manager=None, db_path: str = "data/user_preferences.db", user_app_manager=None):
         self.logs_manager = logs_manager
         self.db_path = db_path
+        self.user_app_manager = user_app_manager
         self.init_database()
     
     def init_database(self):
@@ -100,6 +101,69 @@ class UserPreferences:
     def _is_security_preference(self, category: str) -> bool:
         """Check if a preference category is security-related"""
         return category == 'security'
+    
+    def _get_encryption_key(self) -> str:
+        """Get the encryption key from environment variable"""
+        return os.getenv('SESSION_SECRET_KEY', 'default-fallback-key-change-me')
+    
+    def _encrypt_value(self, value: str) -> str:
+        """Encrypt a value using SESSION_SECRET_KEY"""
+        try:
+            from cryptography.fernet import Fernet
+            import base64
+            
+            # Create key from SESSION_SECRET_KEY
+            key_material = self._get_encryption_key().encode()
+            # Ensure 32 bytes for Fernet key
+            key = base64.urlsafe_b64encode(hashlib.sha256(key_material).digest())
+            f = Fernet(key)
+            
+            # Encrypt the value
+            encrypted = f.encrypt(value.encode())
+            return encrypted.decode()
+        except Exception as e:
+            print(f"Error encrypting value: {e}")
+            return value  # Fallback to plain text if encryption fails
+    
+    def _decrypt_value(self, encrypted_value: str) -> str:
+        """Decrypt a value using SESSION_SECRET_KEY"""
+        try:
+            from cryptography.fernet import Fernet
+            import base64
+            
+            # Create key from SESSION_SECRET_KEY
+            key_material = self._get_encryption_key().encode()
+            # Ensure 32 bytes for Fernet key
+            key = base64.urlsafe_b64encode(hashlib.sha256(key_material).digest())
+            f = Fernet(key)
+            
+            # Decrypt the value
+            decrypted = f.decrypt(encrypted_value.encode())
+            return decrypted.decode()
+        except Exception as e:
+            print(f"Error decrypting value: {e}")
+            return encrypted_value  # Fallback to encrypted text if decryption fails
+    
+    def _should_encrypt_app_setting(self, app_id: str, setting_key: str) -> bool:
+        """Check if an app setting should be encrypted based on app metadata"""
+        if not self.user_app_manager:
+            return False
+            
+        try:
+            # Get app metadata from memory instead of making HTTP request
+            app_data = self.user_app_manager.get_user_app(app_id)
+            if not app_data:
+                return False
+            
+            settings = app_data.get('settings', [])
+            for setting in settings:
+                if isinstance(setting, dict) and setting.get('key') == setting_key:
+                    return setting.get('encrypt', False)
+            
+            return False
+        except Exception as e:
+            print(f"Error checking encryption for {app_id}.{setting_key}: {e}")
+            return False
     
     def get_preference(self, category: str, key: str, default: Any = None) -> Any:
         """Get a preference value"""
@@ -346,14 +410,25 @@ class UserPreferences:
     
     # App-specific settings
     def save_app_setting(self, app_id: str, key: str, value: Any) -> bool:
-        """Save an app-specific setting"""
+        """Save an app-specific setting with optional encryption"""
         try:
+            # Check if this setting should be encrypted
+            should_encrypt = self._should_encrypt_app_setting(app_id, key)
+            
+            if should_encrypt and value:
+                # Encrypt the value
+                stored_value = self._encrypt_value(str(value))
+                print(f"Encrypting setting {app_id}.{key}")
+            else:
+                stored_value = value
+                print(f"Storing setting {app_id}.{key} as plain text")
+                
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
                 cursor.execute('''
                     INSERT OR REPLACE INTO app_settings (app_id, setting_key, setting_value, updated_at)
                     VALUES (?, ?, ?, ?)
-                ''', (app_id, key, json.dumps(value), datetime.now().isoformat()))
+                ''', (app_id, key, json.dumps(stored_value), datetime.now().isoformat()))
                 conn.commit()
                 return True
         except Exception as e:
@@ -372,7 +447,7 @@ class UserPreferences:
                 result = cursor.fetchone()
                 
                 if result:
-                    # Return the value from the database
+                    # Return the raw value from the database (could be encrypted)
                     return json.loads(result[0])
                 
                 # If not found in database, return the provided default (which should be from .app file)
@@ -395,7 +470,17 @@ class UserPreferences:
                 
                 db_settings = {}
                 for key, value in results:
-                    db_settings[key] = json.loads(value)
+                    stored_value = json.loads(value)
+                    
+                    # Check if this setting should be decrypted
+                    should_encrypt = self._should_encrypt_app_setting(app_id, key)
+                    
+                    if should_encrypt and stored_value:
+                        # Decrypt the value
+                        decrypted_value = self._decrypt_value(str(stored_value))
+                        db_settings[key] = decrypted_value
+                    else:
+                        db_settings[key] = stored_value
             
             # Get default settings from .app file
             default_settings = self._get_default_app_settings(app_id)
