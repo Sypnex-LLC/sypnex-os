@@ -38,7 +38,18 @@ Object.assign(SypnexOS.prototype, {
         // Handle dragging
         if (this.globalDragState.isDragging) {
             const x = e.clientX - this.globalDragState.offset.x;
-            const y = e.clientY - this.globalDragState.offset.y;
+            let y = e.clientY - this.globalDragState.offset.y;
+            
+            // Don't let the window go over the status bar
+            const windowRect = activeWindowElement.getBoundingClientRect();
+            const statusBar = document.getElementById('status-bar');
+            const statusBarRect = statusBar.getBoundingClientRect();
+            const buffer = 5; // Small buffer so window doesn't touch status bar
+            const maxY = statusBarRect.top - windowRect.height - buffer;
+            
+            if (y > maxY) {
+                y = maxY;
+            }
             
             activeWindowElement.style.left = `${x}px`;
             activeWindowElement.style.top = `${y}px`;
@@ -90,6 +101,29 @@ Object.assign(SypnexOS.prototype, {
                     newWidth = Math.max(400, this.globalResizeState.startWidth - deltaX);
                     newLeft = this.globalResizeState.startLeft + this.globalResizeState.startWidth - newWidth;
                     break;
+            }
+            
+            // Constrain height before applying to prevent status bar overlap
+            const statusBar = document.getElementById('status-bar');
+            if (statusBar) {
+                const statusBarRect = statusBar.getBoundingClientRect();
+                const buffer = 5;
+                const maxAllowedBottom = statusBarRect.top - buffer;
+                
+                // For bottom-expanding resizes, prevent going over the status bar
+                if (['se', 'sw', 's'].includes(this.globalResizeState.direction)) {
+                    // Get current window position to calculate constraint
+                    const currentRect = activeWindowElement.getBoundingClientRect();
+                    const maxAllowedHeight = maxAllowedBottom - currentRect.top;
+                    
+                    // Convert screen pixels to CSS pixels for the constraint
+                    const currentCSSHeight = parseInt(activeWindowElement.style.height) || currentRect.height;
+                    const scale = currentRect.height / currentCSSHeight; // Calculate current scale factor
+                    const maxCSSHeight = maxAllowedHeight / scale;
+                    
+                    // Constrain the new height
+                    newHeight = Math.min(newHeight, Math.max(300, maxCSSHeight));
+                }
             }
             
             // Apply new dimensions
