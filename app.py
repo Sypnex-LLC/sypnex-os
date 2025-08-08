@@ -173,6 +173,7 @@ def serve_bundled_sypnex_api():
         "sypnex-api-ui.js",        # UI components (modals, confirmations, etc.)
         "sypnex-api-scaling.js",  # Add scaling utilities early after core
         "sypnex-api-settings.js", 
+        "sypnex-api-crypto.js",   # Cryptographic operations
         "sypnex-api-socket.js",
         "sypnex-api-vfs.js",
         "sypnex-api-libraries.js",
