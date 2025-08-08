@@ -96,7 +96,7 @@ def serve_bundled_os():
         "os-spotlight.js", 
         "os-builtin-app-tracker.js",  # Must be before windows.js
         "os-windows.js",
-        "os-taskbar.js",
+        "os-status-apps.js",  # Status bar app management
         "os-status.js",
         "os-dashboard.js",
         "os-vfs.js",
@@ -238,7 +238,6 @@ def serve_bundled_css():
         "os-desktop.css",
         "os-windows.css",
         "os-dashboard.css",
-        "os-taskbar.css",
         "app-standards.css"
     ]
     

@@ -312,15 +312,6 @@
             <!-- Apps will be loaded here -->
         </div>
 
-        <!-- Taskbar for Minimized Apps -->
-        <div id="taskbar" class="taskbar-hidden">
-            <div class="taskbar-container">
-                <div class="taskbar-apps">
-                    <!-- Minimized app buttons will be added here -->
-                </div>
-            </div>
-        </div>
-
         <!-- Status Bar -->
         <div id="status-bar">
             <div class="status-left">
@@ -328,7 +319,10 @@
                 <span id="current-date">--</span>
             </div>
             <div class="status-center">
-                <!-- Status indicators removed - errors now shown contextually in apps -->
+                <!-- Open Apps - icons for quick app switching -->
+                <div id="status-open-apps" class="status-open-apps">
+                    <!-- Open app icons will be added here dynamically -->
+                </div>
             </div>
             <div class="status-right">
                 <button id="home-button" class="status-button" title="Go Home - Minimize All Apps (⌘+H)">
@@ -339,9 +333,6 @@
                 </button>
                 <button id="spotlight-trigger" class="status-button" title="Search (⌘+K)">
                     <i class="fas fa-search"></i>
-                </button>
-                <button id="taskbar-toggle-button" class="status-button" title="Toggle Taskbar (⌘+M)">
-                    <i class="fas fa-window-minimize"></i>
                 </button>
                 <button id="system-settings-button" class="status-button" title="System Settings">
                     <i class="fas fa-cog"></i>

@@ -379,6 +379,9 @@ Object.assign(SypnexOS.prototype, {
         this.apps.set(appId, windowElement);
         this.windowCounter++;
         
+        // Add app to status bar for quick switching
+        this.addAppToStatusBar(appId);
+        
         // Focus the window
         this.focusWindow(appId);
         
@@ -730,14 +733,9 @@ Object.assign(SypnexOS.prototype, {
     },
 
     focusWindow(appId) {
-        // Remove focus from all windows and taskbar apps
+        // Remove focus from all windows
         document.querySelectorAll('.app-window').forEach(window => {
             window.style.zIndex = '200';
-        });
-        
-        // Update taskbar states
-        this.apps.forEach((windowElement, id) => {
-            this.updateTaskbarAppState(id, false);
         });
         
         // Focus the target window
@@ -745,7 +743,8 @@ Object.assign(SypnexOS.prototype, {
         if (windowElement) {
             windowElement.style.zIndex = '201';
             this.activeWindow = appId;
-            this.updateTaskbarAppState(appId, true);
+            // Update status bar app states
+            this.updateStatusBarAppStates();
         }
     },
 
@@ -784,8 +783,8 @@ Object.assign(SypnexOS.prototype, {
                 windowElement.cleanupResize();
             }
             
-            // Remove from taskbar if minimized
-            this.removeFromTaskbar(appId);
+            // Remove from status bar
+            this.removeAppFromStatusBar(appId);
             
             windowElement.remove();
             this.apps.delete(appId);
@@ -842,8 +841,6 @@ Object.assign(SypnexOS.prototype, {
             windowElement.style.display = 'none';
             // Ensure minimized state is set (might already be set by minimizeAllApps)
             windowElement.dataset.minimized = 'true';
-            // Add to taskbar
-            await this.addToTaskbar(appId);
             // Save state when minimizing
             this.saveWindowState(appId);
         }
@@ -854,8 +851,8 @@ Object.assign(SypnexOS.prototype, {
         if (windowElement) {
             windowElement.style.display = 'block';
             windowElement.dataset.minimized = 'false';
-            // Remove from taskbar
-            this.removeFromTaskbar(appId);
+            // Update status bar app states
+            this.updateStatusBarAppStates();
             // Reset the minimize button icon
             const minimizeBtn = windowElement.querySelector('.app-minimize');
             if (minimizeBtn) {

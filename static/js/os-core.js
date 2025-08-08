@@ -87,16 +87,6 @@ class SypnexOS {
             console.error('Dashboard button not found!');
         }
 
-        // Taskbar Toggle button
-        const taskbarToggleButton = document.getElementById('taskbar-toggle-button');
-        if (taskbarToggleButton) {
-            taskbarToggleButton.addEventListener('click', () => {
-                this.toggleTaskbar();
-            });
-        } else {
-            console.error('Taskbar toggle button not found!');
-        }
-
         // System Settings button
         const systemSettingsButton = document.getElementById('system-settings-button');
         if (systemSettingsButton) {
@@ -131,9 +121,6 @@ class SypnexOS {
             } else if (e.key === 'Escape') {
                 this.hideSpotlight();
                 this.hideDashboard();
-            } else if ((e.metaKey || e.ctrlKey) && e.key === 'm') {
-                e.preventDefault();
-                this.toggleTaskbar();
             } else if ((e.metaKey || e.ctrlKey) && e.altKey && e.key === 'r') {
                 e.preventDefault();
                 this.resetAllWindows();

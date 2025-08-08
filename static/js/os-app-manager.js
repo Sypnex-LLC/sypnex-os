@@ -2,7 +2,6 @@
 Object.assign(SypnexOS.prototype, {
     setupUserAppManager(windowElement) {
         const userAppList = windowElement.querySelector('.user-app-list');
-        const terminalAppList = windowElement.querySelector('.terminal-app-list');
         const refreshBtn = windowElement.querySelector('.refresh-user-apps');
         const installBtn = windowElement.querySelector('.install-app-btn');
         const statusSummary = windowElement.querySelector('.status-summary');

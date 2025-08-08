@@ -27,6 +27,60 @@
 .status-center {
     display: flex;
     align-items: center;
+    justify-content: center;
+    flex: 1;
+}
+
+/* Open Apps in Status Bar */
+.status-open-apps {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 10px;
+}
+
+.status-app-icon {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 18px;
+    cursor: pointer;
+    padding: 6px 8px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    position: relative;
+    min-width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.status-app-icon:hover {
+    background: rgba(0, 212, 255, 0.1);
+    color: var(--accent-color);
+    transform: translateY(-1px);
+}
+
+.status-app-icon.active {
+    background: rgba(0, 212, 255, 0.2);
+    color: var(--accent-color);
+}
+
+.status-app-icon.minimized {
+    opacity: 0.6;
+}
+
+.status-app-icon.minimized::after {
+    content: '';
+    position: absolute;
+    bottom: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    background: var(--text-secondary);
+    border-radius: 50%;
 }
 
 .status-indicators {
