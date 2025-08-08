@@ -15,3 +15,4 @@ jsmin==3.0.1
 bcrypt==3.2.0
 python-dotenv==1.0.0
 PyJWT==2.10.1
+cryptography==45.0.6
