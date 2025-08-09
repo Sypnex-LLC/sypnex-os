@@ -342,6 +342,9 @@
                 <button id="lock-button" class="status-button" title="Lock System" style="display: none;">
                     <i class="fas fa-lock"></i>
                 </button>
+                <button id="logout-button" class="status-button" title="Logout" onclick="handleLogout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
             </div>
         </div>
 
@@ -430,29 +433,63 @@
         }
         
         // Handle logout from lock screen
-        function handleLogout() {
-            fetch('/logout', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Session-Token': window.SESSION_TOKEN || localStorage.getItem('session_token')
-                }
-            })
-            .then(response => {
-                // Clear client-side storage regardless of response
-                localStorage.removeItem('session_token');
-                document.cookie = 'session_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        async function handleLogout() {
+            try {
+                // Check if we're in lock screen context (SypnexAPI might not be available)
+                const isLockScreen = document.getElementById('system-lock-overlay') && 
+                                   !document.getElementById('system-lock-overlay').classList.contains('system-lock-hidden');
                 
-                // Redirect to login
-                window.location.href = '/login';
-            })
-            .catch(error => {
-                // Even if logout fails, clear tokens and redirect for security
-                console.warn('Logout request failed, but clearing tokens anyway:', error);
+                let confirmed = true; // Default to true for lock screen
+                
+                // Only show confirmation dialog if NOT in lock screen and SypnexAPI is available
+                if (!isLockScreen && window.SypnexAPI) {
+                    const tempAPI = new SypnexAPI();
+                    
+                    confirmed = await tempAPI.showConfirmation(
+                        'Logout',
+                        'Are you sure you want to logout? You will need to login again to access your instance.',
+                        {
+                            type: 'warning',
+                            confirmText: 'Logout',
+                            cancelText: 'Cancel',
+                            icon: 'fas fa-sign-out-alt'
+                        }
+                    );
+                }
+
+                if (!confirmed) {
+                    return;
+                }
+
+                fetch('/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Session-Token': window.SESSION_TOKEN || localStorage.getItem('session_token')
+                    }
+                })
+                .then(response => {
+                    // Clear client-side storage regardless of response
+                    localStorage.removeItem('session_token');
+                    document.cookie = 'session_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+                    
+                    // Redirect to login
+                    window.location.href = '/login';
+                })
+                .catch(error => {
+                    // Even if logout fails, clear tokens and redirect for security
+                    console.warn('Logout request failed, but clearing tokens anyway:', error);
+                    localStorage.removeItem('session_token');
+                    document.cookie = 'session_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+                    window.location.href = '/login';
+                });
+            } catch (error) {
+                console.error('Error showing logout confirmation:', error);
+                // Fallback to direct logout if confirmation dialog fails
                 localStorage.removeItem('session_token');
                 document.cookie = 'session_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
                 window.location.href = '/login';
-            });
+            }
         }
     </script>
 
