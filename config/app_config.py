@@ -105,6 +105,23 @@ def validate_session_token(token):
         # Decode and validate JWT (handles expiration automatically)
         payload = jwt.decode(token, AUTH_CONFIG['session_secret'], algorithms=['HS256'])
         
+        # Check if this is a development token
+        if payload.get('purpose') == 'development':
+            print(f"🔍 Development token detected for user: {payload.get('username')}")
+            # Development tokens require dev mode to be enabled
+            user_prefs = UserPreferences()
+            dev_mode_enabled = user_prefs.get_preference('system', 'developer_mode', default='false')
+            print(f"🔍 Developer mode status: {dev_mode_enabled}")
+            
+            # Handle both string and boolean values
+            is_dev_mode = dev_mode_enabled == 'true' or dev_mode_enabled is True
+            
+            if not is_dev_mode:
+                print("🚫 Development token rejected - developer mode is disabled")
+                return None
+            else:
+                print("✅ Development token accepted - developer mode is enabled")
+        
         # JWT is valid, return username
         return payload['username']
         
