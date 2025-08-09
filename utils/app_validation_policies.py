@@ -57,6 +57,18 @@ def get_validation_rules():
         "description": "User apps must use SypnexAPI methods instead of direct browser APIs for security reasons"
     }
     
+    # JavaScript structure rules - enforced everywhere
+    javascript_structure = {
+        "rules": {
+            "dom_ready_pattern": {
+                "enforced_server_side": True,  # Required for proper app initialization
+                "severity": "error",
+                "description": "JavaScript files must include proper DOM ready checking: if (document.readyState === 'loading')",
+                "required_pattern": "if (document.readyState === 'loading')"
+            }
+        }
+    }
+    
     # HTML structure rules - dev-time validation
     html_structure = {
         "rules": {
@@ -105,6 +117,7 @@ def get_validation_rules():
         "last_updated": "2025-08-09",
         "validation_rules": {
             "javascript_security": javascript_security,
+            "javascript_structure": javascript_structure,
             "html_structure": html_structure
         },
         "policy_info": {
@@ -130,6 +143,38 @@ def validate_javascript_content(content, app_id=None):
             violations.append(method)
     
     return len(violations) == 0, violations
+
+def validate_javascript_structure(content, app_id=None, enforce_server_side_only=False):
+    """
+    Validate JavaScript structure against best practices
+    Args:
+        content: JavaScript content to validate
+        app_id: Optional app ID for context
+        enforce_server_side_only: If True, only check rules where enforced_server_side=True
+    Returns tuple: (is_valid, issues_found)
+    """
+    rules = get_validation_rules()
+    js_rules = rules["validation_rules"]["javascript_structure"]["rules"]
+    
+    issues = []
+    
+    # Check for DOM ready pattern
+    dom_ready_rule = js_rules["dom_ready_pattern"]
+    if not enforce_server_side_only or dom_ready_rule.get("enforced_server_side", False):
+        required_pattern = dom_ready_rule["required_pattern"]
+        if required_pattern not in content:
+            issues.append({
+                "rule": "dom_ready_pattern",
+                "severity": dom_ready_rule["severity"],
+                "description": dom_ready_rule["description"],
+                "missing_pattern": required_pattern
+            })
+    
+    # Check if any errors (vs warnings)
+    errors = [issue for issue in issues if issue["severity"] == "error"]
+    is_valid = len(errors) == 0
+    
+    return is_valid, issues
 
 def validate_html_structure(content, app_id=None, enforce_server_side_only=False):
     """
@@ -255,6 +300,7 @@ def validate_user_app_files(files_dict, enforce_server_side_only=False):
         
         # Validate JS files
         elif filename.endswith('.js'):
+            # Check JavaScript security
             js_valid, js_violations = validate_javascript_content(content)
             if not js_valid:
                 file_result["is_valid"] = False
@@ -266,6 +312,13 @@ def validate_user_app_files(files_dict, enforce_server_side_only=False):
                         "description": f"Blacklisted JavaScript method: {violation}",
                         "found_pattern": violation
                     })
+            
+            # Check JavaScript structure (DOM ready pattern)
+            js_struct_valid, js_struct_issues = validate_javascript_structure(content, enforce_server_side_only=enforce_server_side_only)
+            if not js_struct_valid:
+                file_result["is_valid"] = False
+                results["is_valid"] = False
+            file_result["issues"].extend(js_struct_issues)
         
         # Collect errors and warnings
         for issue in file_result["issues"]:
