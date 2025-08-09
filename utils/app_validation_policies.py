@@ -83,6 +83,19 @@ def get_validation_rules():
                 "severity": "error",
                 "description": "Do not include <html>, <head>, or <body> tags. Apps are HTML fragments.",
                 "patterns": ["<html", "<head", "<body"]
+            },
+            "no_inline_event_handlers": {
+                "enforced_server_side": True,  # Server MUST enforce this for security
+                "severity": "error",
+                "description": "Inline event handlers (onclick, onload, etc.) are not allowed. Use addEventListener() instead.",
+                "patterns": [
+                    "onclick=", "ondblclick=", "onmousedown=", "onmouseup=", "onmouseover=", 
+                    "onmouseout=", "onmousemove=", "onkeydown=", "onkeyup=", "onkeypress=",
+                    "onload=", "onunload=", "onresize=", "onscroll=", "onfocus=", "onblur=",
+                    "onchange=", "onselect=", "onsubmit=", "onreset=", "onerror=", "onabort=",
+                    "ondrag=", "ondrop=", "ondragstart=", "ondragend=", "ondragover=", 
+                    "ondragenter=", "ondragleave=", "ontouchstart=", "ontouchend=", "ontouchmove="
+                ]
             }
         }
     }
@@ -177,6 +190,17 @@ def validate_html_structure(content, app_id=None, enforce_server_side_only=False
                     "rule": "no_html_head_body",
                     "severity": html_rules["no_html_head_body"]["severity"], 
                     "description": html_rules["no_html_head_body"]["description"],
+                    "found_pattern": pattern
+                })
+    
+    # Check for inline event handlers (security enforcement)
+    if not enforce_server_side_only or html_rules["no_inline_event_handlers"].get("enforced_server_side", False):
+        for pattern in html_rules["no_inline_event_handlers"]["patterns"]:
+            if pattern.lower() in content_lower:
+                issues.append({
+                    "rule": "no_inline_event_handlers",
+                    "severity": html_rules["no_inline_event_handlers"]["severity"],
+                    "description": html_rules["no_inline_event_handlers"]["description"],
                     "found_pattern": pattern
                 })
     
