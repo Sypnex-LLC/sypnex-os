@@ -44,10 +44,13 @@ def register_auth_routes(app, managers):
                     })
                 else:
                     # Form response - redirect to main page with token in cookie
+                    import os
+                    is_production = os.getenv('FLASK_ENV') == 'production'
+                    
                     response = make_response(redirect('/'))
-                    # Set cookie with 24-hour expiration
+                    # Set cookie with 24-hour expiration and environment-based security
                     response.set_cookie('session_token', session_token, 
-                                      max_age=24*60*60, httponly=False, secure=False, samesite='Lax')
+                                      max_age=24*60*60, httponly=False, secure=is_production, samesite='Lax')
                     return response
             else:
                 # Track failed login attempt

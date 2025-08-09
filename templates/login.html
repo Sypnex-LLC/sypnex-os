@@ -357,7 +357,9 @@
                         // Set cookie with proper expiration (24 hours) and settings
                         const expires = new Date();
                         expires.setTime(expires.getTime() + (24 * 60 * 60 * 1000)); // 24 hours
-                        document.cookie = `session_token=${data.session_token}; expires=${expires.toUTCString()}; path=/; SameSite=Lax`;
+                        const isProduction = window.location.protocol === 'https:';
+                        const secureFlag = isProduction ? '; Secure' : '';
+                        document.cookie = `session_token=${data.session_token}; expires=${expires.toUTCString()}; path=/; SameSite=Lax${secureFlag}`;
                     }
                     
                     // Add a small delay to ensure cookie is set, then redirect
