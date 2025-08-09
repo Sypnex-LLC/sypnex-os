@@ -81,6 +81,9 @@ class SypnexWelcomeScreen {
                 window.sypnexOS.showNotification(`Welcome to Sypnex OS, ${displayName}!`, 'success');
             }
             
+            // Set intent for video player to open tour video
+            await this.launchTourVideo();
+            
         } catch (error) {
             console.error('Error saving welcome data:', error);
             this.showError('Failed to save welcome data. Please try again.');
@@ -113,6 +116,43 @@ class SypnexWelcomeScreen {
 
         if (!welcomeResponse.ok) {
             throw new Error('Failed to save welcome completion');
+        }
+    }
+
+    async launchTourVideo() {
+        try {
+            // Set intent for video player to open the tour video
+            const intentData = {
+                action: 'open_file',
+                data: {
+                    filePath: '/tutorials/tour.mp4'
+                }
+            };
+
+            // Store intent in video player preferences
+            const intentResponse = await fetch('/api/preferences/video_player/_pending_intent', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ value: intentData })
+            });
+
+            if (!intentResponse.ok) {
+                throw new Error('Failed to set video player intent');
+            }
+
+            // Launch video player app - it will automatically check for and process the intent
+            if (window.sypnexOS && window.sypnexOS.openApp) {
+                await window.sypnexOS.openApp('video_player');
+            }
+
+        } catch (error) {
+            console.error('Error launching tour video:', error);
+            // Don't throw error - tour failure shouldn't break welcome flow
+            if (window.sypnexOS && window.sypnexOS.showNotification) {
+                window.sypnexOS.showNotification('Tour video could not be loaded', 'warning');
+            }
         }
     }
 

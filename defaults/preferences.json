@@ -12,6 +12,11 @@
         "local_path": "assets/services",
         "vfs_path": "/services/configs",
         "description": "Service configuration files"
+      },
+      {
+        "local_path": "assets/tours",
+        "vfs_path": "/tutorials",
+        "description": "Tutorial and tour videos for onboarding"
       }
     ]
   },
