@@ -79,7 +79,7 @@
   },
   "package_info": {
     "format_version": "1.0",
-    "created_at": "2025-08-09T17:49:03.839996",
+    "created_at": "2025-08-09T17:51:20.130280",
     "packaged_by": "Sypnex OS App Packager",
     "source_directory": ".\\flow_editor"
   },
