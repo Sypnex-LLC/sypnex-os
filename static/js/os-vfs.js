@@ -18,6 +18,73 @@ Object.assign(SypnexOS.prototype, {
         let currentPath = '/';
         let hamburgerMenu = null;
         
+        // File type to default app mappings
+        const FILE_TYPE_MAPPINGS = {
+            // Video files - comprehensive coverage
+            'mp4': 'default_video_player',
+            'avi': 'default_video_player', 
+            'mov': 'default_video_player',
+            'mkv': 'default_video_player',
+            'webm': 'default_video_player',
+            'flv': 'default_video_player',
+            'wmv': 'default_video_player',
+            'm4v': 'default_video_player',
+            '3gp': 'default_video_player',
+            'ogv': 'default_video_player',
+
+            // Audio files - comprehensive coverage  
+            'mp3': 'default_audio_player',
+            'wav': 'default_audio_player',
+            'flac': 'default_audio_player',
+            'aac': 'default_audio_player',
+            'ogg': 'default_audio_player',
+            'wma': 'default_audio_player',
+            'm4a': 'default_audio_player',
+            'opus': 'default_audio_player',
+            'ape': 'default_audio_player',
+
+            // Image files - comprehensive coverage
+            'jpg': 'default_image_viewer',
+            'jpeg': 'default_image_viewer',
+            'png': 'default_image_viewer',
+            'gif': 'default_image_viewer',
+            'svg': 'default_image_viewer',
+            'bmp': 'default_image_viewer',
+            'webp': 'default_image_viewer',
+            'tiff': 'default_image_viewer',
+            'tif': 'default_image_viewer',
+            'ico': 'default_image_viewer',
+
+            // Text files - common ones, fallback handles the rest
+            'txt': 'default_text_editor',
+            'html': 'default_text_editor',
+            'htm': 'default_text_editor',
+            'css': 'default_text_editor',
+            'js': 'default_text_editor',
+            'json': 'default_text_editor',
+            'xml': 'default_text_editor',
+            'md': 'default_text_editor',
+            'py': 'default_text_editor',
+            'java': 'default_text_editor',
+            'cpp': 'default_text_editor',
+            'c': 'default_text_editor',
+            'php': 'default_text_editor',
+            'rb': 'default_text_editor',
+            'go': 'default_text_editor',
+            'rs': 'default_text_editor',
+            'sh': 'default_text_editor',
+            'bat': 'default_text_editor',
+            'yml': 'default_text_editor',
+            'yaml': 'default_text_editor',
+            'log': 'default_text_editor'
+        };
+        
+        // Helper function to get the appropriate default app preference key based on file extension
+        const getDefaultAppPreferenceKey = (filePath) => {
+            const extension = filePath.split('.').pop().toLowerCase();
+            return FILE_TYPE_MAPPINGS[extension] || 'default_text_editor'; // fallback to text editor
+        };
+        
         // Create a temporary SypnexAPI instance to use the hamburger menu
         const tempAPI = new window.SypnexAPI('virtual-file-system');
         
@@ -236,22 +303,27 @@ Object.assign(SypnexOS.prototype, {
             }
         };
         
-        // View file content with default text editor
+        // View file content with appropriate default app based on file type
         const viewFile = async (filePath) => {
             try {
-                // Get default text editor preference directly via API
-                const defaultEditorResponse = await fetch('/api/preferences/system/default_text_editor');
+                // Determine which default app preference to check based on file extension
+                const defaultAppPreferenceKey = getDefaultAppPreferenceKey(filePath);
                 
-                if (!defaultEditorResponse.ok) {
-                    this.showNotification('Could not retrieve default text editor preference.', 'error');
+                // Get the appropriate default app preference
+                const defaultAppResponse = await fetch(`/api/preferences/system/${defaultAppPreferenceKey}`);
+                
+                if (!defaultAppResponse.ok) {
+                    this.showNotification(`Could not retrieve ${defaultAppPreferenceKey} preference.`, 'error');
                     return;
                 }
                 
-                const defaultEditorData = await defaultEditorResponse.json();
-                const defaultEditor = defaultEditorData.value;
+                const defaultAppData = await defaultAppResponse.json();
+                const defaultApp = defaultAppData.value;
                 
-                if (!defaultEditor) {
-                    this.showNotification('No default text editor set. Please configure in System Settings.', 'warning');
+                if (!defaultApp) {
+                    // Create a more user-friendly message based on the app type
+                    const appType = defaultAppPreferenceKey.replace('default_', '').replace('_', ' ');
+                    this.showNotification(`No ${appType} set. Please configure in System Settings.`, 'warning');
                     return;
                 }
                 
@@ -262,7 +334,7 @@ Object.assign(SypnexOS.prototype, {
                     timestamp: new Date().toISOString()
                 };
                 
-                const intentResponse = await fetch(`/api/preferences/${defaultEditor}/_pending_intent`, {
+                const intentResponse = await fetch(`/api/preferences/${defaultApp}/_pending_intent`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ value: intentData })
@@ -273,14 +345,14 @@ Object.assign(SypnexOS.prototype, {
                     return;
                 }
                 
-                // Launch the default text editor
-                window.sypnexOS.openApp(defaultEditor);
+                // Launch the appropriate default app
+                window.sypnexOS.openApp(defaultApp);
                 
-                this.showNotification(`Opening ${filePath.split('/').pop()} with ${defaultEditor}`, 'success');
+                this.showNotification(`Opening ${filePath.split('/').pop()} with ${defaultApp}`, 'success');
                 
             } catch (error) {
-                console.error('Error opening file with default editor:', error);
-                this.showNotification('Error opening file with default editor', 'error');
+                console.error('Error opening file with default app:', error);
+                this.showNotification('Error opening file with default app', 'error');
             }
         };
 

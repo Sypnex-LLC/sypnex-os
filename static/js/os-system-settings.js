@@ -134,11 +134,33 @@ Object.assign(SypnexOS.prototype, {
             });
         }
 
-        // Default text editor select
+        // Default app selectors
         const defaultTextEditorSelect = windowElement.querySelector('#default-text-editor-select');
+        const defaultAudioPlayerSelect = windowElement.querySelector('#default-audio-player-select');
+        const defaultVideoPlayerSelect = windowElement.querySelector('#default-video-player-select');
+        const defaultImageViewerSelect = windowElement.querySelector('#default-image-viewer-select');
+        
         if (defaultTextEditorSelect) {
             defaultTextEditorSelect.addEventListener('change', (e) => {
                 this.saveDefaultTextEditor(e.target.value);
+            });
+        }
+        
+        if (defaultAudioPlayerSelect) {
+            defaultAudioPlayerSelect.addEventListener('change', (e) => {
+                this.saveDefaultAudioPlayer(e.target.value);
+            });
+        }
+        
+        if (defaultVideoPlayerSelect) {
+            defaultVideoPlayerSelect.addEventListener('change', (e) => {
+                this.saveDefaultVideoPlayer(e.target.value);
+            });
+        }
+        
+        if (defaultImageViewerSelect) {
+            defaultImageViewerSelect.addEventListener('change', (e) => {
+                this.saveDefaultImageViewer(e.target.value);
             });
         }
     },
@@ -207,8 +229,11 @@ Object.assign(SypnexOS.prototype, {
             
             this.loadDisplayName(windowElement, displayNameData.value || 'Not set');
 
-            // Load default text editor setting and available editors
+            // Load default app settings and available apps
             await this.loadDefaultTextEditorSettings(windowElement);
+            await this.loadDefaultAudioPlayerSettings(windowElement);
+            await this.loadDefaultVideoPlayerSettings(windowElement);
+            await this.loadDefaultImageViewerSettings(windowElement);
             
         } catch (error) {
             console.error('Error loading system preferences:', error);
@@ -1098,6 +1123,306 @@ Object.assign(SypnexOS.prototype, {
                     defaultTextEditorSelect.value = currentData.value || '';
                 } catch (revertError) {
                     console.error('Error reverting default text editor selection:', revertError);
+                }
+            }
+        }
+    },
+
+    // Audio Player Settings
+    async loadDefaultAudioPlayerSettings(windowElement) {
+        try {
+            // Load available audio players (apps with 'audio_player' keyword)
+            const audioPlayersResponse = await fetch('/api/apps/by-keyword/audio_player');
+            const audioPlayersData = await audioPlayersResponse.json();
+            
+            const defaultAudioPlayerSelect = windowElement.querySelector('#default-audio-player-select');
+            if (!defaultAudioPlayerSelect) return;
+            
+            // Clear existing options
+            defaultAudioPlayerSelect.innerHTML = '';
+            
+            // Add default option
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = 'No default audio player (system choice)';
+            defaultAudioPlayerSelect.appendChild(defaultOption);
+            
+            // Add available audio players
+            if (audioPlayersData.success && audioPlayersData.apps.length > 0) {
+                audioPlayersData.apps.forEach(app => {
+                    const option = document.createElement('option');
+                    option.value = app.id;
+                    option.textContent = `${app.name} (${app.type === 'builtin' ? 'Built-in' : 'User App'})`;
+                    defaultAudioPlayerSelect.appendChild(option);
+                });
+            } else {
+                // No audio players found
+                const noPlayersOption = document.createElement('option');
+                noPlayersOption.value = '';
+                noPlayersOption.textContent = 'No audio players available';
+                noPlayersOption.disabled = true;
+                defaultAudioPlayerSelect.appendChild(noPlayersOption);
+            }
+            
+            // Load current default audio player setting
+            const defaultPlayerResponse = await fetch('/api/preferences/system/default_audio_player');
+            const defaultPlayerData = await defaultPlayerResponse.json();
+            
+            if (defaultPlayerData.success && defaultPlayerData.value) {
+                defaultAudioPlayerSelect.value = defaultPlayerData.value;
+            }
+            
+        } catch (error) {
+            console.error('Error loading default audio player settings:', error);
+            
+            // Show error in select
+            const defaultAudioPlayerSelect = windowElement.querySelector('#default-audio-player-select');
+            if (defaultAudioPlayerSelect) {
+                defaultAudioPlayerSelect.innerHTML = '<option value="">Error loading audio players</option>';
+            }
+        }
+    },
+
+    async saveDefaultAudioPlayer(playerId) {
+        try {
+            const response = await fetch('/api/preferences/system/default_audio_player', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    value: playerId
+                })
+            });
+            
+            if (response.ok) {
+                if (playerId) {
+                    // Get the player name for the notification
+                    const select = document.querySelector('#default-audio-player-select');
+                    const selectedOption = select.querySelector(`option[value="${playerId}"]`);
+                    const playerName = selectedOption ? selectedOption.textContent : playerId;
+                    this.showNotification(`Default audio player set to: ${playerName}`, 'success');
+                } else {
+                    this.showNotification('Default audio player preference cleared', 'success');
+                }
+            } else {
+                throw new Error('Failed to save default audio player setting');
+            }
+            
+        } catch (error) {
+            console.error('Error saving default audio player:', error);
+            this.showNotification('Failed to save default audio player setting', 'error');
+            
+            // Revert the selection if save failed
+            const defaultAudioPlayerSelect = document.querySelector('#default-audio-player-select');
+            if (defaultAudioPlayerSelect) {
+                // Try to reload the current setting
+                try {
+                    const currentResponse = await fetch('/api/preferences/system/default_audio_player');
+                    const currentData = await currentResponse.json();
+                    defaultAudioPlayerSelect.value = currentData.value || '';
+                } catch (revertError) {
+                    console.error('Error reverting default audio player selection:', revertError);
+                }
+            }
+        }
+    },
+
+    // Video Player Settings
+    async loadDefaultVideoPlayerSettings(windowElement) {
+        try {
+            // Load available video players (apps with 'video_player' keyword)
+            const videoPlayersResponse = await fetch('/api/apps/by-keyword/video_player');
+            const videoPlayersData = await videoPlayersResponse.json();
+            
+            const defaultVideoPlayerSelect = windowElement.querySelector('#default-video-player-select');
+            if (!defaultVideoPlayerSelect) return;
+            
+            // Clear existing options
+            defaultVideoPlayerSelect.innerHTML = '';
+            
+            // Add default option
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = 'No default video player (system choice)';
+            defaultVideoPlayerSelect.appendChild(defaultOption);
+            
+            // Add available video players
+            if (videoPlayersData.success && videoPlayersData.apps.length > 0) {
+                videoPlayersData.apps.forEach(app => {
+                    const option = document.createElement('option');
+                    option.value = app.id;
+                    option.textContent = `${app.name} (${app.type === 'builtin' ? 'Built-in' : 'User App'})`;
+                    defaultVideoPlayerSelect.appendChild(option);
+                });
+            } else {
+                // No video players found
+                const noPlayersOption = document.createElement('option');
+                noPlayersOption.value = '';
+                noPlayersOption.textContent = 'No video players available';
+                noPlayersOption.disabled = true;
+                defaultVideoPlayerSelect.appendChild(noPlayersOption);
+            }
+            
+            // Load current default video player setting
+            const defaultPlayerResponse = await fetch('/api/preferences/system/default_video_player');
+            const defaultPlayerData = await defaultPlayerResponse.json();
+            
+            if (defaultPlayerData.success && defaultPlayerData.value) {
+                defaultVideoPlayerSelect.value = defaultPlayerData.value;
+            }
+            
+        } catch (error) {
+            console.error('Error loading default video player settings:', error);
+            
+            // Show error in select
+            const defaultVideoPlayerSelect = windowElement.querySelector('#default-video-player-select');
+            if (defaultVideoPlayerSelect) {
+                defaultVideoPlayerSelect.innerHTML = '<option value="">Error loading video players</option>';
+            }
+        }
+    },
+
+    async saveDefaultVideoPlayer(playerId) {
+        try {
+            const response = await fetch('/api/preferences/system/default_video_player', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    value: playerId
+                })
+            });
+            
+            if (response.ok) {
+                if (playerId) {
+                    // Get the player name for the notification
+                    const select = document.querySelector('#default-video-player-select');
+                    const selectedOption = select.querySelector(`option[value="${playerId}"]`);
+                    const playerName = selectedOption ? selectedOption.textContent : playerId;
+                    this.showNotification(`Default video player set to: ${playerName}`, 'success');
+                } else {
+                    this.showNotification('Default video player preference cleared', 'success');
+                }
+            } else {
+                throw new Error('Failed to save default video player setting');
+            }
+            
+        } catch (error) {
+            console.error('Error saving default video player:', error);
+            this.showNotification('Failed to save default video player setting', 'error');
+            
+            // Revert the selection if save failed
+            const defaultVideoPlayerSelect = document.querySelector('#default-video-player-select');
+            if (defaultVideoPlayerSelect) {
+                // Try to reload the current setting
+                try {
+                    const currentResponse = await fetch('/api/preferences/system/default_video_player');
+                    const currentData = await currentResponse.json();
+                    defaultVideoPlayerSelect.value = currentData.value || '';
+                } catch (revertError) {
+                    console.error('Error reverting default video player selection:', revertError);
+                }
+            }
+        }
+    },
+
+    // Image Viewer Settings
+    async loadDefaultImageViewerSettings(windowElement) {
+        try {
+            // Load available image viewers (apps with 'image_viewer' keyword)
+            const imageViewersResponse = await fetch('/api/apps/by-keyword/image_viewer');
+            const imageViewersData = await imageViewersResponse.json();
+            
+            const defaultImageViewerSelect = windowElement.querySelector('#default-image-viewer-select');
+            if (!defaultImageViewerSelect) return;
+            
+            // Clear existing options
+            defaultImageViewerSelect.innerHTML = '';
+            
+            // Add default option
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = 'No default image viewer (system choice)';
+            defaultImageViewerSelect.appendChild(defaultOption);
+            
+            // Add available image viewers
+            if (imageViewersData.success && imageViewersData.apps.length > 0) {
+                imageViewersData.apps.forEach(app => {
+                    const option = document.createElement('option');
+                    option.value = app.id;
+                    option.textContent = `${app.name} (${app.type === 'builtin' ? 'Built-in' : 'User App'})`;
+                    defaultImageViewerSelect.appendChild(option);
+                });
+            } else {
+                // No image viewers found
+                const noViewersOption = document.createElement('option');
+                noViewersOption.value = '';
+                noViewersOption.textContent = 'No image viewers available';
+                noViewersOption.disabled = true;
+                defaultImageViewerSelect.appendChild(noViewersOption);
+            }
+            
+            // Load current default image viewer setting
+            const defaultViewerResponse = await fetch('/api/preferences/system/default_image_viewer');
+            const defaultViewerData = await defaultViewerResponse.json();
+            
+            if (defaultViewerData.success && defaultViewerData.value) {
+                defaultImageViewerSelect.value = defaultViewerData.value;
+            }
+            
+        } catch (error) {
+            console.error('Error loading default image viewer settings:', error);
+            
+            // Show error in select
+            const defaultImageViewerSelect = windowElement.querySelector('#default-image-viewer-select');
+            if (defaultImageViewerSelect) {
+                defaultImageViewerSelect.innerHTML = '<option value="">Error loading image viewers</option>';
+            }
+        }
+    },
+
+    async saveDefaultImageViewer(viewerId) {
+        try {
+            const response = await fetch('/api/preferences/system/default_image_viewer', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    value: viewerId
+                })
+            });
+            
+            if (response.ok) {
+                if (viewerId) {
+                    // Get the viewer name for the notification
+                    const select = document.querySelector('#default-image-viewer-select');
+                    const selectedOption = select.querySelector(`option[value="${viewerId}"]`);
+                    const viewerName = selectedOption ? selectedOption.textContent : viewerId;
+                    this.showNotification(`Default image viewer set to: ${viewerName}`, 'success');
+                } else {
+                    this.showNotification('Default image viewer preference cleared', 'success');
+                }
+            } else {
+                throw new Error('Failed to save default image viewer setting');
+            }
+            
+        } catch (error) {
+            console.error('Error saving default image viewer:', error);
+            this.showNotification('Failed to save default image viewer setting', 'error');
+            
+            // Revert the selection if save failed
+            const defaultImageViewerSelect = document.querySelector('#default-image-viewer-select');
+            if (defaultImageViewerSelect) {
+                // Try to reload the current setting
+                try {
+                    const currentResponse = await fetch('/api/preferences/system/default_image_viewer');
+                    const currentData = await currentResponse.json();
+                    defaultImageViewerSelect.value = currentData.value || '';
+                } catch (revertError) {
+                    console.error('Error reverting default image viewer selection:', revertError);
                 }
             }
         }
