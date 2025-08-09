@@ -6,8 +6,10 @@ import tempfile
 import os
 import json
 import requests
+import time
 from utils.app_utils import install_app_direct, sanitize_user_app_content
 from utils.performance_utils import monitor_performance, monitor_critical_performance
+from utils.app_validation_policies import validate_user_app_files
 
 def register_user_app_routes(app, managers):
     """Register user app management routes"""
@@ -216,3 +218,45 @@ def register_user_app_routes(app, managers):
             import traceback
             traceback.print_exc()
             return jsonify({'error': f'Uninstallation failed: {str(e)}'}), 500 
+
+    @app.route('/api/dev/validate-app', methods=['POST'])
+    def validate_app_content():
+        """
+        Validate user app content against policies
+        Expected payload: {
+            "files": {
+                "filename.html": "content...",
+                "filename.js": "content...",
+                ...
+            },
+            "app_id": "optional_app_id",
+            "enforce_server_side_only": false  // optional, defaults to false
+        }
+        """
+        try:
+            data = request.get_json()
+            if not data or 'files' not in data:
+                return jsonify({'error': 'No files provided for validation'}), 400
+            
+            files = data.get('files', {})
+            app_id = data.get('app_id', 'unknown')
+            enforce_server_side_only = data.get('enforce_server_side_only', False)
+            
+            if not files:
+                return jsonify({'error': 'Files object is empty'}), 400
+            
+            # Validate the app files
+            validation_results = validate_user_app_files(files, enforce_server_side_only=enforce_server_side_only)
+            
+            return jsonify({
+                'validation_results': validation_results,
+                'app_id': app_id,
+                'enforce_server_side_only': enforce_server_side_only,
+                'timestamp': int(time.time() * 1000)
+            })
+            
+        except Exception as e:
+            print(f"Error validating app content: {e}")
+            import traceback
+            traceback.print_exc()
+            return jsonify({'error': f'Validation failed: {str(e)}'}), 500 

@@ -189,63 +189,19 @@ def install_app_direct(package_file, virtual_file_manager):
         traceback.print_exc()
         return False
 
+from utils.app_validation_policies import validate_user_app_files
+
 def sanitize_user_app_content(html_content, app_id):
-    """Sanitize user app HTML content to remove blacklisted JavaScript methods"""
+    """Sanitize user app HTML content using centralized validation policies"""
     
-    # List of blacklisted JavaScript methods/objects that user apps shouldn't use
-    # Apps must use SypnexAPI methods for remote requests and storage instead
-    # These patterns target actual JavaScript API usage, not comments or variable names
-    blacklisted_methods = [
-        # Remote request methods - specific API calls
-        'fetch(',           # Fetch API call
-        'fetch (',          # Fetch API call with space
-        'xmlhttprequest(',  # XMLHttpRequest constructor
-        'new xmlhttprequest',  # XMLHttpRequest constructor
-        'activexobject(',   # ActiveX constructor
-        'new activexobject', # ActiveX constructor
-        'new websocket(',   # WebSocket constructor (specific)
-        'websocket.prototype', # WebSocket prototype access
-        'window.websocket', # Direct WebSocket access
-        'eventsource(',     # EventSource constructor
-        'new eventsource',  # EventSource constructor
-        'navigator.sendbeacon(', # Beacon API call
-        'importscripts(',   # Web Workers import
-        'window.postmessage(', # Cross-frame messaging (specific to window)
-        'parent.postmessage(', # Cross-frame messaging to parent
-        'top.postmessage(',    # Cross-frame messaging to top
-        
-        # Navigation and window methods - specific API calls
-        'window.open(',     # Opening new windows/tabs
-        'location.href =',  # Page navigation assignment
-        'location.assign(', # Page navigation method
-        'location.replace(', # Page navigation method
-        'document.domain =', # Domain manipulation assignment
-        'document.domain=',  # Domain manipulation assignment (no space)
-        
-        # Browser storage methods - specific API calls
-        'localstorage.',    # Local storage access (any method)
-        'sessionstorage.',  # Session storage access (any method)
-        'document.cookie =', # Cookie assignment
-        'document.cookie=',  # Cookie assignment (no space)
-        'indexeddb.',       # IndexedDB access
-        'window.indexeddb', # IndexedDB via window
-        'websql(',          # WebSQL (deprecated)
-        'caches.',          # Cache API (specific methods)
-        'serviceworker',    # Service worker registration
-        'navigator.storage.', # Storage API
-        'storagemanager.',  # Storage Manager API
-    ]
+    # Use the centralized validation system with server-side enforcement
+    validation_results = validate_user_app_files(
+        {f"{app_id}.html": html_content}, 
+        enforce_server_side_only=True
+    )
     
-    # Check if the HTML content contains any blacklisted methods
-    content_lower = html_content.lower()
-    found_violations = []
-    
-    for blacklisted in blacklisted_methods:
-        if blacklisted in content_lower:
-            found_violations.append(blacklisted)
-    
-    if found_violations:
-        print(f"SECURITY: Blocked user app '{app_id}' for using blacklisted JavaScript methods: {found_violations}")
+    if not validation_results["is_valid"]:
+        print(f"SECURITY: Blocked user app '{app_id}' for validation violations: {validation_results['errors']}")
         
         # Replace the entire content with a security warning using app-container styles
         warning_html = f"""
@@ -260,18 +216,19 @@ def sanitize_user_app_content(html_content, app_id):
                         <i class="fas fa-ban"></i>
                     </div>
                     <h3 style="color: #dc3545; margin-bottom: 15px;">Security Restriction</h3>
-                    <p style="color: #6c757d; font-size: 16px; margin-bottom: 20px;">
-                        This user app attempted to use restricted JavaScript methods.
-                    </p>
                     <div style="background: rgba(220, 53, 69, 0.1); border: 1px solid rgba(220, 53, 69, 0.3); border-radius: 8px; padding: 15px; margin: 20px 0;">
-                        <p style="color: #6c757d; font-size: 14px; margin: 0;">
+                        <p style="color: #6c757d; font-size: 16px; margin-bottom: 15px;">
+                            This user app failed validation checks.
+                        </p>
+                        <p style="font-size: 14px; margin: 0 0 15px 0;">
                             <strong>App ID:</strong> {app_id}<br>
-                            <strong>Blocked methods:</strong> {', '.join(found_violations)}
+                            <strong>Issues found:</strong><br>
+                            {'<br>'.join(['• ' + error.replace('<', '&lt;').replace('>', '&gt;') for error in validation_results['errors']])}
+                        </p>
+                        <p style="color: #6c757d; font-size: 14px; margin: 0;">
+                            User apps must follow security and structure requirements.
                         </p>
                     </div>
-                    <p style="color: #6c757d; font-size: 14px;">
-                        User apps must use SypnexAPI methods for remote requests and system interactions.
-                    </p>
                 </div>
             </div>
         </div>
