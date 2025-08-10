@@ -327,6 +327,12 @@ Object.assign(SypnexOS.prototype, {
                     return;
                 }
                 
+                // Check if the default app is already open and close it first
+                if (window.sypnexOS.apps && window.sypnexOS.apps.has(defaultApp)) {
+                    console.log(`VFS: Closing already open ${defaultApp} before opening new file`);
+                    window.sypnexOS.closeApp(defaultApp);
+                }
+                
                 // Set intent using preferences API (simple fetch)
                 const intentData = {
                     action: 'open_file',
