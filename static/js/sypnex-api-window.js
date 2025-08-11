@@ -42,20 +42,39 @@
         
         // Methods that need to be bound to the real window object
         const boundMethods = new Set([
+            // DOM/CSS methods
             'getComputedStyle',
             'getSelection',
             'matchMedia',
+            
+            // Animation/timing methods
             'requestAnimationFrame',
             'cancelAnimationFrame',
             'requestIdleCallback',
             'cancelIdleCallback',
+            
+            // Scrolling methods
             'scrollTo',
             'scroll',
             'scrollBy',
+            
+            // Window manipulation methods
             'resizeTo',
             'resizeBy',
             'moveTo',
-            'moveBy'
+            'moveBy',
+            
+            // Additional common methods that need proper binding
+            'alert',              // Alert dialogs
+            'confirm',            // Confirmation dialogs
+            'prompt',             // Input prompts
+            'print',              // Print page
+            'focus',              // Window focus
+            'blur',               // Window blur
+            'find',               // Text search (legacy)
+            'stop',               // Stop page loading
+            'atob',               // Base64 decode
+            'btoa'                // Base64 encode
         ]);
 
         // Create a proxy that intercepts property assignments
