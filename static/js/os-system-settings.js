@@ -136,7 +136,6 @@ Object.assign(SypnexOS.prototype, {
 
         // Default app selectors
         const defaultTextEditorSelect = windowElement.querySelector('#default-text-editor-select');
-        const defaultAudioPlayerSelect = windowElement.querySelector('#default-audio-player-select');
         const defaultVideoPlayerSelect = windowElement.querySelector('#default-video-player-select');
         const defaultImageViewerSelect = windowElement.querySelector('#default-image-viewer-select');
         
@@ -145,13 +144,7 @@ Object.assign(SypnexOS.prototype, {
                 this.saveDefaultTextEditor(e.target.value);
             });
         }
-        
-        if (defaultAudioPlayerSelect) {
-            defaultAudioPlayerSelect.addEventListener('change', (e) => {
-                this.saveDefaultAudioPlayer(e.target.value);
-            });
-        }
-        
+                
         if (defaultVideoPlayerSelect) {
             defaultVideoPlayerSelect.addEventListener('change', (e) => {
                 this.saveDefaultVideoPlayer(e.target.value);
@@ -231,7 +224,6 @@ Object.assign(SypnexOS.prototype, {
 
             // Load default app settings and available apps
             await this.loadDefaultTextEditorSettings(windowElement);
-            await this.loadDefaultAudioPlayerSettings(windowElement);
             await this.loadDefaultVideoPlayerSettings(windowElement);
             await this.loadDefaultImageViewerSettings(windowElement);
             
@@ -1127,112 +1119,11 @@ Object.assign(SypnexOS.prototype, {
             }
         }
     },
-
-    // Audio Player Settings
-    async loadDefaultAudioPlayerSettings(windowElement) {
-        try {
-            // Load available audio players (apps with 'audio_player' keyword)
-            const audioPlayersResponse = await fetch('/api/apps/by-keyword/audio_player');
-            const audioPlayersData = await audioPlayersResponse.json();
-            
-            const defaultAudioPlayerSelect = windowElement.querySelector('#default-audio-player-select');
-            if (!defaultAudioPlayerSelect) return;
-            
-            // Clear existing options
-            defaultAudioPlayerSelect.innerHTML = '';
-            
-            // Add default option
-            const defaultOption = document.createElement('option');
-            defaultOption.value = '';
-            defaultOption.textContent = 'No default audio player (system choice)';
-            defaultAudioPlayerSelect.appendChild(defaultOption);
-            
-            // Add available audio players
-            if (audioPlayersData.success && audioPlayersData.apps.length > 0) {
-                audioPlayersData.apps.forEach(app => {
-                    const option = document.createElement('option');
-                    option.value = app.id;
-                    option.textContent = `${app.name} (${app.type === 'builtin' ? 'Built-in' : 'User App'})`;
-                    defaultAudioPlayerSelect.appendChild(option);
-                });
-            } else {
-                // No audio players found
-                const noPlayersOption = document.createElement('option');
-                noPlayersOption.value = '';
-                noPlayersOption.textContent = 'No audio players available';
-                noPlayersOption.disabled = true;
-                defaultAudioPlayerSelect.appendChild(noPlayersOption);
-            }
-            
-            // Load current default audio player setting
-            const defaultPlayerResponse = await fetch('/api/preferences/system/default_audio_player');
-            const defaultPlayerData = await defaultPlayerResponse.json();
-            
-            if (defaultPlayerData.success && defaultPlayerData.value) {
-                defaultAudioPlayerSelect.value = defaultPlayerData.value;
-            }
-            
-        } catch (error) {
-            console.error('Error loading default audio player settings:', error);
-            
-            // Show error in select
-            const defaultAudioPlayerSelect = windowElement.querySelector('#default-audio-player-select');
-            if (defaultAudioPlayerSelect) {
-                defaultAudioPlayerSelect.innerHTML = '<option value="">Error loading audio players</option>';
-            }
-        }
-    },
-
-    async saveDefaultAudioPlayer(playerId) {
-        try {
-            const response = await fetch('/api/preferences/system/default_audio_player', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    value: playerId
-                })
-            });
-            
-            if (response.ok) {
-                if (playerId) {
-                    // Get the player name for the notification
-                    const select = document.querySelector('#default-audio-player-select');
-                    const selectedOption = select.querySelector(`option[value="${playerId}"]`);
-                    const playerName = selectedOption ? selectedOption.textContent : playerId;
-                    this.showNotification(`Default audio player set to: ${playerName}`, 'success');
-                } else {
-                    this.showNotification('Default audio player preference cleared', 'success');
-                }
-            } else {
-                throw new Error('Failed to save default audio player setting');
-            }
-            
-        } catch (error) {
-            console.error('Error saving default audio player:', error);
-            this.showNotification('Failed to save default audio player setting', 'error');
-            
-            // Revert the selection if save failed
-            const defaultAudioPlayerSelect = document.querySelector('#default-audio-player-select');
-            if (defaultAudioPlayerSelect) {
-                // Try to reload the current setting
-                try {
-                    const currentResponse = await fetch('/api/preferences/system/default_audio_player');
-                    const currentData = await currentResponse.json();
-                    defaultAudioPlayerSelect.value = currentData.value || '';
-                } catch (revertError) {
-                    console.error('Error reverting default audio player selection:', revertError);
-                }
-            }
-        }
-    },
-
     // Video Player Settings
     async loadDefaultVideoPlayerSettings(windowElement) {
         try {
-            // Load available video players (apps with 'video_player' keyword)
-            const videoPlayersResponse = await fetch('/api/apps/by-keyword/video_player');
+            // Load available video players (apps with 'media_player' keyword)
+            const videoPlayersResponse = await fetch('/api/apps/by-keyword/media_player');
             const videoPlayersData = await videoPlayersResponse.json();
             
             const defaultVideoPlayerSelect = windowElement.querySelector('#default-video-player-select');
@@ -1265,7 +1156,7 @@ Object.assign(SypnexOS.prototype, {
             }
             
             // Load current default video player setting
-            const defaultPlayerResponse = await fetch('/api/preferences/system/default_video_player');
+            const defaultPlayerResponse = await fetch('/api/preferences/system/default_media_player');
             const defaultPlayerData = await defaultPlayerResponse.json();
             
             if (defaultPlayerData.success && defaultPlayerData.value) {
@@ -1285,7 +1176,7 @@ Object.assign(SypnexOS.prototype, {
 
     async saveDefaultVideoPlayer(playerId) {
         try {
-            const response = await fetch('/api/preferences/system/default_video_player', {
+            const response = await fetch('/api/preferences/system/default_media_player', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -1318,7 +1209,7 @@ Object.assign(SypnexOS.prototype, {
             if (defaultVideoPlayerSelect) {
                 // Try to reload the current setting
                 try {
-                    const currentResponse = await fetch('/api/preferences/system/default_video_player');
+                    const currentResponse = await fetch('/api/preferences/system/default_media_player');
                     const currentData = await currentResponse.json();
                     defaultVideoPlayerSelect.value = currentData.value || '';
                 } catch (revertError) {

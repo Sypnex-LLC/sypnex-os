@@ -43,13 +43,8 @@
     },
     {
       "category": "system",
-      "key": "default_audio_player",
-      "value": "audio_player"
-    },
-    {
-      "category": "system",
-      "key": "default_video_player",
-      "value": "video_player"
+      "key": "default_media_player",
+      "value": "media_player"
     },
     {
       "category": "system",

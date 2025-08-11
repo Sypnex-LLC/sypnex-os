@@ -130,7 +130,7 @@ class SypnexWelcomeScreen {
             };
 
             // Store intent in video player preferences
-            const intentResponse = await fetch('/api/preferences/video_player/_pending_intent', {
+            const intentResponse = await fetch('/api/preferences/media_player/_pending_intent', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -144,7 +144,7 @@ class SypnexWelcomeScreen {
 
             // Launch video player app - it will automatically check for and process the intent
             if (window.sypnexOS && window.sypnexOS.openApp) {
-                await window.sypnexOS.openApp('video_player');
+                await window.sypnexOS.openApp('media_player');
             }
 
         } catch (error) {
