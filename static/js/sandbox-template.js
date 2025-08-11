@@ -529,7 +529,18 @@
             const listenersCleanedUp = this.cleanupEventListeners();
             const keyboardCleanedUp = this.cleanupKeyboardShortcuts();
             
-            console.log(`App ${actualAppId}: Cleanup summary - Timers: ${timersCleanedUp}, Event Listeners: ${listenersCleanedUp}, Keyboard Shortcuts: ${keyboardCleanedUp}`);
+            // Clean up window properties if window manager is available
+            let windowCleanedUp = 0;
+            if (window.sypnexWindowManager) {
+                try {
+                    window.sypnexWindowManager.cleanupAppWindow(actualAppId);
+                    windowCleanedUp = 1; // We don't get count back, just mark as attempted
+                } catch (error) {
+                    console.warn(`App ${actualAppId}: Error during window cleanup:`, error);
+                }
+            }
+            
+            console.log(`App ${actualAppId}: Cleanup summary - Timers: ${timersCleanedUp}, Event Listeners: ${listenersCleanedUp}, Keyboard Shortcuts: ${keyboardCleanedUp}, Window Properties: ${windowCleanedUp ? 'cleaned' : 'N/A'}`);
             
             // CRITICAL: Restore original global methods to prevent cross-contamination
             document.addEventListener = originalDocumentAddEventListener;
