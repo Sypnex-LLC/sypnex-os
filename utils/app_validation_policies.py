@@ -65,6 +65,9 @@ def get_validation_rules():
             "window.addeventlistener('keydown'",     # Global keydown listeners (single quotes)
             "window.addeventlistener('keyup'",       # Global keyup listeners (single quotes)
             "window.addeventlistener('keypress'",    # Global keypress listeners (single quotes)
+            
+            # Direct window access - must use sypnexAPI.getAppWindow() instead
+            'window.',              # Any direct window property access - use sypnexAPI.getAppWindow() instead
         ],
         "enforced_server_side": True,
         "severity": "error",

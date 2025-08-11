@@ -40,6 +40,24 @@
             windowState.appWindows.get(appId).properties = appProperties;
         }
         
+        // Methods that need to be bound to the real window object
+        const boundMethods = new Set([
+            'getComputedStyle',
+            'getSelection',
+            'matchMedia',
+            'requestAnimationFrame',
+            'cancelAnimationFrame',
+            'requestIdleCallback',
+            'cancelIdleCallback',
+            'scrollTo',
+            'scroll',
+            'scrollBy',
+            'resizeTo',
+            'resizeBy',
+            'moveTo',
+            'moveBy'
+        ]);
+
         // Create a proxy that intercepts property assignments
         const windowProxy = new Proxy(window, {
             set(target, property, value) {
@@ -55,8 +73,15 @@
             },
             
             get(target, property) {
+                const value = target[property];
+                
+                // If it's a method that needs to be bound to the real window, bind it
+                if (typeof value === 'function' && boundMethods.has(property)) {
+                    return value.bind(target);
+                }
+                
                 // Return the actual property from window
-                return target[property];
+                return value;
             },
             
             has(target, property) {
