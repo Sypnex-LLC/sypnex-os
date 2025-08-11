@@ -249,7 +249,7 @@ Object.assign(SypnexAPI.prototype, {
                     
                     .sypnex-file-explorer-btn-primary {
                         background: var(--accent-color);
-                        color: var(--primary-bg);
+                        color: white;
                         font-weight: 600;
                     }
                     
