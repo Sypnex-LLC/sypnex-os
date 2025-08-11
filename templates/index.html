@@ -417,7 +417,6 @@
                 const secureFlag = isProduction ? '; Secure' : '';
                 document.cookie = `session_token=${storedToken}; expires=${expires.toUTCString()}; path=/; SameSite=Lax${secureFlag}`;
                 
-                console.log('🎫 Session token available for bundle loading');
                 return true;
             } else {
                 console.warn('⚠️ No session token found - redirecting to login');

@@ -6,7 +6,6 @@ Object.assign(SypnexOS.prototype, {
     async showDashboard() {
         // Prevent concurrent execution
         if (this.isDashboardLoading) {
-            console.log('showDashboard: Already loading, skipping');
             return;
         }
         this.isDashboardLoading = true;
@@ -44,7 +43,6 @@ Object.assign(SypnexOS.prototype, {
     hideDashboard() {
         // Prevent hiding while dashboard is still loading
         if (this.isDashboardLoading) {
-            console.log('hideDashboard: Dashboard is loading, skipping hide');
             return;
         }
 
@@ -62,7 +60,6 @@ Object.assign(SypnexOS.prototype, {
     async populateDashboard(category = 'all') {
         // Prevent concurrent execution
         if (this.isPopulatingDashboard) {
-            console.log('populateDashboard: Already populating, skipping');
             return;
         }
         this.isPopulatingDashboard = true;

@@ -329,7 +329,6 @@ Object.assign(SypnexOS.prototype, {
                 
                 // Check if the default app is already open and close it first
                 if (window.sypnexOS.apps && window.sypnexOS.apps.has(defaultApp)) {
-                    console.log(`VFS: Closing already open ${defaultApp} before opening new file`);
                     window.sypnexOS.closeApp(defaultApp);
                 }
                 
@@ -449,10 +448,7 @@ Object.assign(SypnexOS.prototype, {
                     const itemParentPath = pathParts.length > 1 ? '/' + pathParts.slice(0, -1).join('/') : '/';
                     const newPath = itemParentPath === '/' ? `/${newName}` : `${itemParentPath}/${newName}`;
                     
-                    console.log(`Current browsing path: ${currentPath}`);
-                    console.log(`Item path: ${itemPath}`);
-                    console.log(`Item parent: ${itemParentPath}`);
-                    console.log(`Renaming: ${itemPath} -> ${newPath}`);
+
                     
                     const response = await fetch('/api/virtual-files/rename', {
                         method: 'POST',

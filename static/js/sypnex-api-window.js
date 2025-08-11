@@ -84,7 +84,6 @@
                 appProperties.add(property);
                 
                 // Log the assignment for debugging
-                console.log(`App ${appId}: Tracked window.${property} assignment through createAppWindow()`);
                 
                 // Set the property on the real window object
                 target[property] = value;
@@ -139,7 +138,6 @@
                     delete window[property];
                     cleanedCount++;
                     
-                    console.log(`App ${appId}: Cleaned up window.${property}`);
                 } catch (error) {
                     console.warn(`App ${appId}: Failed to clean up window.${property}:`, error);
                 }
@@ -151,7 +149,6 @@
         windowState.appWindows.delete(appId);
         
         if (cleanedCount > 0) {
-            console.log(`App ${appId}: Cleaned up ${cleanedCount} window properties`);
         }
     }
     
@@ -170,7 +167,6 @@
         
         windowState.isInitialized = true;
         
-        console.log('SypnexWindowManager: Initialized global window manager');
     }
     
     // Initialize immediately

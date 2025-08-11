@@ -164,7 +164,6 @@ Object.assign(SypnexOS.prototype, {
     async openApp(appId) {
         // Prevent concurrent execution for the same app
         if (this.openingApps && this.openingApps.has(appId)) {
-            console.log(`openApp: App ${appId} is already being opened, skipping`);
             return;
         }
         
@@ -561,7 +560,6 @@ Object.assign(SypnexOS.prototype, {
         
         // Prevent concurrent execution for the same settings window
         if (this.openingApps && this.openingApps.has(settingsAppId)) {
-            console.log(`openAppSettings: Settings for ${appId} is already being opened, skipping`);
             return;
         }
         
@@ -828,7 +826,6 @@ Object.assign(SypnexOS.prototype, {
     async reloadApp(appId) {
         // Prevent concurrent execution for the same app
         if (this.reloadingApps && this.reloadingApps.has(appId)) {
-            console.log(`reloadApp: App ${appId} is already being reloaded, skipping`);
             return;
         }
         
@@ -901,7 +898,6 @@ Object.assign(SypnexOS.prototype, {
     async minimizeAllApps() {
         // Prevent concurrent execution
         if (this.isMinimizingAll) {
-            console.log('minimizeAllApps: Already in progress, skipping');
             return;
         }
         this.isMinimizingAll = true;
@@ -917,7 +913,6 @@ Object.assign(SypnexOS.prototype, {
                 }
             });
 
-            console.log(`minimizeAllApps: Found ${openApps.length} apps to minimize:`, openApps);
 
             // Minimize each open app
             for (const appId of openApps) {
@@ -936,7 +931,6 @@ Object.assign(SypnexOS.prototype, {
     async maximizeWindow(appId) {
         // Prevent concurrent execution for the same app
         if (this.maximizingApps && this.maximizingApps.has(appId)) {
-            console.log(`maximizeWindow: App ${appId} is already being maximized/restored, skipping`);
             return;
         }
         

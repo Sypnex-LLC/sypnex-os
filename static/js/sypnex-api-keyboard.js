@@ -93,7 +93,6 @@
         document.addEventListener('keydown', handleGlobalKeydown);
         keyboardState.isInitialized = true;
         
-        console.log('SypnexKeyboardManager: Initialized global keyboard manager');
     }
     
     // Expose keyboard manager functions globally
@@ -106,7 +105,6 @@
          */
         registerApp(appId, shortcuts, config) {
             keyboardState.appShortcuts.set(appId, {shortcuts, config});
-            console.log(`SypnexKeyboardManager: Registered ${Object.keys(shortcuts).length} shortcuts for app ${appId}`);
         },
         
         /**
@@ -118,7 +116,6 @@
             if (appConfig) {
                 const shortcutCount = Object.keys(appConfig.shortcuts).length;
                 keyboardState.appShortcuts.delete(appId);
-                console.log(`SypnexKeyboardManager: Unregistered ${shortcutCount} shortcuts for app ${appId}`);
                 return shortcutCount;
             }
             return 0;
@@ -186,7 +183,6 @@ Object.assign(SypnexAPI.prototype, {
             window.appKeyboardShortcuts.set(appId, Object.keys(shortcuts));
         }
         
-        console.log('SypnexAPI: Registered ' + Object.keys(shortcuts).length + ' keyboard shortcuts for app ' + appId);
     },
     
     /**

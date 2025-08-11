@@ -10,7 +10,6 @@ Object.assign(SypnexOS.prototype, {
         // Check if app is already in status bar
         const existingApp = statusApps.querySelector(`[data-app-id="${appId}"]`);
         if (existingApp) {
-            console.log(`addAppToStatusBar: App ${appId} already in status bar, skipping`);
             return;
         }
 
@@ -18,7 +17,6 @@ Object.assign(SypnexOS.prototype, {
             // Get app data
             const appData = await this.getAppData(appId);
             
-            console.log(`addAppToStatusBar: Adding ${appId} to status bar`);
             
             const appIcon = document.createElement('button');
             appIcon.className = 'status-app-icon';
@@ -50,7 +48,6 @@ Object.assign(SypnexOS.prototype, {
         const appIcon = statusApps.querySelector(`[data-app-id="${appId}"]`);
         if (appIcon) {
             appIcon.remove();
-            console.log(`removeAppFromStatusBar: Removed ${appId} from status bar`);
         }
     },
 

@@ -507,21 +507,17 @@
             }
             appKeyboardShortcuts.clear();
             if (cleanedCount > 0) {
-                console.log(`App ${actualAppId}: Cleaned up ${cleanedCount} keyboard shortcuts`);
             }
             return cleanedCount;
         },
         // Combined cleanup function
         cleanup: function() {
-            console.log(`App ${actualAppId}: Starting cleanup...`);
             
             // First, try to cleanup SypnexAPI if it has a cleanup method
             if (sypnexAPI && typeof sypnexAPI.cleanup === 'function') {
                 try {
                     sypnexAPI.cleanup();
-                    console.log(`App ${actualAppId}: SypnexAPI cleanup completed`);
                 } catch (error) {
-                    console.warn('App ${appId}: Error during SypnexAPI cleanup:', error);
                 }
             }
             
@@ -540,7 +536,6 @@
                 }
             }
             
-            console.log(`App ${actualAppId}: Cleanup summary - Timers: ${timersCleanedUp}, Event Listeners: ${listenersCleanedUp}, Keyboard Shortcuts: ${keyboardCleanedUp}, Window Properties: ${windowCleanedUp ? 'cleaned' : 'N/A'}`);
             
             // CRITICAL: Restore original global methods to prevent cross-contamination
             document.addEventListener = originalDocumentAddEventListener;
@@ -579,7 +574,6 @@
             */
             
             
-            console.log(`App ${actualAppId}: Cleanup completed successfully`);
             return { timers: timersCleanedUp, listeners: listenersCleanedUp, keyboardShortcuts: keyboardCleanedUp };
         }
     };

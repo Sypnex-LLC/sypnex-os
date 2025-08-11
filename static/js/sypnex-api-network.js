@@ -39,15 +39,11 @@ Object.assign(SypnexAPI.prototype, {
 
         // Try direct CORS first
         try {
-            console.log(`SypnexAPI [${this.appId}]: Attempting direct CORS request to:`, url);
             const result = await this._directCORSRequest(options);
-            console.log(`SypnexAPI [${this.appId}]: Direct CORS succeeded for:`, url);
             return result;
         } catch (corsError) {
             // If CORS fails, fall back to backend proxy
-            console.log(`SypnexAPI [${this.appId}]: Direct CORS failed, falling back to proxy:`, corsError.message);
             const result = await this._proxyThroughBackend(options);
-            console.log(`SypnexAPI [${this.appId}]: Backend proxy succeeded for:`, url);
             return result;
         }
     },
