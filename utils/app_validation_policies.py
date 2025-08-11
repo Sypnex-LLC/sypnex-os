@@ -51,6 +51,20 @@ def get_validation_rules():
             'serviceworker',    # Service worker registration
             'navigator.storage.', # Storage API
             'storagemanager.',  # Storage Manager API
+            
+            # Global keyboard event listeners - prevent key conflicts in web OS
+            'document.addeventlistener("keydown"',   # Global keydown listeners
+            'document.addeventlistener("keyup"',     # Global keyup listeners  
+            'document.addeventlistener("keypress"',  # Global keypress listeners
+            'window.addeventlistener("keydown"',     # Global keydown listeners
+            'window.addeventlistener("keyup"',       # Global keyup listeners
+            'window.addeventlistener("keypress"',    # Global keypress listeners
+            "document.addeventlistener('keydown'",   # Global keydown listeners (single quotes)
+            "document.addeventlistener('keyup'",     # Global keyup listeners (single quotes)
+            "document.addeventlistener('keypress'",  # Global keypress listeners (single quotes)
+            "window.addeventlistener('keydown'",     # Global keydown listeners (single quotes)
+            "window.addeventlistener('keyup'",       # Global keyup listeners (single quotes)
+            "window.addeventlistener('keypress'",    # Global keypress listeners (single quotes)
         ],
         "enforced_server_side": True,
         "severity": "error",
