@@ -171,6 +171,7 @@ def serve_bundled_sypnex_api():
     api_modules = [
         "sypnex-api-core.js",
         "sypnex-api-ui.js",        # UI components (modals, confirmations, etc.)
+        "sypnex-api-keyboard.js",  # Keyboard shortcut management
         "sypnex-api-scaling.js",  # Add scaling utilities early after core
         "sypnex-api-settings.js", 
         "sypnex-api-crypto.js",   # Cryptographic operations

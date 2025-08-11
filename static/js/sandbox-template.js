@@ -13,12 +13,17 @@
     if (!window.sypnexEventTracker) {
         window.sypnexEventTracker = new Map(); // appId -> Set of event listeners
     }
+    if (!window.sypnexKeyboardTracker) {
+        window.sypnexKeyboardTracker = new Map(); // appId -> keyboard shortcuts
+    }
     
     // Initialize tracking for this app
     const appTimers = new Set();
     const appEventListeners = new Set();
+    const appKeyboardShortcuts = new Map(); // key -> handler function
     window.sypnexTimerTracker.set(actualAppId, appTimers);
     window.sypnexEventTracker.set(actualAppId, appEventListeners);
+    window.sypnexKeyboardTracker.set(actualAppId, appKeyboardShortcuts);
     
     // Store original functions (don't override globals)
     const originalSetInterval = setInterval;
@@ -457,6 +462,7 @@
             return {
                 timers: appTimers.size,
                 globalEventListeners: appEventListeners.size,
+                keyboardShortcuts: appKeyboardShortcuts.size,
                 domNodes: appContainer ? appContainer.querySelectorAll('*').length : 0
             };
         },
@@ -493,12 +499,27 @@
             }
             return cleanedCount;
         },
+        // Keyboard shortcuts cleanup function
+        cleanupKeyboardShortcuts: function() {
+            let cleanedCount = appKeyboardShortcuts.size;
+            if (window.sypnexKeyboardManager) {
+                window.sypnexKeyboardManager.unregisterApp(actualAppId);
+            }
+            appKeyboardShortcuts.clear();
+            if (cleanedCount > 0) {
+                console.log(`App ${actualAppId}: Cleaned up ${cleanedCount} keyboard shortcuts`);
+            }
+            return cleanedCount;
+        },
         // Combined cleanup function
         cleanup: function() {
+            console.log(`App ${actualAppId}: Starting cleanup...`);
+            
             // First, try to cleanup SypnexAPI if it has a cleanup method
             if (sypnexAPI && typeof sypnexAPI.cleanup === 'function') {
                 try {
                     sypnexAPI.cleanup();
+                    console.log(`App ${actualAppId}: SypnexAPI cleanup completed`);
                 } catch (error) {
                     console.warn('App ${appId}: Error during SypnexAPI cleanup:', error);
                 }
@@ -506,6 +527,9 @@
             
             const timersCleanedUp = this.cleanupTimers();
             const listenersCleanedUp = this.cleanupEventListeners();
+            const keyboardCleanedUp = this.cleanupKeyboardShortcuts();
+            
+            console.log(`App ${actualAppId}: Cleanup summary - Timers: ${timersCleanedUp}, Event Listeners: ${listenersCleanedUp}, Keyboard Shortcuts: ${keyboardCleanedUp}`);
             
             // CRITICAL: Restore original global methods to prevent cross-contamination
             document.addEventListener = originalDocumentAddEventListener;
@@ -527,6 +551,9 @@
             if (window.sypnexEventTracker) {
                 window.sypnexEventTracker.delete(actualAppId);
             }
+            if (window.sypnexKeyboardTracker) {
+                window.sypnexKeyboardTracker.delete(actualAppId);
+            }
             
             // TEMPORARILY DISABLED: Restore original DOM navigation methods
             // This was causing cross-app contamination - commenting out until proper fix
@@ -541,7 +568,8 @@
             */
             
             
-            return { timers: timersCleanedUp, listeners: listenersCleanedUp };
+            console.log(`App ${actualAppId}: Cleanup completed successfully`);
+            return { timers: timersCleanedUp, listeners: listenersCleanedUp, keyboardShortcuts: keyboardCleanedUp };
         }
     };
     
