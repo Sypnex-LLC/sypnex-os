@@ -25,7 +25,7 @@
   },
   "package_info": {
     "format_version": "1.0",
-    "created_at": "2025-08-11T02:00:47.079197",
+    "created_at": "2025-08-11T16:08:03.235112",
     "packaged_by": "Sypnex OS App Packager",
     "source_directory": ".\\media_player"
   }
