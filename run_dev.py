@@ -33,4 +33,4 @@ if __name__ == '__main__':
             if file.endswith(('.py', '.html', '.css', '.js')):
                 extra_files.append(os.path.join(root, file))
     
-    managers['websocket_manager'].socketio.run(app, debug=True, host='0.0.0.0', port=5000, extra_files=extra_files) 
+    managers['websocket_manager'].socketio.run(app, debug=False, host='0.0.0.0', port=5000, use_reloader=False) 

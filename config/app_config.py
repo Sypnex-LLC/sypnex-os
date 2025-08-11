@@ -251,7 +251,11 @@ def initialize_managers():
         # installed via essential apps (fixes race condition)
         print("🔄 Re-discovering services after first boot seeding...")
         managers['service_manager'].discover_services()
-        print("✅ Service re-discovery complete")
+        
+        # Auto-start services after re-discovery (fixes first boot auto-start race condition)
+        print("🔄 Auto-starting services after first boot seeding...")
+        managers['service_manager']._auto_start_services()
+        print("✅ Service re-discovery and auto-start complete")
     
     return managers
 
