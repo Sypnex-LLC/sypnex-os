@@ -210,7 +210,7 @@ Object.assign(SypnexAPI.prototype, {
      * appWindow.document.getElementById('myId'); // Works normally
      * appWindow.localStorage.getItem('key');    // Works normally
      */
-    getAppWindow: function() {
+    getAppWindow() {
         if (!window.sypnexWindowManager) {
             console.error('SypnexAPI: Window manager not initialized');
             return window; // Fallback to regular window
@@ -223,7 +223,7 @@ Object.assign(SypnexAPI.prototype, {
      * Manually clean up window properties for this app
      * This is automatically called when the app closes, but can be called manually if needed
      */
-    cleanupAppWindow: function() {
+    cleanupAppWindow() {
         if (!window.sypnexWindowManager) {
             console.warn('SypnexAPI: Window manager not initialized');
             return;

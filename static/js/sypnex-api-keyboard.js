@@ -163,7 +163,7 @@ Object.assign(SypnexAPI.prototype, {
      *     'ctrl+s': () => this.save()
      * });
      */
-    registerKeyboardShortcuts: function(shortcuts, config = {}) {
+    registerKeyboardShortcuts(shortcuts, config = {}) {
         const appId = this.appId;
         if (!appId) {
             console.warn('SypnexAPI: Cannot register keyboard shortcuts - no appId available');
@@ -193,7 +193,7 @@ Object.assign(SypnexAPI.prototype, {
      * Get keyboard shortcut statistics
      * @returns {object} Statistics about registered shortcuts
      */
-    getKeyboardStats: function() {
+    getKeyboardStats() {
         return window.sypnexKeyboardManager.getStats();
     }
 });
