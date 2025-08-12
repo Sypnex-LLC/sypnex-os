@@ -23,7 +23,7 @@
   },
   "package_info": {
     "format_version": "1.0",
-    "created_at": "2025-08-11T16:40:27.853302",
+    "created_at": "2025-08-11T20:13:45.966776",
     "packaged_by": "Sypnex OS App Packager",
     "source_directory": ".\\image_viewer"
   }
