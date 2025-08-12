@@ -27,7 +27,7 @@
   },
   "package_info": {
     "format_version": "1.0",
-    "created_at": "2025-08-11T20:13:44.519631",
+    "created_at": "2025-08-12T00:34:28.478443",
     "packaged_by": "Sypnex OS App Packager",
     "source_directory": ".\\app_store"
   }
