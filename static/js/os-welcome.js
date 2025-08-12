@@ -82,7 +82,7 @@ class SypnexWelcomeScreen {
             }
             
             // Set intent for video player to open tour video
-            await this.launchTourVideo();
+            //await this.launchTourVideo();
             
         } catch (error) {
             console.error('Error saving welcome data:', error);
