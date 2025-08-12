@@ -234,8 +234,11 @@ if (typeof window !== 'undefined' && window.fetch && !window._sypnexFetchOverrid
             options.headers = {};
         }
         
-        // Add access token header to all fetch requests
-        options.headers['X-Session-Token'] = '{{ACCESS_TOKEN}}';
+        // Only add session token to internal requests (relative URLs starting with /)
+        if (typeof url === 'string' && url.startsWith('/')) {
+            // Add access token header only to internal requests
+            options.headers['X-Session-Token'] = '{{ACCESS_TOKEN}}';
+        }
         
         // Call original fetch with modified options
         return originalFetch(url, options);
