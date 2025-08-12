@@ -44,7 +44,7 @@
   },
   "package_info": {
     "format_version": "1.0",
-    "created_at": "2025-08-12T00:34:29.694191",
+    "created_at": "2025-08-12T01:31:42.150614",
     "packaged_by": "Sypnex OS App Packager",
     "source_directory": ".\\llm_chat"
   }
