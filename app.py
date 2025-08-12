@@ -183,6 +183,7 @@ def serve_bundled_sypnex_api():
         "sypnex-api-logs.js",
         "sypnex-api-app-management.js",
         "sypnex-api-network.js",
+        "sypnex-api-llm.js",
     ]
     
     bundle_content = "// SypnexAPI - Dynamically Bundled JavaScript API\n"
