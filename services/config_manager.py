@@ -74,7 +74,7 @@ class ServiceConfigManager:
                 return json.loads(content)
             return {}
         except (json.JSONDecodeError, Exception) as e:
-            print(f"Error loading config for service {service_id}: {e}")
+            eprint(f"Error loading config for service {service_id}: {e}")
             return {}
     
     def list_configs(self) -> list:
@@ -96,7 +96,7 @@ class ServiceConfigManager:
                         service_id = file_info['name'][:-5]  # Remove .json extension
                         configs.append(service_id)
         except Exception as e:
-            print(f"Error listing configs: {e}")
+            eprint(f"Error listing configs: {e}")
         return configs
     
     def config_exists(self, service_id: str) -> bool:

@@ -86,7 +86,7 @@ class UserPreferences:
                 if self.logs_manager:
                     self.logs_manager.log_info("Generated new security salt for preferences")
         except Exception as e:
-            print(f"Error ensuring security salt: {e}")
+            eprint(f"Error ensuring security salt: {e}")
     
     def _get_security_salt(self) -> str:
         """Get the server-side security salt"""
@@ -122,7 +122,7 @@ class UserPreferences:
             encrypted = f.encrypt(value.encode())
             return encrypted.decode()
         except Exception as e:
-            print(f"Error encrypting value: {e}")
+            eprint(f"Error encrypting value: {e}")
             return value  # Fallback to plain text if encryption fails
     
     def _decrypt_value(self, encrypted_value: str) -> str:
@@ -141,7 +141,7 @@ class UserPreferences:
             decrypted = f.decrypt(encrypted_value.encode())
             return decrypted.decode()
         except Exception as e:
-            print(f"Error decrypting value: {e}")
+            eprint(f"Error decrypting value: {e}")
             return encrypted_value  # Fallback to encrypted text if decryption fails
     
     def _should_encrypt_app_setting(self, app_id: str, setting_key: str) -> bool:
@@ -162,7 +162,7 @@ class UserPreferences:
             
             return False
         except Exception as e:
-            print(f"Error checking encryption for {app_id}.{setting_key}: {e}")
+            eprint(f"Error checking encryption for {app_id}.{setting_key}: {e}")
             return False
     
     def get_preference(self, category: str, key: str, default: Any = None) -> Any:
@@ -187,7 +187,7 @@ class UserPreferences:
                     return stored_value
                 return default
         except Exception as e:
-            print(f"Error getting preference {category}.{key}: {e}")
+            eprint(f"Error getting preference {category}.{key}: {e}")
             return default
     
     def set_preference(self, category: str, key: str, value: Any) -> bool:
@@ -224,7 +224,7 @@ class UserPreferences:
                 conn.commit()
                 return True
         except Exception as e:
-            print(f"Error setting preference {category}.{key}: {e}")
+            eprint(f"Error setting preference {category}.{key}: {e}")
             return False
     
     def verify_security_preference(self, category: str, key: str, value: str) -> bool:
@@ -253,7 +253,7 @@ class UserPreferences:
                 return stored_hash == provided_hash
                 
         except Exception as e:
-            print(f"Error verifying security preference {category}.{key}: {e}")
+            eprint(f"Error verifying security preference {category}.{key}: {e}")
             return False
     
     def delete_preference(self, category: str, key: str) -> bool:
@@ -268,7 +268,7 @@ class UserPreferences:
                 conn.commit()
                 return True
         except Exception as e:
-            print(f"Error deleting preference {category}.{key}: {e}")
+            eprint(f"Error deleting preference {category}.{key}: {e}")
             return False
     
     def get_all_preferences(self, category: str = None) -> Dict[str, Any]:
@@ -300,7 +300,7 @@ class UserPreferences:
                 
                 return preferences
         except Exception as e:
-            print(f"Error getting all preferences: {e}")
+            eprint(f"Error getting all preferences: {e}")
             return {}
     
     # Developer JWT token management
@@ -335,7 +335,7 @@ class UserPreferences:
             return token
             
         except Exception as e:
-            print(f"Error generating dev JWT token: {e}")
+            eprint(f"Error generating dev JWT token: {e}")
             return None
     
     def get_dev_jwt_token(self) -> str:
@@ -344,7 +344,7 @@ class UserPreferences:
             token = self.get_preference('system', 'dev_jwt_token')
             return token if token else None
         except Exception as e:
-            print(f"Error getting dev JWT token: {e}")
+            eprint(f"Error getting dev JWT token: {e}")
             return None
     
     def clear_dev_jwt_token(self) -> bool:
@@ -352,7 +352,7 @@ class UserPreferences:
         try:
             return self.delete_preference('system', 'dev_jwt_token')
         except Exception as e:
-            print(f"Error clearing dev JWT token: {e}")
+            eprint(f"Error clearing dev JWT token: {e}")
             return False
     
     # Window state management
@@ -369,7 +369,7 @@ class UserPreferences:
                 conn.commit()
                 return True
         except Exception as e:
-            print(f"Error saving window state for {app_id}: {e}")
+            eprint(f"Error saving window state for {app_id}: {e}")
             return False
     
     def get_window_state(self, app_id: str) -> Optional[Dict[str, Any]]:
@@ -393,7 +393,7 @@ class UserPreferences:
                     }
                 return None
         except Exception as e:
-            print(f"Error getting window state for {app_id}: {e}")
+            eprint(f"Error getting window state for {app_id}: {e}")
             return None
     
     def delete_window_state(self, app_id: str) -> bool:
@@ -405,7 +405,7 @@ class UserPreferences:
                 conn.commit()
                 return True
         except Exception as e:
-            print(f"Error deleting window state for {app_id}: {e}")
+            eprint(f"Error deleting window state for {app_id}: {e}")
             return False
     
     # App-specific settings
@@ -432,7 +432,7 @@ class UserPreferences:
                 conn.commit()
                 return True
         except Exception as e:
-            print(f"Error saving app setting {app_id}.{key}: {e}")
+            eprint(f"Error saving app setting {app_id}.{key}: {e}")
             return False
     
     def get_app_setting(self, app_id: str, key: str, default: Any = None) -> Any:
@@ -453,7 +453,7 @@ class UserPreferences:
                 # If not found in database, return the provided default (which should be from .app file)
                 return default
         except Exception as e:
-            print(f"Error getting app setting {app_id}.{key}: {e}")
+            eprint(f"Error getting app setting {app_id}.{key}: {e}")
             return default
     
     def get_all_app_settings(self, app_id: str) -> Dict[str, Any]:
@@ -491,7 +491,7 @@ class UserPreferences:
             
             return merged_settings
         except Exception as e:
-            print(f"Error getting all app settings for {app_id}: {e}")
+            eprint(f"Error getting all app settings for {app_id}: {e}")
             return {}
     
     def _get_default_app_settings(self, app_id: str) -> Dict[str, Any]:
@@ -519,7 +519,7 @@ class UserPreferences:
             
             return default_settings
         except Exception as e:
-            print(f"Error getting default app settings for {app_id}: {e}")
+            eprint(f"Error getting default app settings for {app_id}: {e}")
             return {}
     
     def delete_app_setting(self, app_id: str, key: str) -> bool:
@@ -534,7 +534,7 @@ class UserPreferences:
                 conn.commit()
                 return True
         except Exception as e:
-            print(f"Error deleting app setting {app_id}.{key}: {e}")
+            eprint(f"Error deleting app setting {app_id}.{key}: {e}")
             return False
     
     # Export and import preferences
@@ -569,7 +569,7 @@ class UserPreferences:
             
             return True
         except Exception as e:
-            print(f"Error exporting preferences: {e}")
+            eprint(f"Error exporting preferences: {e}")
             return False
     
     def import_preferences(self, filepath: str) -> bool:
@@ -597,7 +597,7 @@ class UserPreferences:
             
             return True
         except Exception as e:
-            print(f"Error importing preferences: {e}")
+            eprint(f"Error importing preferences: {e}")
             return False
     
     def reset_all_preferences(self) -> bool:
@@ -611,5 +611,5 @@ class UserPreferences:
                 conn.commit()
                 return True
         except Exception as e:
-            print(f"Error resetting preferences: {e}")
+            eprint(f"Error resetting preferences: {e}")
             return False 

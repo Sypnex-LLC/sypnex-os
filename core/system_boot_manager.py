@@ -59,7 +59,7 @@ class SystemBootManager:
                 print(f"✅ WebSocket uptime reset - new boot time: {self.boot_timestamp}")
                 
         except Exception as e:
-            print(f"❌ Error resetting WebSocket uptime: {e}")
+            eprint(f"❌ Error resetting WebSocket uptime: {e}")
     
     def reset_system_counters(self):
         """Reset various system counters that should be cleared on boot"""
@@ -90,7 +90,7 @@ class SystemBootManager:
                 print("✅ System counters reset")
                 
         except Exception as e:
-            print(f"❌ Error resetting system counters: {e}")
+            eprint(f"❌ Error resetting system counters: {e}")
     
     def get_websocket_uptime(self) -> int:
         """Get actual WebSocket server uptime since last boot"""
@@ -114,7 +114,7 @@ class SystemBootManager:
                     return int(time.time() - self.boot_time)
                     
         except Exception as e:
-            print(f"❌ Error getting WebSocket uptime: {e}")
+            eprint(f"❌ Error getting WebSocket uptime: {e}")
             # Fallback to current boot time
             return int(time.time() - self.boot_time)
     
@@ -142,7 +142,7 @@ class SystemBootManager:
                 print(f"✅ Added system counter: {counter_name}")
                 
         except Exception as e:
-            print(f"❌ Error adding system counter: {e}")
+            eprint(f"❌ Error adding system counter: {e}")
     
     def increment_counter(self, counter_name: str, increment: int = 1) -> int:
         """Increment a system counter and return new value"""
@@ -171,7 +171,7 @@ class SystemBootManager:
                 return new_value
                 
         except Exception as e:
-            print(f"❌ Error incrementing counter {counter_name}: {e}")
+            eprint(f"❌ Error incrementing counter {counter_name}: {e}")
             return 0
     
     def get_counter(self, counter_name: str) -> int:
@@ -188,7 +188,7 @@ class SystemBootManager:
                 return result[0] if result else 0
                 
         except Exception as e:
-            print(f"❌ Error getting counter {counter_name}: {e}")
+            eprint(f"❌ Error getting counter {counter_name}: {e}")
             return 0
 
 # Global instance

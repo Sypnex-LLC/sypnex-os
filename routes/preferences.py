@@ -123,7 +123,7 @@ def register_preference_routes(app, managers):
             
             # Terminal apps are no longer supported in UserAppManager
         except Exception as e:
-            print(f"Error getting default value for {app_id}.{key}: {e}")
+            eprint(f"Error getting default value for {app_id}.{key}: {e}")
         
         # Get the setting value (database value takes precedence over default)
         value = managers['user_preferences'].get_app_setting(app_id, key, default_value)
@@ -178,7 +178,7 @@ def register_preference_routes(app, managers):
             return jsonify({'error': 'App not found'}), 404
             
         except Exception as e:
-            print(f"Error getting app metadata for {app_id}: {e}")
+            eprint(f"Error getting app metadata for {app_id}: {e}")
             return jsonify({'error': 'Failed to get app metadata'}), 500
 
     # Export/Import preferences
@@ -220,7 +220,7 @@ def register_preference_routes(app, managers):
             else:
                 return jsonify({'success': False, 'error': 'Failed to generate token'}), 500
         except Exception as e:
-            print(f"Error generating dev token: {e}")
+            eprint(f"Error generating dev token: {e}")
             return jsonify({'success': False, 'error': str(e)}), 500
 
     @app.route('/api/dev-token', methods=['GET'])
@@ -230,7 +230,7 @@ def register_preference_routes(app, managers):
             token = managers['user_preferences'].get_dev_jwt_token()
             return jsonify({'success': True, 'token': token})
         except Exception as e:
-            print(f"Error getting dev token: {e}")
+            eprint(f"Error getting dev token: {e}")
             return jsonify({'success': False, 'error': str(e)}), 500
 
     @app.route('/api/dev-token', methods=['DELETE'])
@@ -240,5 +240,5 @@ def register_preference_routes(app, managers):
             success = managers['user_preferences'].clear_dev_jwt_token()
             return jsonify({'success': success})
         except Exception as e:
-            print(f"Error clearing dev token: {e}")
+            eprint(f"Error clearing dev token: {e}")
             return jsonify({'success': False, 'error': str(e)}), 500 

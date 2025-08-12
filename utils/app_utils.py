@@ -107,7 +107,7 @@ def install_app_direct(package_file, virtual_file_manager):
                     return False
                     
             except Exception as e:
-                print(f"❌ Error installing {filename}: {e}")
+                eprint(f"❌ Error installing {filename}: {e}")
                 return False
         
         # Verify installation
@@ -175,7 +175,7 @@ def install_app_direct(package_file, virtual_file_manager):
                         # Don't return False here - continue with other files
                         
                 except Exception as e:
-                    print(f"❌ Error installing VFS file {vfs_path}: {e}")
+                    eprint(f"❌ Error installing VFS file {vfs_path}: {e}")
                     # Don't return False here - continue with other files
                     continue
             
@@ -184,7 +184,7 @@ def install_app_direct(package_file, virtual_file_manager):
         return True
         
     except Exception as e:
-        print(f"❌ Error installing app: {e}")
+        eprint(f"❌ Error installing app: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -274,7 +274,7 @@ def load_user_requirements(virtual_file_manager):
             print("ℹ️ No user requirements found on startup")
             
     except Exception as e:
-        print(f"⚠️ Could not load user requirements: {e}")
+        eprint(f"⚠️ Could not load user requirements: {e}")
 
 def get_system_uptime():
     """Get system uptime in seconds since midnight"""

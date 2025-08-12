@@ -17,7 +17,7 @@ def register_service_routes(app, managers):
                 'total': len(services)
             })
         except Exception as e:
-            print(f"Error getting services: {e}")
+            eprint(f"Error getting services: {e}")
             return jsonify({'error': 'Failed to get services'}), 500
 
     @app.route('/api/services/<service_id>', methods=['GET'])
@@ -29,7 +29,7 @@ def register_service_routes(app, managers):
                 return jsonify({'error': 'Service not found'}), 404
             return jsonify(service)
         except Exception as e:
-            print(f"Error getting service {service_id}: {e}")
+            eprint(f"Error getting service {service_id}: {e}")
             return jsonify({'error': 'Failed to get service'}), 500
 
     @app.route('/api/services/<service_id>/start', methods=['POST'])
@@ -43,7 +43,7 @@ def register_service_routes(app, managers):
             else:
                 return jsonify({'error': f'Failed to start service {service_id}'}), 400
         except Exception as e:
-            print(f"Error starting service {service_id}: {e}")
+            eprint(f"Error starting service {service_id}: {e}")
             return jsonify({'error': 'Failed to start service'}), 500
 
     @app.route('/api/services/<service_id>/stop', methods=['POST'])
@@ -57,7 +57,7 @@ def register_service_routes(app, managers):
             else:
                 return jsonify({'error': f'Failed to stop service {service_id}'}), 400
         except Exception as e:
-            print(f"Error stopping service {service_id}: {e}")
+            eprint(f"Error stopping service {service_id}: {e}")
             return jsonify({'error': 'Failed to stop service'}), 500
 
     @app.route('/api/services/refresh', methods=['POST'])
@@ -71,5 +71,5 @@ def register_service_routes(app, managers):
                 'discovered': result['discovered']
             })
         except Exception as e:
-            print(f"Error refreshing services: {e}")
+            eprint(f"Error refreshing services: {e}")
             return jsonify({'error': 'Failed to refresh services'}), 500 

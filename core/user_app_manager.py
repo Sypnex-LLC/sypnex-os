@@ -61,7 +61,7 @@ class UserAppManager:
             from core.virtual_file_manager import get_virtual_file_manager
             vfs = get_virtual_file_manager()
         except ImportError as e:
-            print(f"⚠️  VFS manager not available: {e}")
+            eprint(f"⚠️  VFS manager not available: {e}")
             return
         
         installed_vfs_path = "/apps/installed"
@@ -122,7 +122,7 @@ class UserAppManager:
                     print(f"⚠️  Warning: No HTML file found for VFS app {app_id}")
                         
             except Exception as e:
-                print(f"❌ Error loading VFS app {app_id}: {e}")
+                eprint(f"❌ Error loading VFS app {app_id}: {e}")
     
     def get_user_apps(self):
         """Get all discovered user apps"""
@@ -163,7 +163,7 @@ class UserAppManager:
                 app_data['html_content'] = html_content
                 
             except Exception as e:
-                print(f"Error loading HTML content for {app_id}: {e}")
+                eprint(f"Error loading HTML content for {app_id}: {e}")
                 app_data['html_content'] = f"<div class='error'>Error loading app content: {e}</div>"
         
         return app_data
@@ -194,7 +194,7 @@ class UserAppManager:
                         setting_map[key] = decrypted_value
                         print(f"Template: Decrypted {key} for display")
                     except Exception as e:
-                        print(f"Template: Failed to decrypt {key}, using as-is: {e}")
+                        eprint(f"Template: Failed to decrypt {key}, using as-is: {e}")
                         setting_map[key] = actual_value
                 else:
                     setting_map[key] = actual_value

@@ -372,7 +372,7 @@ class WebSocketManager:
                     except ValueError:
                         # Invalid timestamp, mark as dead
                         dead_clients.append(client_id)
-                        print(f"WebSocketManager: Marking client {client_id} as dead (invalid timestamp)")
+                        eprint(f"WebSocketManager: Marking client {client_id} as dead (invalid timestamp)")
                 else:
                     # No activity timestamp, mark as dead
                     dead_clients.append(client_id)
@@ -388,7 +388,7 @@ class WebSocketManager:
             return 0
             
         except Exception as e:
-            print(f"WebSocketManager: Error in connection cleanup: {e}")
+            eprint(f"WebSocketManager: Error in connection cleanup: {e}")
             return 0
     
     def stop_connection_cleanup(self):
@@ -408,7 +408,7 @@ class WebSocketManager:
                     print(f"WebSocketManager: Background cleanup removed {cleaned_count} dead connections")
                 
             except Exception as e:
-                print(f"WebSocketManager: Error in background connection cleanup: {e}")
+                eprint(f"WebSocketManager: Error in background connection cleanup: {e}")
             
             # Sleep for the cleanup interval
             time.sleep(self.cleanup_interval)
@@ -430,7 +430,7 @@ class WebSocketManager:
                 print(f"WebSocketManager: Removed dead client {client_id}")
                 
         except Exception as e:
-            print(f"WebSocketManager: Error removing dead client {client_id}: {e}")
+            eprint(f"WebSocketManager: Error removing dead client {client_id}: {e}")
     
     def set_connection_timeout(self, timeout_seconds):
         """Set the connection timeout for dead connection detection."""

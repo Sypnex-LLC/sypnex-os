@@ -62,7 +62,7 @@ def register_core_routes(app, managers, builtin_apps):
             return jsonify(results)
             
         except Exception as e:
-            print(f"Error in search_apps: {e}")
+            eprint(f"Error in search_apps: {e}")
             import traceback
             traceback.print_exc()
             return jsonify({'error': 'Search failed'}), 500
@@ -156,7 +156,7 @@ def register_core_routes(app, managers, builtin_apps):
                             'canReload': True  # Will be updated based on developer mode later
                         })
             except Exception as e:
-                print(f"Error getting metadata for {app_id}: {e}")
+                eprint(f"Error getting metadata for {app_id}: {e}")
                 # Keep default metadata if there's an error
             
             # Get system preferences
@@ -210,7 +210,7 @@ def register_core_routes(app, managers, builtin_apps):
             return jsonify(launch_data)
             
         except Exception as e:
-            print(f"Error launching app {app_id}: {e}")
+            eprint(f"Error launching app {app_id}: {e}")
             import traceback
             traceback.print_exc()
             return jsonify({
@@ -268,7 +268,7 @@ def register_core_routes(app, managers, builtin_apps):
             
             return jsonify(results)
         except Exception as e:
-            print(f"Error in get_all_apps: {e}")
+            eprint(f"Error in get_all_apps: {e}")
             import traceback
             traceback.print_exc()
             return jsonify({'error': 'Failed to get apps'}), 500
@@ -301,7 +301,7 @@ def register_core_routes(app, managers, builtin_apps):
             
             return jsonify(app_map)
         except Exception as e:
-            print(f"Error in get_resource_manager_apps: {e}")
+            eprint(f"Error in get_resource_manager_apps: {e}")
             import traceback
             traceback.print_exc()
             return jsonify({'error': 'Failed to get resource manager data'}), 500 

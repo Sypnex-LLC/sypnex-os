@@ -179,7 +179,7 @@ class VirtualFileManager:
                 print("✅ is_chunked column already exists")
                 
         except Exception as e:
-            print(f"❌ Error in migration 1: {e}")
+            eprint(f"❌ Error in migration 1: {e}")
             raise
     
     def _migrate_to_version_2(self, cursor):
@@ -206,7 +206,7 @@ class VirtualFileManager:
             print("✅ Created file_chunks table and indexes")
             
         except Exception as e:
-            print(f"❌ Error in migration 2: {e}")
+            eprint(f"❌ Error in migration 2: {e}")
             raise
     
     def _ensure_root_directory(self):
@@ -295,7 +295,7 @@ class VirtualFileManager:
                 print(f"Directory created successfully: {normalized_path}")
                 return True
             except Exception as e:
-                print(f"Error creating directory {path}: {e}")
+                eprint(f"Error creating directory {path}: {e}")
                 return False
     
     def create_file(self, path: str, content: bytes = b'', mime_type: str = None) -> bool:
@@ -343,7 +343,7 @@ class VirtualFileManager:
                 print(f"File created successfully: {normalized_path}")
                 return True
             except Exception as e:
-                print(f"Error creating file {path}: {e}")
+                eprint(f"Error creating file {path}: {e}")
                 return False
     
     def create_file_streaming(self, path: str, file_stream, chunk_size: int = 8192, mime_type: str = None) -> bool:
@@ -498,7 +498,7 @@ class VirtualFileManager:
                 return True
                 
             except Exception as e:
-                print(f"❌ Error creating file (streaming) {path}: {e}")
+                eprint(f"❌ Error creating file (streaming) {path}: {e}")
                 import traceback
                 traceback.print_exc()
                 
@@ -513,7 +513,7 @@ class VirtualFileManager:
                         
                         if file_record:
                             file_id_to_clean = file_record[0]
-                            print(f"🧹 Cleaning up orphaned data for file_id: {file_id_to_clean}")
+                            eprint(f"🧹 Cleaning up orphaned data for file_id: {file_id_to_clean}")
                             
                             # Delete any chunks that were stored
                             cleanup_cursor.execute('DELETE FROM file_chunks WHERE file_id = ?', (file_id_to_clean,))
@@ -523,10 +523,10 @@ class VirtualFileManager:
                             cleanup_cursor.execute('DELETE FROM virtual_files WHERE id = ?', (file_id_to_clean,))
                             
                             cleanup_conn.commit()
-                            print(f"✅ Cleaned up orphaned file record and {chunks_deleted} chunks")
+                            eprint(f"✅ Cleaned up orphaned file record and {chunks_deleted} chunks")
                         
                 except Exception as cleanup_error:
-                    print(f"⚠️ Warning: Failed to clean up orphaned data: {cleanup_error}")
+                    eprint(f"⚠️ Warning: Failed to clean up orphaned data: {cleanup_error}")
                 
                 return False
     
@@ -575,7 +575,7 @@ class VirtualFileManager:
                 print(f"Found {len(items)} items in {normalized_path}")
                 return items
         except Exception as e:
-            print(f"Error listing directory {path}: {e}")
+            eprint(f"Error listing directory {path}: {e}")
             return []
     
     def read_file(self, path: str) -> Optional[Dict[str, Any]]:
@@ -636,7 +636,7 @@ class VirtualFileManager:
                     'is_chunked': bool(is_chunked) if is_chunked is not None else False
                 }
         except Exception as e:
-            print(f"❌ Error reading file {path}: {e}")
+            eprint(f"❌ Error reading file {path}: {e}")
             import traceback
             traceback.print_exc()
             return None
@@ -726,7 +726,7 @@ class VirtualFileManager:
                 return metadata, content_generator()
                 
         except Exception as e:
-            print(f"❌ Error streaming file {path}: {e}")
+            eprint(f"❌ Error streaming file {path}: {e}")
             import traceback
             traceback.print_exc()
             return None
@@ -755,7 +755,7 @@ class VirtualFileManager:
                 
                 return cursor.rowcount > 0
             except Exception as e:
-                print(f"Error writing file {path}: {e}")
+                eprint(f"Error writing file {path}: {e}")
                 return False
     
     def delete_path(self, path: str) -> bool:
@@ -777,7 +777,7 @@ class VirtualFileManager:
                 # Delete the path itself
                 return self._delete_single_path(normalized_path)
             except Exception as e:
-                print(f"Error deleting path {path}: {e}")
+                eprint(f"Error deleting path {path}: {e}")
                 return False
     
     def _is_directory(self, path: str) -> bool:
@@ -817,7 +817,7 @@ class VirtualFileManager:
                 conn.commit()
             return cursor.rowcount > 0
         except Exception as e:
-            print(f"Error deleting single path {path}: {e}")
+            eprint(f"Error deleting single path {path}: {e}")
             return False
     
     def get_file_info(self, path: str) -> Optional[Dict[str, Any]]:
@@ -852,7 +852,7 @@ class VirtualFileManager:
                     'accessed_at': accessed_at
                 }
         except Exception as e:
-            print(f"Error getting file info {path}: {e}")
+            eprint(f"Error getting file info {path}: {e}")
             return None
     
     def get_directory_size(self, path: str) -> int:
@@ -875,7 +875,7 @@ class VirtualFileManager:
                 result = cursor.fetchone()
                 return result[0] if result else 0
         except Exception as e:
-            print(f"Error calculating directory size {path}: {e}")
+            eprint(f"Error calculating directory size {path}: {e}")
             return 0
     
     def rename_path(self, old_path: str, new_path: str) -> bool:
@@ -969,7 +969,7 @@ class VirtualFileManager:
                 return True
                 
         except Exception as e:
-            print(f"Error renaming {old_path} to {new_path}: {e}")
+            eprint(f"Error renaming {old_path} to {new_path}: {e}")
             import traceback
             traceback.print_exc()
             return False
@@ -1009,7 +1009,7 @@ class VirtualFileManager:
                     'last_updated': datetime.now().isoformat()
                 }
         except Exception as e:
-            print(f"Error getting system stats: {e}")
+            eprint(f"Error getting system stats: {e}")
             return {
                 'total_items': 0,
                 'total_directories': 0,

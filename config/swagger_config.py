@@ -156,7 +156,7 @@ class AutoSwaggerConfig:
             }
             
         except Exception as e:
-            print(f"Error analyzing route {rule.endpoint}: {e}")
+            eprint(f"Error analyzing route {rule.endpoint}: {e}")
             return None
     
     def _determine_tag(self, endpoint: str, blueprint=None) -> str:

@@ -33,7 +33,7 @@ def monitor_performance(threshold=1.0):
                         print(f"🐌 SLOW REQUEST: {f.__name__} took {duration:.2f}s")
                 except:
                     # Fallback to print if logging fails
-                    print(f"🐌 SLOW REQUEST: {f.__name__} took {duration:.2f}s")
+                    eprint(f"🐌 SLOW REQUEST: {f.__name__} took {duration:.2f}s")
             
             return result
         return wrapper
@@ -67,7 +67,7 @@ def monitor_critical_performance(threshold=0.5):
                         print(f"🚨 CRITICAL SLOW: {f.__name__} took {duration:.2f}s (threshold: {threshold}s)")
                 except:
                     # Fallback to print if logging fails
-                    print(f"🚨 CRITICAL SLOW: {f.__name__} took {duration:.2f}s (threshold: {threshold}s)")
+                    eprint(f"🚨 CRITICAL SLOW: {f.__name__} took {duration:.2f}s (threshold: {threshold}s)")
             
             return result
         return wrapper

@@ -2,6 +2,13 @@
 Main application file for Sypnex OS
 This is the refactored version that uses modular route organization
 """
+# Set up print interceptor FIRST, before any other imports that might use print
+from utils.print_interceptor import setup_print_interceptor
+setup_print_interceptor()
+
+# After setup_print_interceptor(), eprint() is now available globally as a builtin function
+# eprint = builtins.eprint  # This is just for IDE type hints - eprint is already global
+
 from config.app_config import create_app, initialize_managers, initialize_system, BUILTIN_APPS
 from routes import register_all_routes
 from config.swagger_config import setup_auto_swagger
@@ -16,7 +23,7 @@ try:
     JSMIN_AVAILABLE = True
 except ImportError:
     JSMIN_AVAILABLE = False
-    print("Warning: jsmin not available. Install with: pip install jsmin")
+    eprint("Warning: jsmin not available. Install with: pip install jsmin")
 
 # Create Flask application
 app = create_app()
@@ -132,7 +139,7 @@ def serve_bundled_os():
         try:
             bundle_content = jsmin(bundle_content, quote_chars="'\"`")
         except Exception as e:
-            print(f"Warning: Minification failed: {e}")
+            eprint(f"Warning: Minification failed: {e}")
     
     response = Response(bundle_content, mimetype='application/javascript')
     
@@ -210,7 +217,7 @@ def serve_bundled_sypnex_api():
         try:
             bundle_content = jsmin(bundle_content, quote_chars="'\"`")
         except Exception as e:
-            print(f"Warning: Minification failed: {e}")
+            eprint(f"Warning: Minification failed: {e}")
     
     response = Response(bundle_content, mimetype='application/javascript')
     

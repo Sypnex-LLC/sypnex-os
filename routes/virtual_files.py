@@ -15,7 +15,7 @@ def register_virtual_file_routes(app, managers):
             stats = managers['virtual_file_manager'].get_system_stats()
             return jsonify(stats)
         except Exception as e:
-            print(f"Error getting virtual files stats: {e}")
+            eprint(f"Error getting virtual files stats: {e}")
             return jsonify({'error': 'Failed to get virtual files stats'}), 500
 
     @app.route('/api/virtual-files/list', methods=['GET'])
@@ -34,7 +34,7 @@ def register_virtual_file_routes(app, managers):
                 'total': len(items)
             })
         except Exception as e:
-            print(f"Error listing virtual files: {e}")
+            eprint(f"Error listing virtual files: {e}")
             import traceback
             traceback.print_exc()
             return jsonify({'error': 'Failed to list virtual files'}), 500
@@ -76,7 +76,7 @@ def register_virtual_file_routes(app, managers):
             else:
                 return jsonify({'error': f'Failed to create folder {folder_name}'}), 400
         except Exception as e:
-            print(f"Error creating virtual folder: {e}")
+            eprint(f"Error creating virtual folder: {e}")
             import traceback
             traceback.print_exc()
             return jsonify({'error': 'Failed to create folder'}), 500
@@ -116,7 +116,7 @@ def register_virtual_file_routes(app, managers):
             else:
                 return jsonify({'error': f'Failed to create file {file_name}'}), 400
         except Exception as e:
-            print(f"Error creating virtual file: {e}")
+            eprint(f"Error creating virtual file: {e}")
             return jsonify({'error': 'Failed to create file'}), 500
 
     @app.route('/api/virtual-files/upload-file', methods=['POST'])
@@ -163,7 +163,7 @@ def register_virtual_file_routes(app, managers):
             else:
                 return jsonify({'error': f'Failed to upload file {file_name}'}), 400
         except Exception as e:
-            print(f"Error uploading virtual file: {e}")
+            eprint(f"Error uploading virtual file: {e}")
             import traceback
             traceback.print_exc()
             return jsonify({'error': 'Failed to upload file'}), 500
@@ -224,7 +224,7 @@ def register_virtual_file_routes(app, managers):
                 return jsonify({'error': f'Failed to upload file {file_name}'}), 400
                 
         except Exception as e:
-            print(f"Error uploading virtual file (streaming): {e}")
+            eprint(f"Error uploading virtual file (streaming): {e}")
             import traceback
             traceback.print_exc()
             return jsonify({'error': 'Failed to upload file'}), 500
@@ -255,7 +255,7 @@ def register_virtual_file_routes(app, managers):
                 'updated_at': file_data['updated_at']
             })
         except Exception as e:
-            print(f"Error reading virtual file: {e}")
+            eprint(f"Error reading virtual file: {e}")
             return jsonify({'error': 'Failed to read file'}), 500
 
     @app.route('/api/virtual-files/serve/<path:file_path>', methods=['GET'])
@@ -294,7 +294,7 @@ def register_virtual_file_routes(app, managers):
             return response
             
         except Exception as e:
-            print(f"❌ Error serving virtual file: {e}")
+            eprint(f"❌ Error serving virtual file: {e}")
             import traceback
             traceback.print_exc()
             return jsonify({'error': 'Failed to serve file'}), 500
@@ -315,7 +315,7 @@ def register_virtual_file_routes(app, managers):
             else:
                 return jsonify({'error': f'Failed to delete item {item_path}'}), 400
         except Exception as e:
-            print(f"Error deleting virtual item: {e}")
+            eprint(f"Error deleting virtual item: {e}")
             return jsonify({'error': 'Failed to delete item'}), 500
 
     @app.route('/api/virtual-files/rename', methods=['POST'])
@@ -361,7 +361,7 @@ def register_virtual_file_routes(app, managers):
             else:
                 return jsonify({'error': f'Failed to rename {old_path} to {new_path}'}), 500
         except Exception as e:
-            print(f"Error renaming virtual item: {e}")
+            eprint(f"Error renaming virtual item: {e}")
             import traceback
             traceback.print_exc()
             return jsonify({'error': 'Failed to rename item'}), 500
@@ -380,7 +380,7 @@ def register_virtual_file_routes(app, managers):
             
             return jsonify(info)
         except Exception as e:
-            print(f"Error getting virtual item info: {e}")
+            eprint(f"Error getting virtual item info: {e}")
             return jsonify({'error': 'Failed to get item info'}), 500 
 
     @app.route('/api/virtual-files/write/<path:file_path>', methods=['PUT'])
@@ -419,7 +419,7 @@ def register_virtual_file_routes(app, managers):
                 return jsonify({'error': f'Failed to {operation.rstrip("d")} file {file_path}'}), 500
                 
         except Exception as e:
-            print(f"Error writing virtual file: {e}")
+            eprint(f"Error writing virtual file: {e}")
             import traceback
             traceback.print_exc()
             return jsonify({'error': f'Failed to write file: {str(e)}'}), 500
@@ -468,7 +468,7 @@ def register_virtual_file_routes(app, managers):
                 return jsonify({'error': f'Failed to {operation.rstrip("d")} file {file_path}'}), 500
                 
         except Exception as e:
-            print(f"Error in write test endpoint: {e}")
+            eprint(f"Error in write test endpoint: {e}")
             import traceback
             traceback.print_exc()
             return jsonify({'error': f'Failed to write file: {str(e)}'}), 500

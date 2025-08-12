@@ -126,10 +126,10 @@ def validate_session_token(token):
         return payload['username']
         
     except jwt.ExpiredSignatureError:
-        print("🕐 JWT token expired")
+        eprint("🕐 JWT token expired")
         return None
     except jwt.InvalidTokenError:
-        print("🚫 Invalid JWT token")
+        eprint("🚫 Invalid JWT token")
         return None
 
 def get_active_sessions():
@@ -307,7 +307,7 @@ def seed_first_boot(managers):
         print("✅ First boot seeding completed successfully!")
         
     except Exception as e:
-        print(f"❌ Error during first boot seeding: {e}")
+        eprint(f"❌ Error during first boot seeding: {e}")
         import traceback
         traceback.print_exc()
 
@@ -335,7 +335,7 @@ def install_essential_apps(managers):
             else:
                 print(f"    ❌ Installation failed")
         except Exception as e:
-            print(f"    ❌ Error installing {app_file}: {e}")
+            eprint(f"    ❌ Error installing {app_file}: {e}")
 
 def create_vfs_directories(asset_mappings, managers):
     """Create VFS directories for asset uploads"""
@@ -368,7 +368,7 @@ def create_vfs_directories(asset_mappings, managers):
                         print(f"  ❌ Failed to create directory: {current_path}")
                         
         except Exception as e:
-            print(f"  ❌ Error creating directory {vfs_path}: {e}")
+            eprint(f"  ❌ Error creating directory {vfs_path}: {e}")
 
 def upload_assets_to_vfs(asset_mappings, managers):
     """Upload assets to VFS based on mappings"""
@@ -408,7 +408,7 @@ def upload_assets_to_vfs(asset_mappings, managers):
                         print(f"  ❌ Failed to upload: {file}")
                         
                 except Exception as e:
-                    print(f"  ❌ Error uploading {file}: {e}")
+                    eprint(f"  ❌ Error uploading {file}: {e}")
 
 def set_default_preferences(preferences, managers):
     """Set default preferences using the preferences API"""
@@ -433,4 +433,4 @@ def set_default_preferences(preferences, managers):
                 print(f"  ❌ Failed to set {category}/{key}")
                 
         except Exception as e:
-            print(f"  ❌ Error setting preference {category}/{key}: {e}")
+            eprint(f"  ❌ Error setting preference {category}/{key}: {e}")

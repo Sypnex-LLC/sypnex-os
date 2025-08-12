@@ -58,7 +58,7 @@ def register_app_discovery_routes(app, managers):
             })
             
         except Exception as e:
-            print(f"Error getting apps by keyword '{keyword}': {e}")
+            eprint(f"Error getting apps by keyword '{keyword}': {e}")
             return jsonify({
                 'success': False, 
                 'error': 'Failed to get apps by keyword',
@@ -95,7 +95,7 @@ def register_app_discovery_routes(app, managers):
             })
             
         except Exception as e:
-            print(f"Error getting all keywords: {e}")
+            eprint(f"Error getting all keywords: {e}")
             return jsonify({
                 'success': False, 
                 'error': 'Failed to get keywords',

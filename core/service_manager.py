@@ -98,7 +98,7 @@ class ServiceManager:
                     print(f"[SERVICE_MANAGER] Failed to create config file for {service_id} in VFS")
                     
             except Exception as e:
-                print(f"[SERVICE_MANAGER] Error installing default config for {service_id}: {e}")
+                eprint(f"[SERVICE_MANAGER] Error installing default config for {service_id}: {e}")
                 if self.logs_manager:
                     self.logs_manager.log(
                         level='error',
@@ -349,7 +349,7 @@ class ServiceManager:
                 )
             except Exception as e:
                 # Fallback to console if logging fails
-                print(f"Failed to log service event for {service_id}: {e}")
+                eprint(f"Failed to log service event for {service_id}: {e}")
         else:
             # Fallback to console if no logs_manager
             print(f"[{level}] {service_id}: {message}")

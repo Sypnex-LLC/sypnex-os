@@ -98,7 +98,7 @@ def register_system_routes(app, managers):
                     gc.collect()
                     print("    ✅ VFS manager instance cleared")
             except Exception as e:
-                print(f"    Warning: Could not clear VFS instance: {e}")
+                eprint(f"    Warning: Could not clear VFS instance: {e}")
             
             # Try to connect and immediately close to flush any WAL files
             for db_file in ['data/user_preferences.db', 'data/virtual_files.db']:
@@ -111,11 +111,11 @@ def register_system_routes(app, managers):
                         conn.close()
                         print(f"    ✅ {db_file} checkpointed")
                     except Exception as e:
-                        print(f"    Warning: Could not checkpoint {db_file}: {e}")
+                        eprint(f"    Warning: Could not checkpoint {db_file}: {e}")
             
             print("  ✅ SQLite connection cleanup attempted")
         except Exception as e:
-            print(f"  Warning: SQLite cleanup failed: {e}")
+            eprint(f"  Warning: SQLite cleanup failed: {e}")
         
         # Step 2: Create fresh seeded databases and copy them over (no deletion needed)
         max_retries = 3
@@ -188,7 +188,7 @@ def register_system_routes(app, managers):
                                     os.remove(old_wal)
                                     print(f"    - Cleaned up {old_wal}")
                                 except Exception as e:
-                                    print(f"    Warning: Could not remove {old_wal}: {e}")
+                                    eprint(f"    Warning: Could not remove {old_wal}: {e}")
                         
                         shutil.copy2(temp_db, target_db)
                         os.remove(temp_db)  # Clean up temp file
@@ -205,7 +205,7 @@ def register_system_routes(app, managers):
                     raise Exception("No temporary databases were created")
                     
             except (OSError, IOError, PermissionError) as e:
-                print(f"❌ Reset attempt {attempt + 1} failed: {e}")
+                eprint(f"❌ Reset attempt {attempt + 1} failed: {e}")
                 
                 # Clean up temp files on error
                 for temp_db in ['temp_prefs.db', 'temp_vfs.db']:
@@ -216,17 +216,17 @@ def register_system_routes(app, managers):
                             pass
                 
                 if attempt < max_retries - 1:
-                    print(f"   Retrying in {retry_delay}s...")
+                    eprint(f"   Retrying in {retry_delay}s...")
                     time.sleep(retry_delay)
                     continue
                 else:
-                    print(f"💥 All {max_retries} attempts failed!")
+                    eprint(f"💥 All {max_retries} attempts failed!")
                     return jsonify({
                         'success': False, 
                         'error': f'Reset failed after {max_retries} attempts: {str(e)}'
                     }), 500
             except Exception as e:
-                print(f"❌ Unexpected error during reset: {e}")
+                eprint(f"❌ Unexpected error during reset: {e}")
                 
                 # Clean up temp files on error
                 for temp_db in ['temp_prefs.db', 'temp_vfs.db']:

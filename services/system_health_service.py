@@ -39,7 +39,7 @@ class SystemHealthService(ServiceBase):
                     source='system_health_service'
                 )
             except Exception as e:
-                print(f"Failed to log startup: {e}")
+                eprint(f"Failed to log startup: {e}")
         else:
             print(message)
         # Initialize CPU monitoring (first call returns 0.0, so we call it once)
@@ -57,7 +57,7 @@ class SystemHealthService(ServiceBase):
                     source='system_health_service'
                 )
             except Exception as e:
-                print(f"Failed to log shutdown: {e}")
+                eprint(f"Failed to log shutdown: {e}")
         else:
             print(message)
         
@@ -156,7 +156,7 @@ class SystemHealthService(ServiceBase):
                     }
                 )
             except Exception as e:
-                print(f"Failed to log metrics: {e}")
+                eprint(f"Failed to log metrics: {e}")
         else:
             # Fallback to console if no logs_manager
             print(f"[{log_level.upper()}] System Health Monitor: {message}")
@@ -175,7 +175,7 @@ class SystemHealthService(ServiceBase):
                             details={'cpu_percent': metrics['cpu_percent'], 'threshold': cpu_warning_threshold}
                         )
                     except Exception as e:
-                        print(f"Failed to log CPU alert: {e}")
+                        eprint(f"Failed to log CPU alert: {e}")
                 else:
                     print(f"[WARN] System Health Monitor: {alert_msg}")
                 
@@ -191,7 +191,7 @@ class SystemHealthService(ServiceBase):
                             details={'memory_percent': metrics['memory_percent'], 'threshold': memory_warning_threshold}
                         )
                     except Exception as e:
-                        print(f"Failed to log memory alert: {e}")
+                        eprint(f"Failed to log memory alert: {e}")
                 else:
                     print(f"[WARN] System Health Monitor: {alert_msg}")
     
@@ -206,7 +206,7 @@ class SystemHealthService(ServiceBase):
                     source='system_health_service'
                 )
             except Exception as e:
-                print(f"Failed to log main loop start: {e}")
+                eprint(f"Failed to log main loop start: {e}")
         else:
             print("System Health Monitor: Main loop started")
         
@@ -235,9 +235,9 @@ class SystemHealthService(ServiceBase):
                             details={'error': str(e)}
                         )
                     except:
-                        print(f"System Health Monitor: {error_msg}")
+                        eprint(f"System Health Monitor: {error_msg}")
                 else:
-                    print(f"System Health Monitor: {error_msg}")
+                    eprint(f"System Health Monitor: {error_msg}")
                 self.last_error = str(e)
                 time.sleep(10)  # Wait longer after an error
         
@@ -250,6 +250,6 @@ class SystemHealthService(ServiceBase):
                     source='system_health_service'
                 )
             except Exception as e:
-                print(f"Failed to log main loop stop: {e}")
+                eprint(f"Failed to log main loop stop: {e}")
         else:
             print("System Health Monitor: Main loop stopped")

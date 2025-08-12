@@ -102,7 +102,7 @@ def register_user_app_routes(app, managers):
                     os.remove(temp_path)
                     
         except Exception as e:
-            print(f"Error installing app: {e}")
+            eprint(f"Error installing app: {e}")
             import traceback
             traceback.print_exc()
             return jsonify({'error': f'Installation failed: {str(e)}'}), 500
@@ -177,7 +177,7 @@ def register_user_app_routes(app, managers):
         except requests.exceptions.RequestException as e:
             return jsonify({'error': f'Failed to download update: {str(e)}'}), 500
         except Exception as e:
-            print(f"Error updating app: {e}")
+            eprint(f"Error updating app: {e}")
             import traceback
             traceback.print_exc()
             return jsonify({'error': f'Update failed: {str(e)}'}), 500
@@ -214,7 +214,7 @@ def register_user_app_routes(app, managers):
                 return jsonify({'error': 'Failed to uninstall app'}), 500
                 
         except Exception as e:
-            print(f"Error uninstalling app: {e}")
+            eprint(f"Error uninstalling app: {e}")
             import traceback
             traceback.print_exc()
             return jsonify({'error': f'Uninstallation failed: {str(e)}'}), 500 
@@ -256,7 +256,7 @@ def register_user_app_routes(app, managers):
             })
             
         except Exception as e:
-            print(f"Error validating app content: {e}")
+            eprint(f"Error validating app content: {e}")
             import traceback
             traceback.print_exc()
             return jsonify({'error': f'Validation failed: {str(e)}'}), 500 

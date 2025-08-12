@@ -39,7 +39,7 @@ class LogCleanupService(ServiceBase):
                     source='log_cleanup_service'
                 )
             except Exception as e:
-                print(f"Failed to log startup: {e}")
+                eprint(f"Failed to log startup: {e}")
         else:
             print(message)
         
@@ -55,7 +55,7 @@ class LogCleanupService(ServiceBase):
                     source='log_cleanup_service'
                 )
             except Exception as e:
-                print(f"Failed to log shutdown: {e}")
+                eprint(f"Failed to log shutdown: {e}")
         else:
             print(message)
         
@@ -90,7 +90,7 @@ class LogCleanupService(ServiceBase):
                         source='log_cleanup_service'
                     )
                 except:
-                    print("Log Cleanup Service: VFS manager not available")
+                    eprint("Log Cleanup Service: VFS manager not available")
             return files_checked, files_deleted, bytes_freed
         
         try:
@@ -108,7 +108,7 @@ class LogCleanupService(ServiceBase):
                             details={'directory_path': directory_path}
                         )
                     except:
-                        print(f"Log Cleanup Service: No items in {directory_path}")
+                        eprint(f"Log Cleanup Service: No items in {directory_path}")
                 return files_checked, files_deleted, bytes_freed
             
             # Debug log showing what we found
@@ -122,7 +122,7 @@ class LogCleanupService(ServiceBase):
                         details={'directory_path': directory_path, 'item_count': len(items)}
                     )
                 except:
-                    print(f"Log Cleanup Service: Found {len(items)} items in {directory_path}")
+                    eprint(f"Log Cleanup Service: Found {len(items)} items in {directory_path}")
             
             for item in items:
                 item_path = item.get('path', '')
@@ -144,7 +144,7 @@ class LogCleanupService(ServiceBase):
                             }
                         )
                     except:
-                        print(f"Log Cleanup Service: Processing {item_path} (dir: {is_directory}, size: {item_size})")
+                        eprint(f"Log Cleanup Service: Processing {item_path} (dir: {is_directory}, size: {item_size})")
                 
                 if is_directory:
                     # Recursively scan subdirectories
@@ -182,7 +182,7 @@ class LogCleanupService(ServiceBase):
                                         }
                                     )
                                 except:
-                                    print(f"Log Cleanup Service: Deleted {item_path} ({round(item_size / (1024 * 1024), 2)}MB)")
+                                    eprint(f"Log Cleanup Service: Deleted {item_path} ({round(item_size / (1024 * 1024), 2)}MB)")
                                     
                         except Exception as e:
                             if self.logs_manager:
@@ -195,7 +195,7 @@ class LogCleanupService(ServiceBase):
                                         details={'file_path': item_path, 'error': str(e)}
                                     )
                                 except:
-                                    print(f"Log Cleanup Service: Failed to delete {item_path}: {e}")
+                                    eprint(f"Log Cleanup Service: Failed to delete {item_path}: {e}")
                             
         except Exception as e:
             if self.logs_manager:
@@ -208,7 +208,7 @@ class LogCleanupService(ServiceBase):
                         details={'directory': directory_path, 'error': str(e)}
                     )
                 except:
-                    print(f"Log Cleanup Service: Error scanning {directory_path}: {e}")
+                    eprint(f"Log Cleanup Service: Error scanning {directory_path}: {e}")
         
         return files_checked, files_deleted, bytes_freed
     
@@ -230,7 +230,7 @@ class LogCleanupService(ServiceBase):
                     details={'size_limit_mb': size_limit_mb}
                 )
             except:
-                print(f"Log Cleanup Service: Starting scan of {logs_directory}")
+                eprint(f"Log Cleanup Service: Starting scan of {logs_directory}")
         
         # Perform recursive scan
         files_checked, files_deleted, bytes_freed = self._scan_directory_recursive(
@@ -265,7 +265,7 @@ class LogCleanupService(ServiceBase):
                     }
                 )
             except:
-                print(f"Log Cleanup Service: Scan complete - checked {files_checked}, deleted {files_deleted}, freed {round(bytes_freed / (1024 * 1024), 2)}MB")
+                eprint(f"Log Cleanup Service: Scan complete - checked {files_checked}, deleted {files_deleted}, freed {round(bytes_freed / (1024 * 1024), 2)}MB")
     
     def _run(self):
         """Main service loop."""
@@ -278,7 +278,7 @@ class LogCleanupService(ServiceBase):
                     source='log_cleanup_service'
                 )
             except Exception as e:
-                print(f"Failed to log main loop start: {e}")
+                eprint(f"Failed to log main loop start: {e}")
         else:
             print("Log Cleanup Service: Main loop started")
         
@@ -303,9 +303,9 @@ class LogCleanupService(ServiceBase):
                             details={'error': str(e)}
                         )
                     except:
-                        print(f"Log Cleanup Service: {error_msg}")
+                        eprint(f"Log Cleanup Service: {error_msg}")
                 else:
-                    print(f"Log Cleanup Service: {error_msg}")
+                    eprint(f"Log Cleanup Service: {error_msg}")
                 self.last_error = str(e)
                 time.sleep(300)  # Wait 5 minutes after an error
         
@@ -318,6 +318,6 @@ class LogCleanupService(ServiceBase):
                     source='log_cleanup_service'
                 )
             except Exception as e:
-                print(f"Failed to log main loop stop: {e}")
+                eprint(f"Failed to log main loop stop: {e}")
         else:
             print("Log Cleanup Service: Main loop stopped")
