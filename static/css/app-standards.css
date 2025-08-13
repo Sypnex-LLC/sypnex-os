@@ -124,7 +124,7 @@
 .app-input {
     background: var(--glass-bg);
     border: 1px solid var(--glass-border);
-    color: var(--text-primary);
+    color: white;
     padding: 10px 15px;
     border-radius: 6px;
     font-size: 14px;
@@ -133,6 +133,7 @@
 }
 
 .app-input:focus {
+    color: white;
     border-color: var(--accent-color);
     background: rgba(0, 212, 255, 0.05);
 }
