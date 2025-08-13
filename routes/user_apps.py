@@ -117,10 +117,30 @@ def register_user_app_routes(app, managers):
             
             download_url = data['download_url']
             
+            # Handle app-store URLs differently from external URLs
+            if download_url.startswith('/api/app-store/'):
+                # This is an internal app store download - convert to full local URL
+                from flask import request as flask_request
+                download_url = f"{flask_request.url_root.rstrip('/')}{download_url}"
+                print(f"Converted app-store URL to: {download_url}")
+            
             # Setup headers for authentication (needed for private repos)
             headers = {}
-            github_token = os.getenv('GITHUB_TOKEN')  # Same token as your /latest endpoint
-            if github_token:
+            
+            # For app store URLs, add the current user's session token for Sypnex OS auth
+            if '/api/app-store/' in download_url:
+                # Get the session token from the current request
+                session_token = (request.headers.get('X-Session-Token') or 
+                               request.cookies.get('session_token'))
+                if session_token:
+                    headers['X-Session-Token'] = session_token
+                    print(f"Added session token for app store request")
+                else:
+                    print("Warning: No session token found for app store request")
+            #print(download_url)
+            # For GitHub URLs, add GitHub token
+            github_token = os.getenv('GITHUB_TOKEN')
+            if github_token and 'github.com' in download_url:
                 headers['Authorization'] = f'token {github_token}'
             
             # For private repos, we need to use the API endpoint, not browser_download_url

@@ -14,6 +14,7 @@ from .auth import register_auth_routes
 from .metrics import register_metrics_routes
 from .flow_runner import register_flow_runner_routes
 from .crypto import register_crypto_routes
+from .app_store import register_app_store_routes
 from config.app_config import validate_session_token
 
 def register_all_routes(app, managers, builtin_apps):
@@ -95,3 +96,6 @@ def register_all_routes(app, managers, builtin_apps):
     
     # Register crypto routes
     register_crypto_routes(app, managers) 
+    
+    # Register app store proxy routes
+    register_app_store_routes(app, managers) 
