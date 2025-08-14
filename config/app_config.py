@@ -292,8 +292,14 @@ def seed_first_boot(managers):
         
         print("🌱 Starting first boot seeding...")
         
-        # Step 1: Install essential apps
-        install_essential_apps(managers)
+        # Step 1: Install essential apps (skip if APP_STORE_URL is set - app store mode)
+        app_store_url = os.getenv('APP_STORE_URL')
+        if app_store_url:
+            print("🏪 APP_STORE_URL detected - skipping essential apps installation (App Store mode)")
+            print("   Essential apps will be available through the app store onboarding flow instead")
+        else:
+            print("📱 Installing essential apps (Local mode)")
+            install_essential_apps(managers)
         
         # Step 2: Create VFS directories
         create_vfs_directories(config.get('asset_mappings', {}), managers)

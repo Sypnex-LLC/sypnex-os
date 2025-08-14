@@ -6,7 +6,14 @@ class SypnexWelcomeScreen {
         this.overlay = document.getElementById('welcome-screen-overlay');
         this.displayNameInput = document.getElementById('display-name-input');
         this.startButton = document.getElementById('start-button');
+        this.phase1 = document.getElementById('welcome-phase-1');
+        this.phase2 = document.getElementById('welcome-phase-2');
+        this.skipAppsBtn = document.getElementById('skip-apps-btn');
+        this.installSelectedBtn = document.getElementById('install-selected-btn');
+        this.optionalAppsContainer = document.getElementById('optional-apps-container');
         this.isShown = false;
+        this.currentPhase = 1;
+        this.selectedApps = new Set();
         
         this.init();
     }
@@ -37,6 +44,19 @@ class SypnexWelcomeScreen {
         this.startButton.addEventListener('click', () => {
             this.handleStart();
         });
+
+        // Phase 2 button listeners
+        if (this.skipAppsBtn) {
+            this.skipAppsBtn.addEventListener('click', () => {
+                this.completeWelcome();
+            });
+        }
+
+        if (this.installSelectedBtn) {
+            this.installSelectedBtn.addEventListener('click', () => {
+                this.handleInstallSelected();
+            });
+        }
 
         // Focus on input when welcome screen is shown
         this.displayNameInput.addEventListener('focus', () => {
@@ -70,52 +90,249 @@ class SypnexWelcomeScreen {
         this.setLoadingState(true);
 
         try {
-            // Save display name and welcome completion to preferences
-            await this.saveWelcomeData(displayName);
+            // Save display name first
+            await this.saveDisplayName(displayName);
             
-            // Hide welcome screen
-            this.hide();
+            // Check if optional apps are available (SaaS instance)
+            const hasOptionalApps = await this.checkForOptionalApps();
             
-            // Show success notification
-            if (window.sypnexOS && window.sypnexOS.showNotification) {
-                window.sypnexOS.showNotification(`Welcome to Sypnex OS, ${displayName}!`, 'success');
+            if (hasOptionalApps) {
+                // Transition to phase 2 (optional apps)
+                this.setLoadingState(false);
+                this.transitionToPhase2();
+            } else {
+                // Complete welcome flow (open source instance)
+                this.completeWelcome();
             }
             
-            // Set intent for video player to open tour video
-            //await this.launchTourVideo();
-            
         } catch (error) {
-            console.error('Error saving welcome data:', error);
-            this.showError('Failed to save welcome data. Please try again.');
+            console.error('Error during welcome start:', error);
+            this.showError('Failed to initialize. Please try again.');
             this.setLoadingState(false);
         }
     }
 
-    async saveWelcomeData(displayName) {
-        // Save display name
-        const displayNameResponse = await fetch('/api/preferences/user/display_name', {
+    async checkForOptionalApps() {
+        try {
+            const response = await fetch('/api/app-store/onboarding');
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success && data.onboarding_apps && data.onboarding_apps.length > 0) {
+                    this.loadOptionalApps(data.onboarding_apps);
+                    return true;
+                }
+            }
+        } catch (error) {
+            console.log('No optional apps available (likely open source instance)');
+        }
+        return false;
+    }
+
+    transitionToPhase2() {
+        this.currentPhase = 2;
+        
+        // Fade out phase 1
+        this.phase1.classList.add('fade-out');
+        
+        setTimeout(() => {
+            this.phase1.style.display = 'none';
+            this.phase2.style.display = 'block';
+            
+            // Fade in phase 2
+            setTimeout(() => {
+                this.phase2.classList.add('fade-in');
+            }, 50);
+        }, 400);
+    }
+
+    loadOptionalApps(apps) {
+        this.optionalAppsContainer.innerHTML = '';
+        
+        apps.forEach(app => {
+            const appElement = this.createOptionalAppElement(app);
+            this.optionalAppsContainer.appendChild(appElement);
+            
+            // Auto-select all apps in SaaS mode (user can uncheck what they don't want)
+            this.selectedApps.add(app.id);
+            appElement.classList.add('selected');
+        });
+        
+        // Update install button state since we pre-selected all apps
+        this.installSelectedBtn.disabled = false;
+    }
+
+    createOptionalAppElement(app) {
+        const appDiv = document.createElement('div');
+        appDiv.className = 'optional-app-item';
+        appDiv.dataset.appId = app.id;
+        
+        // Check if this is the store app (required)
+        const isStoreApp = app.id === 'sypnex_os_store';
+        if (isStoreApp) {
+            appDiv.classList.add('required-app');
+        }
+        
+        appDiv.innerHTML = `
+            <div class="optional-app-checkbox ${isStoreApp ? 'required' : ''}"></div>
+            <div class="optional-app-info">
+                <h3>${app.name} ${isStoreApp ? '<span class="required-badge">Required</span>' : ''}</h3>
+                <p>${app.description || 'Enhance your Sypnex OS experience'}</p>
+            </div>
+        `;
+        
+        appDiv.addEventListener('click', () => {
+            this.toggleAppSelection(app.id, appDiv);
+        });
+        
+        return appDiv;
+    }
+
+    toggleAppSelection(appId, element) {
+        // Prevent unchecking the store app (it's required)
+        if (appId === 'sypnex_os_store' && this.selectedApps.has(appId)) {
+            // Store app is required, show a brief message
+            if (window.sypnexOS && window.sypnexOS.showNotification) {
+                window.sypnexOS.showNotification('The App Store is required and cannot be deselected', 'info');
+            }
+            return;
+        }
+        
+        if (this.selectedApps.has(appId)) {
+            this.selectedApps.delete(appId);
+            element.classList.remove('selected');
+        } else {
+            this.selectedApps.add(appId);
+            element.classList.add('selected');
+        }
+        
+        // Update install button state
+        this.installSelectedBtn.disabled = this.selectedApps.size === 0;
+    }
+
+    async handleInstallSelected() {
+        if (this.selectedApps.size === 0) return;
+        
+        // Show loading state
+        this.setInstallLoadingState(true);
+        
+        try {
+            const tempAPI = new SypnexAPI();
+            const apiBaseUrl = '/api/app-store';
+            const selectedAppIds = Array.from(this.selectedApps);
+            
+            let successCount = 0;
+            let failCount = 0;
+            
+            // Install each selected app one by one
+            for (const appId of selectedAppIds) {
+                try {
+                    const downloadUrl = `${apiBaseUrl}/download/${appId}`;
+                    
+                    // Use the SypnexAPI to install/update the app
+                    const result = await tempAPI.updateApp(appId, downloadUrl);
+                    
+                    // If we get here without error, it was successful
+                    successCount++;
+                    console.log(`Successfully installed app ${appId}`);
+                    
+                } catch (error) {
+                    failCount++;
+                    console.error(`Error installing app ${appId}:`, error);
+                }
+            }
+            
+            // Refresh the app registry after all installations
+            if (successCount > 0) {
+                try {
+                    await tempAPI.refreshAppRegistry();
+                } catch (error) {
+                    console.error('Error refreshing app registry:', error);
+                }
+            }
+            
+            // Show completion notification
+            if (successCount > 0 && failCount === 0) {
+                if (window.sypnexOS && window.sypnexOS.showNotification) {
+                    window.sypnexOS.showNotification(`Successfully installed ${successCount} app${successCount > 1 ? 's' : ''}!`, 'success');
+                }
+            } else if (successCount > 0 && failCount > 0) {
+                if (window.sypnexOS && window.sypnexOS.showNotification) {
+                    window.sypnexOS.showNotification(`Installed ${successCount} app${successCount > 1 ? 's' : ''}, ${failCount} failed`, 'warning');
+                }
+            } else if (failCount > 0) {
+                if (window.sypnexOS && window.sypnexOS.showNotification) {
+                    window.sypnexOS.showNotification(`Failed to install ${failCount} app${failCount > 1 ? 's' : ''}`, 'error');
+                }
+            }
+            
+        } catch (error) {
+            console.error('Error during app installation:', error);
+            if (window.sypnexOS && window.sypnexOS.showNotification) {
+                window.sypnexOS.showNotification('Failed to install selected apps', 'error');
+            }
+        } finally {
+            this.setInstallLoadingState(false);
+            this.completeWelcome();
+        }
+    }
+
+    async saveDisplayName(displayName) {
+        const response = await fetch('/api/preferences/user/display_name', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({ value: displayName })
         });
-
-        if (!displayNameResponse.ok) {
+        
+        if (!response.ok) {
             throw new Error('Failed to save display name');
         }
+    }
 
-        // Mark welcome as completed
-        const welcomeResponse = await fetch('/api/preferences/system/welcome_completed', {
+    async completeWelcome() {
+        try {
+            // Mark welcome as completed
+            await this.markWelcomeCompleted();
+            
+            // Hide welcome screen
+            this.hide();
+            
+            // Show success notification
+            if (window.sypnexOS && window.sypnexOS.showNotification) {
+                const displayName = this.displayNameInput.value.trim();
+                window.sypnexOS.showNotification(`Welcome to Sypnex OS, ${displayName}!`, 'success');
+            }
+            
+        } catch (error) {
+            console.error('Error completing welcome:', error);
+            this.showError('Failed to complete setup. Please try again.');
+        }
+    }
+
+    async markWelcomeCompleted() {
+        const response = await fetch('/api/preferences/system/welcome_completed', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({ value: 'true' })
         });
+        
+        if (!response.ok) {
+            throw new Error('Failed to mark welcome as completed');
+        }
+    }
 
-        if (!welcomeResponse.ok) {
-            throw new Error('Failed to save welcome completion');
+    setInstallLoadingState(loading) {
+        if (loading) {
+            this.installSelectedBtn.classList.add('loading');
+            this.installSelectedBtn.disabled = true;
+            this.installSelectedBtn.innerHTML = '<i class="fas fa-spinner"></i> Installing...';
+        } else {
+            this.installSelectedBtn.classList.remove('loading');
+            this.installSelectedBtn.disabled = this.selectedApps.size === 0;
+            this.installSelectedBtn.innerHTML = '<i class="fas fa-download"></i> Install Selected';
         }
     }
 
