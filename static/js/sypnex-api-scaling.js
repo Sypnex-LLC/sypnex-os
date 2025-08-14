@@ -2,7 +2,7 @@
 // This file extends the SypnexAPI class with robust scaling compensation utilities
 //
 // This module provides a centralized solution for handling app scaling across all user applications.
-// Previously, scaling utilities were duplicated in multiple places (flow editor utils, file explorer utils).
+// Previously, scaling utilities were duplicated in multiple places (utils, file explorer utils).
 // Now all apps can access these utilities via sypnexAPI.scaling or the convenience methods.
 //
 // Key features:

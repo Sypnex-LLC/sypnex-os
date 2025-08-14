@@ -81,7 +81,6 @@ Sypnex OS provides a customizable development environment that you can own and m
 - **Development Tools** - App scaffolding, deployment, and packaging utilities
 
 **Featured Apps:**
-- **Flow Editor** - Visual workflow builder with AI integration
 - **Text Editor** - Code editor with syntax highlighting and terminal
 - **App Store** - Application marketplace and manager
 - **LLM Chat** - AI chat interface

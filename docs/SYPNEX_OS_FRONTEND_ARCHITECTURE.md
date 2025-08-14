@@ -484,18 +484,6 @@ These apps demonstrate the platform capabilities and provide common functionalit
 - Category browsing and search
 - Installation and update management
 
-**Flow Editor** (User App):
-- Visual workflow and automation builder
-- Node-based interface for creating flows
-- Integration with system APIs
-- Export and sharing capabilities
-
-**Flow Runner** (User App):
-- Execute and monitor automated workflows
-- Schedule and trigger flow execution
-- Real-time flow status and logging
-- Integration with Flow Editor
-
 **LLM Chat** (User App):
 - AI-powered chat interface
 - Multiple model support and configuration
