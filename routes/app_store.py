@@ -86,6 +86,12 @@ def register_app_store_routes(app, managers):
         result, status_code = proxy_to_app_store('/featured', params=dict(request.args))
         return jsonify(result), status_code
 
+    @app.route('/api/app-store/onboarding', methods=['GET'])
+    def app_store_get_onboarding_apps():
+        """Get onboarding recommended apps"""
+        result, status_code = proxy_to_app_store('/onboarding', params=dict(request.args))
+        return jsonify(result), status_code
+
     @app.route('/api/app-store/search', methods=['GET'])
     def app_store_search_apps():
         """Search apps by name or description"""

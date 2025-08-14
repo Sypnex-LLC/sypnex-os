@@ -51,38 +51,5 @@
       "key": "default_image_viewer",
       "value": "image_viewer"
     }
-  ],
-  "seeding_process": {
-    "description": "Order and method for first boot seeding",
-    "steps": [
-      {
-        "step": 1,
-        "action": "install_essential_apps",
-        "source": "essential-apps/",
-        "method": "POST /api/user-apps/install",
-        "description": "Install essential .app packages using multipart file upload"
-      },
-      {
-        "step": 2,
-        "action": "create_vfs_directories",
-        "source": "asset_mappings",
-        "method": "POST /api/virtual-files/create-folder",
-        "description": "Create VFS directories before uploading assets"
-      },
-      {
-        "step": 3,
-        "action": "upload_assets",
-        "source": "asset_mappings",
-        "method": "POST /api/virtual-files/upload-file",
-        "description": "Upload assets to VFS using file upload endpoint"
-      },
-      {
-        "step": 4,
-        "action": "set_preferences",
-        "source": "preferences",
-        "method": "POST /api/preferences/{category}/{key}",
-        "description": "Set default system preferences using category/key API"
-      }
-    ]
-  }
+  ]
 }
