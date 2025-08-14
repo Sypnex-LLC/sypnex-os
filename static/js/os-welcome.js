@@ -329,10 +329,16 @@ class SypnexWelcomeScreen {
             this.installSelectedBtn.classList.add('loading');
             this.installSelectedBtn.disabled = true;
             this.installSelectedBtn.innerHTML = '<i class="fas fa-spinner"></i> Installing...';
+            
+            // Disable skip button during installation - no backing out once committed
+            this.skipAppsBtn.disabled = true;
         } else {
             this.installSelectedBtn.classList.remove('loading');
             this.installSelectedBtn.disabled = this.selectedApps.size === 0;
             this.installSelectedBtn.innerHTML = '<i class="fas fa-download"></i> Install Selected';
+            
+            // Re-enable skip button after installation completes
+            this.skipAppsBtn.disabled = false;
         }
     }
 
