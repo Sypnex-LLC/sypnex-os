@@ -57,6 +57,14 @@ Object.assign(SypnexOS.prototype, {
                 this.handleResetOS();
             });
         }
+
+        // Repair Installation button
+        const repairInstallationBtn = windowElement.querySelector('#repair-installation-btn');
+        if (repairInstallationBtn) {
+            repairInstallationBtn.addEventListener('click', () => {
+                this.handleRepairInstallation();
+            });
+        }
         
         // App scale select
         const appScaleSelect = windowElement.querySelector('#app-scale-select');
@@ -952,6 +960,56 @@ Object.assign(SypnexOS.prototype, {
         } catch (error) {
             console.error('Error changing display name:', error);
             this.showNotification('Failed to change display name. Please try again.', 'error');
+        }
+    },
+
+    async handleRepairInstallation() {
+        try {
+            // Create a temporary SypnexAPI instance to use the confirmation dialog
+            const tempAPI = new window.SypnexAPI('system-settings');
+            
+            const confirmed = await tempAPI.showConfirmation(
+                'Repair Installation',
+                'This will restart the welcome setup process, allowing you to reinstall or add apps. Your files, settings, and existing apps will not be affected.',
+                {
+                    type: 'info',
+                    confirmText: 'Continue',
+                    cancelText: 'Cancel',
+                    icon: 'fas fa-wrench'
+                }
+            );
+
+            if (confirmed) {
+                this.showNotification('Starting repair process...', 'info');
+                
+                try {
+                    // Reset the welcome_completed flag to false
+                    const response = await fetch('/api/preferences/system/welcome_completed', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ value: 'false' })
+                    });
+                    
+                    if (response.ok) {
+                        this.showNotification('Repair started - reloading page...', 'success');
+                        
+                        // Wait a moment for the user to see the success message, then reload
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1500);
+                    } else {
+                        throw new Error('Failed to reset welcome flag');
+                    }
+                } catch (error) {
+                    console.error('Error starting repair:', error);
+                    this.showNotification('Failed to start repair process. Please try again.', 'error');
+                }
+            }
+        } catch (error) {
+            console.error('Error in repair installation:', error);
+            this.showNotification('Failed to start repair process. Please try again.', 'error');
         }
     },
 
