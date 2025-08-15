@@ -66,4 +66,3 @@ The `docker-compose.yml` includes demo credentials for testing:
 - `.env` file is excluded from git
 - Use strong, unique `SESSION_SECRET_KEY` for each instance
 - JWT tokens expire automatically after 24 hours
-- Instance termination invalidates all tokens immediately
