@@ -44,7 +44,7 @@ Sypnex OS provides a customizable development environment that you can own and m
 
 **For App Developers:**
 - **[Complete Development Guide](https://github.com/Sypnex-LLC/sypnex-os-apps/blob/master/USER_APP_DEVELOPMENT_GUIDE.md)** - Build apps on Sypnex OS
-- **[VS Code Extension](https://github.com/Sypnex-LLC/sypnex-os-vscode-extension)** - IntelliSense for 65+ SypnexAPI methods
+- **[VS Code Extension](https://github.com/Sypnex-LLC/sypnex-os-vscode-extension)** - IntelliSense for 100+ SypnexAPI methods
 - **Development Tools** - App scaffolding, deployment, and packaging utilities
 
 The apps repository demonstrates the full potential of building on Sypnex OS and provides all the tools needed for development.
@@ -65,16 +65,13 @@ This represents an approach where human insight combines with AI capabilities to
 
 ## 🎯 Key Features
 
-### Core Interface
 - **Desktop Experience**: Window management, taskbar, and spotlight search
 - **Real-time Communication**: WebSocket infrastructure for app development
 - **Service System**: Extensible architecture with hot-reloadable services
 - **Virtual File System**: SQLite-based file storage with full CRUD operations
 - **User App Ecosystem**: Sandboxed applications with JavaScript API access
-
-### System Features
-- **Service Management**: Lifecycle management for background services
 - **Settings Persistence**: App-specific configuration storage
+- **Encryption**: Optional encryption at rest for sensitive app settings and data
 
 ## 🔧 Quick Start
 
