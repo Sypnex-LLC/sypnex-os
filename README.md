@@ -123,19 +123,6 @@ For questions and discussions:
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. This means you're free to use, modify, and distribute Sypnex OS for any purpose, including commercial use.
 
-## 📚 Documentation
-
-### Core System Documentation
-- **[🚀 Roadmap](docs/ROADMAP.md)** - Project vision and development milestones
-- **[🤝 Contributing Guide](docs/CONTRIBUTING.md)** - How to contribute to the core OS
-- **[⚙️ Core Components](docs/SYPNEX_OS_CORE_COMPONENTS.md)** - Detailed architecture and system components
-- **[🖥️ Frontend Architecture](docs/SYPNEX_OS_FRONTEND_ARCHITECTURE.md)** - Frontend system design and APIs
-
-### App Development Documentation
-- **[📱 User App Development Guide](https://github.com/Sypnex-LLC/sypnex-os-apps/blob/master/USER_APP_DEVELOPMENT_GUIDE.md)** - Complete guide for creating apps (in apps repository)
-- **[VS Code Extension](https://github.com/Sypnex-LLC/sypnex-os-vscode-extension)** - IntelliSense support for SypnexAPI
-- **[Official Apps Repository](https://github.com/Sypnex-LLC/sypnex-os-apps)** - Apps, examples, and development tools
-
 ---
 
 *Thank you for exploring Sypnex OS.*
