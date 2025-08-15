@@ -6,7 +6,7 @@ from typing import Dict, List, Any
 import json
 
 class AutoSwaggerConfig:
-    """Configuration class for automatic Swagger documentation generation"""
+    """Configuration class for automatic Swagger documentation generation in Flask applications."""
     
     def __init__(self, app: Flask):
         self.app = app
