@@ -1,6 +1,7 @@
 """
 App Store Proxy Routes
 Proxies authenticated requests to the app store API
+Documentation coming soon.
 """
 
 import os

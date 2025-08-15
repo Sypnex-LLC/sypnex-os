@@ -32,7 +32,7 @@
   },
   "package_info": {
     "format_version": "1.0",
-    "created_at": "2025-08-13T21:53:54.163792",
+    "created_at": "2025-08-15T09:26:32.586482",
     "packaged_by": "Sypnex OS App Packager",
     "source_directory": ".\\calculator"
   }

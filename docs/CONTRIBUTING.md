@@ -68,48 +68,7 @@ We welcome new ideas. When suggesting features:
 - Describe your proposed solution
 - Consider implementation complexity and maintainability
 
-### 🔧 Code Contributions
-
-#### Areas Where We Need Help
-1. **Core System Features**
-   - Window management improvements
-   - Virtual file system enhancements
-   - Service system optimization
-   - System boot and initialization
-
-2. **Frontend Infrastructure**
-   - CSS framework and theming system
-   - JavaScript API architecture
-   - Accessibility improvements
-   - Cross-browser compatibility
-
-3. **Backend Development**
-   - Flask route optimization
-   - Database performance
-   - WebSocket infrastructure
-   - API endpoint improvements
-
-4. **System Architecture**
-   - App sandboxing and security
-   - Service management
-   - System configuration
-   - Performance optimizations
-
-5. **Testing & Infrastructure**
-   - Unit tests for core components
-   - Integration tests for API endpoints
-   - Cross-browser compatibility testing
-   - Performance benchmarking
-
-6. **Core Documentation**
-   - System architecture documentation
-   - API reference documentation
-   - Infrastructure guides
-   - Development setup guides
-
-**Note**: For app development contributions, please visit the [Official Apps Repository](https://github.com/Sypnex-LLC/sypnex-os-apps).
-
-#### Development Workflow
+### Development Workflow
 
 1. **Create a branch** for your feature:
    ```bash
@@ -167,39 +126,17 @@ We welcome new ideas. When suggesting features:
 
 ## 🧪 Testing
 
-### Manual Testing
-- Test your changes in Chrome, Firefox, and Safari
-- Verify functionality works as expected
-- Check for console errors or warnings
-- Test on different screen sizes (if UI changes)
-
-### Automated Testing
 We're working on expanding our test suite. Contributions to testing infrastructure are welcome!
 
 ## 📖 Documentation
 
-When contributing features or fixes:
-- Update relevant documentation files
-- Add inline code comments for complex logic
-- Update API documentation if you modify endpoints
-- Consider adding examples for new features
-
-## 🤝 Community Guidelines
-
-### Be Collaborative
-- Help newcomers get started
-- Share knowledge and resources
-- Provide constructive feedback
-- Ask questions when you need help
+Update relevant documentation and add comments for complex logic when contributing.
 
 ## 🆘 Getting Help
 
-If you're stuck or have questions:
-- **System Architecture Questions**: Check existing [GitHub Discussions](https://github.com/Sypnex-LLC/sypnex-os/discussions)
-- **App Development Help**: Visit the [Apps Repository](https://github.com/Sypnex-LLC/sypnex-os-apps) and read the [Development Guide](https://github.com/Sypnex-LLC/sypnex-os-apps/blob/master/USER_APP_DEVELOPMENT_GUIDE.md)
-- **Core OS Bugs**: Use GitHub Issues for specific bugs or feature requests
-- **VS Code Extension Issues**: Visit the [extension repository](https://github.com/Sypnex-LLC/sypnex-os-vscode-extension)
-- **General Questions**: Create a new discussion in this repository
+- **Questions or Issues**: Use GitHub Issues or [Discussions](https://github.com/Sypnex-LLC/sypnex-os/discussions)
+- **App Development**: Check the [Apps Repository](https://github.com/Sypnex-LLC/sypnex-os-apps)
+- **VS Code Extension**: Visit the [extension repository](https://github.com/Sypnex-LLC/sypnex-os-vscode-extension)
 
 ## 📝 License
 

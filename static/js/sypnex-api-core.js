@@ -19,6 +19,7 @@ class SypnexAPI {
         this.appId = appId;
         this.baseUrl = '/api';
         this.initialized = false;
+        this.cleanupHooks = []; // User-defined cleanup functions
         
         // Store helper functions passed from the OS
         this.getAppSetting = helpers.getAppSetting || this._defaultGetAppSetting;
@@ -210,6 +211,78 @@ class SypnexAPI {
             console.error(`SypnexAPI [${this.appId}]: Error refreshing app versions cache:`, error);
             return false;
         }
+    }
+
+    /**
+     * Register a cleanup function to be called when the app is closed
+     * Use this for custom cleanup like stopping game loops, disposing WebGL contexts, etc.
+     * @param {function} cleanupFunction - Function to call during app cleanup
+     * @param {string} [description] - Optional description for debugging
+     * 
+     * @example
+     * // For Three.js apps
+     * sypnexAPI.onBeforeClose(() => {
+     *     if (renderer) {
+     *         renderer.dispose();
+     *         renderer.domElement = null;
+     *     }
+     *     if (animationId) {
+     *         cancelAnimationFrame(animationId);
+     *     }
+     * }, 'Three.js cleanup');
+     * 
+     * // For game loops
+     * sypnexAPI.onBeforeClose(() => {
+     *     gameRunning = false;
+     *     if (gameLoopInterval) {
+     *         clearInterval(gameLoopInterval);
+     *     }
+     * }, 'Game loop cleanup');
+     */
+    onBeforeClose(cleanupFunction, description = 'User cleanup') {
+        if (typeof cleanupFunction !== 'function') {
+            console.warn(`SypnexAPI [${this.appId}]: onBeforeClose expects a function, got ${typeof cleanupFunction}`);
+            return;
+        }
+        
+        this.cleanupHooks.push({
+            fn: cleanupFunction,
+            description: description
+        });
+    }
+
+    /**
+     * Remove a previously registered cleanup function
+     * @param {function} cleanupFunction - The function to remove
+     */
+    removeCleanupHook(cleanupFunction) {
+        const index = this.cleanupHooks.findIndex(hook => hook.fn === cleanupFunction);
+        if (index > -1) {
+            this.cleanupHooks.splice(index, 1);
+        }
+    }
+
+    /**
+     * Internal method called by the OS during app cleanup
+     * Executes all registered cleanup hooks
+     */
+    cleanup() {
+        if (this.cleanupHooks.length === 0) {
+            return;
+        }
+
+        console.log(`SypnexAPI [${this.appId}]: Running ${this.cleanupHooks.length} cleanup hook(s)`);
+        
+        for (const hook of this.cleanupHooks) {
+            try {
+                hook.fn();
+            } catch (error) {
+                console.error(`SypnexAPI [${this.appId}]: Error in cleanup hook "${hook.description}":`, error);
+            }
+        }
+        
+        // Clear the hooks after execution
+        this.cleanupHooks = [];
     }
 }
 

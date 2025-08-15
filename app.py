@@ -46,10 +46,14 @@ app.logs_manager = managers['logs_manager']
 # Register all application routes
 register_all_routes(app, managers, BUILTIN_APPS)
 
-
-# Initialize Swagger with automatic route discovery
+# Initialize Swagger with automatic route discovery (development only)
 # This must be done after all routes are registered
-setup_auto_swagger(app)
+import os
+if os.getenv('FLASK_ENV') != 'production':
+    print("🔧 Initializing Swagger documentation (development mode)")
+    setup_auto_swagger(app)
+else:
+    print("🚀 Swagger disabled (production mode)")
 
 
 # Cache-busting helper function
