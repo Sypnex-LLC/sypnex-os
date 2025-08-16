@@ -39,17 +39,17 @@
     {
       "category": "system",
       "key": "default_text_editor",
-      "value": "text_editor"
+      "value": "410e8a66-925c-4698-8768-ead77107060e"
     },
     {
       "category": "system",
       "key": "default_media_player",
-      "value": "media_player"
+      "value": "06fae13f-e72f-4656-8e20-7111a226625c"
     },
     {
       "category": "system",
       "key": "default_image_viewer",
-      "value": "image_viewer"
+      "value": "18925909-8b3e-4c2d-ab7f-9f6ba0d30db4"
     }
   ]
 }
