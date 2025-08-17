@@ -352,9 +352,7 @@ Object.assign(SypnexOS.prototype, {
                 
                 // Launch the appropriate default app
                 window.sypnexOS.openApp(defaultApp);
-                
-                this.showNotification(`Opening ${filePath.split('/').pop()} with ${defaultApp}`, 'success');
-                
+                                
             } catch (error) {
                 console.error('Error opening file with default app:', error);
                 this.showNotification('Error opening file with default app', 'error');
