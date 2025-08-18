@@ -12,7 +12,6 @@ Object.assign(SypnexOS.prototype, {
                 const response = await fetch('/api/user-apps/refresh', { method: 'POST' });
                 if (showFeedback) {
                     const data = await response.json();
-                    this.showNotification(data.message, 'success');
                     return data;
                 }
             } catch (error) {
@@ -171,8 +170,6 @@ Object.assign(SypnexOS.prototype, {
                 if (!confirmed) {
                     return;
                 }
-
-                this.showNotification(`Uninstalling ${appName}...`, 'info');
 
                 const response = await fetch(`/api/user-apps/uninstall/${appId}`, {
                     method: 'DELETE'
