@@ -8,38 +8,22 @@ Object.assign(SypnexOS.prototype, {
         // Get built-in app tracker if available
         const tracker = window.sypnexApps && window.sypnexApps[appId] ? window.sypnexApps[appId] : null;
 
-        // Cache for app data - refreshed much less frequently than metrics
-        let appDataCache = new Map();
-        let lastAppDataRefresh = 0;
-        const APP_DATA_CACHE_DURATION = 30000; // 30 seconds
-
-        // Function to refresh app data cache
-        const refreshAppDataCache = async () => {
+        // Simple function to get app data from window element (no API calls needed!)
+        const getAppDataFromWindow = (appWindow) => {
             try {
-                const response = await fetch('/api/apps/resource-manager-data');
-                if (response.ok) {
-                    const appMap = await response.json();
-                    appDataCache.clear();
-                    for (const [id, data] of Object.entries(appMap)) {
-                        appDataCache.set(id, data);
-                    }
-                    lastAppDataRefresh = Date.now();
-                } else {
-                    console.error('Failed to fetch app data cache');
+                const nameElement = appWindow.querySelector('.app-name');
+                const iconElement = appWindow.querySelector('.app-icon');
+                
+                if (nameElement && iconElement) {
+                    return {
+                        name: nameElement.textContent,
+                        icon: iconElement.className.replace('app-icon ', '') // Remove the 'app-icon' prefix
+                    };
                 }
             } catch (error) {
-                console.error('Error refreshing app data cache:', error);
+                console.error('Error getting app data from window:', error);
             }
-        };
-
-        // Function to get app data from cache (with automatic refresh if needed)
-        const getAppDataFromCache = async (appId) => {
-            // Refresh cache if it's stale or empty
-            if (Date.now() - lastAppDataRefresh > APP_DATA_CACHE_DURATION || appDataCache.size === 0) {
-                await refreshAppDataCache();
-            }
-            
-            return appDataCache.get(appId) || null;
+            return null;
         };
 
         // Resource monitoring data
@@ -167,7 +151,7 @@ Object.assign(SypnexOS.prototype, {
         };
 
         // Function to update resource table
-        const updateResourceTable = async () => {
+        const updateResourceTable = () => {
             if (!resourceTableBody) return;
 
             const apps = Array.from(window.sypnexOS.apps.entries());
@@ -186,9 +170,10 @@ Object.assign(SypnexOS.prototype, {
                 try {
                     activeAppIds.add(appId);
 
-                    // Get app metadata from cache instead of individual API call
-                    const appData = await getAppDataFromCache(appId);
+                    // Get app metadata directly from window element - no API call!
+                    const appData = getAppDataFromWindow(appWindow);
                     if (!appData) {
+                        console.warn(`Could not get app data for ${appId} from window element`);
                         continue;
                     }
 
@@ -352,7 +337,10 @@ Object.assign(SypnexOS.prototype, {
             
         };
 
-        // Function to update services table
+        // Services refresh strategy - ONLY on load and user actions
+        let servicesLoaded = false;
+
+        // Function to update services table - simple, no timing logic
         const updateServicesTable = async () => {
             if (!servicesTableBody) return;
 
@@ -414,12 +402,12 @@ Object.assign(SypnexOS.prototype, {
                         if ((isRunning && hasStartButton) || (!isRunning && hasStopButton)) {
                             actionsCell.innerHTML = `
                                 ${!isRunning ? `
-                                    <button class="action-btn" onclick="window.sypnexOS.startService('${service.id}')" title="Start Service">
+                                    <button class="action-btn" onclick="window.sypnexOS.startService('${service.id}', this)" title="Start Service">
                                         <i class="fas fa-play"></i>
                                     </button>
                                 ` : ''}
                                 ${isRunning ? `
-                                    <button class="action-btn danger" onclick="window.sypnexOS.stopService('${service.id}')" title="Stop Service">
+                                    <button class="action-btn danger" onclick="window.sypnexOS.stopService('${service.id}', this)" title="Stop Service">
                                         <i class="fas fa-stop"></i>
                                     </button>
                                 ` : ''}
@@ -448,12 +436,12 @@ Object.assign(SypnexOS.prototype, {
                             <td>
                                 <div class="app-actions">
                                     ${!isRunning ? `
-                                        <button class="action-btn" onclick="window.sypnexOS.startService('${service.id}')" title="Start Service">
+                                        <button class="action-btn" onclick="window.sypnexOS.startService('${service.id}', this)" title="Start Service">
                                             <i class="fas fa-play"></i>
                                         </button>
                                     ` : ''}
                                     ${isRunning ? `
-                                        <button class="action-btn danger" onclick="window.sypnexOS.stopService('${service.id}')" title="Stop Service">
+                                        <button class="action-btn danger" onclick="window.sypnexOS.stopService('${service.id}', this)" title="Stop Service">
                                             <i class="fas fa-stop"></i>
                                         </button>
                                     ` : ''}
@@ -471,6 +459,8 @@ Object.assign(SypnexOS.prototype, {
                     }
                 });
 
+                servicesLoaded = true;
+
             } catch (error) {
                 console.error('Error fetching services:', error);
                 if (!servicesTableBody.querySelector('.no-apps-message')) {
@@ -483,8 +473,9 @@ Object.assign(SypnexOS.prototype, {
             }
         };
 
-        // Function to refresh all data
+        // Function to refresh all data - ONLY apps auto-refresh
         let isRefreshing = false;
+        
         const refreshResources = async () => {
             if (isRefreshing) {
                 return;
@@ -493,12 +484,14 @@ Object.assign(SypnexOS.prototype, {
             isRefreshing = true;
             
             try {
-                // Update both displays - let each function get fresh metrics
-                await Promise.all([
-                    updateResourceTable(),
-                    updateServicesTable()
-                ]);
+                // Apps data: Update every cycle (fast-changing, in-memory)
+                updateResourceTable();
                 updateSystemOverview();
+                
+                // Services data: ONLY load on initial startup
+                if (!servicesLoaded) {
+                    await updateServicesTable();
+                }
                 
             } catch (error) {
                 console.error('Error refreshing resource data:', error);
@@ -512,14 +505,17 @@ Object.assign(SypnexOS.prototype, {
         // Load initial data
         refreshResources();
 
-        // Auto-refresh every 1 second for resource monitoring
+        // Expose services refresh function for service management
+        windowElement.updateServicesTable = updateServicesTable;
+
+        // Auto-refresh every 500ms but only for apps (services refresh intelligently)
         let autoRefreshInterval;
         if (tracker && tracker.isBuiltinApp) {
             // Use tracked timer for built-in apps
-            autoRefreshInterval = this.createTrackedTimer(appId, refreshResources, 1000, true);
+            autoRefreshInterval = this.createTrackedTimer(appId, refreshResources, 500, true);
         } else {
             // Fallback to regular timer
-            autoRefreshInterval = setInterval(refreshResources, 1000);
+            autoRefreshInterval = setInterval(refreshResources, 500);
         }
         
         // Clean up interval when window is closed
@@ -533,10 +529,14 @@ Object.assign(SypnexOS.prototype, {
     },
 
     // Service management functions
-    async startService(serviceId) {
+    async startService(serviceId, button = null) {
         try {
-            // Immediately update UI to show "starting" state
-            this.updateServiceButtonState(serviceId, 'starting');
+            // Immediately update the clicked button to show "starting" state
+            if (button) {
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                button.title = 'Starting...';
+            }
             
             const response = await fetch(`/api/services/${serviceId}/start`, {
                 method: 'POST'
@@ -544,23 +544,52 @@ Object.assign(SypnexOS.prototype, {
             
             if (response.ok) {
                 this.showNotification(`Service ${serviceId} started successfully`, 'success');
-                // Update UI to show "running" state immediately
-                this.updateServiceButtonState(serviceId, 'running');
+                
+                // Update button to show "stop" state after successful start
+                if (button) {
+                    button.disabled = false;
+                    button.className = 'action-btn danger';
+                    button.innerHTML = '<i class="fas fa-stop"></i>';
+                    button.title = 'Stop Service';
+                    button.onclick = () => window.sypnexOS.stopService(serviceId, button);
+                }
+                
+                // Also update the status badge in the same row
+                if (button) {
+                    const row = button.closest('tr');
+                    const statusBadge = row.querySelector('.status-badge');
+                    if (statusBadge) {
+                        statusBadge.className = 'status-badge status-running';
+                        statusBadge.textContent = 'running';
+                    }
+                }
             } else {
                 const errorData = await response.json();
                 this.showNotification(`Failed to start service ${serviceId}: ${errorData.error}`, 'error');
-                // Revert to "stopped" state on error
-                this.updateServiceButtonState(serviceId, 'stopped');
+                
+                // Revert button to "start" state on error
+                if (button) {
+                    button.disabled = false;
+                    button.className = 'action-btn';
+                    button.innerHTML = '<i class="fas fa-play"></i>';
+                    button.title = 'Start Service';
+                }
             }
         } catch (error) {
             console.error('Error starting service:', error);
             this.showNotification(`Error starting service ${serviceId}: ${error.message}`, 'error');
-            // Revert to "stopped" state on error
-            this.updateServiceButtonState(serviceId, 'stopped');
+            
+            // Revert button to "start" state on error
+            if (button) {
+                button.disabled = false;
+                button.className = 'action-btn';
+                button.innerHTML = '<i class="fas fa-play"></i>';
+                button.title = 'Start Service';
+            }
         }
     },
 
-    async stopService(serviceId) {
+    async stopService(serviceId, button = null) {
         try {
             // Create a temporary SypnexAPI instance to use the confirmation dialog
             const tempAPI = new window.SypnexAPI('resource-manager');
@@ -578,8 +607,12 @@ Object.assign(SypnexOS.prototype, {
             
             if (!confirmed) return;
 
-            // Immediately update UI to show "stopping" state
-            this.updateServiceButtonState(serviceId, 'stopping');
+            // Immediately update the clicked button to show "stopping" state
+            if (button) {
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                button.title = 'Stopping...';
+            }
 
             const response = await fetch(`/api/services/${serviceId}/stop`, {
                 method: 'POST'
@@ -587,80 +620,111 @@ Object.assign(SypnexOS.prototype, {
             
             if (response.ok) {
                 this.showNotification(`Service ${serviceId} stopped successfully`, 'success');
-                // Update UI to show "stopped" state immediately
-                this.updateServiceButtonState(serviceId, 'stopped');
+                
+                // Update button to show "start" state after successful stop
+                if (button) {
+                    button.disabled = false;
+                    button.className = 'action-btn';
+                    button.innerHTML = '<i class="fas fa-play"></i>';
+                    button.title = 'Start Service';
+                    button.onclick = () => window.sypnexOS.startService(serviceId, button);
+                }
+                
+                // Also update the status badge in the same row
+                if (button) {
+                    const row = button.closest('tr');
+                    const statusBadge = row.querySelector('.status-badge');
+                    if (statusBadge) {
+                        statusBadge.className = 'status-badge status-stopped';
+                        statusBadge.textContent = 'stopped';
+                    }
+                }
             } else {
                 const errorData = await response.json();
                 this.showNotification(`Failed to stop service ${serviceId}: ${errorData.error}`, 'error');
-                // Revert to "running" state on error
-                this.updateServiceButtonState(serviceId, 'running');
+                
+                // Revert button to "stop" state on error
+                if (button) {
+                    button.disabled = false;
+                    button.className = 'action-btn danger';
+                    button.innerHTML = '<i class="fas fa-stop"></i>';
+                    button.title = 'Stop Service';
+                }
             }
         } catch (error) {
             console.error('Error stopping service:', error);
             this.showNotification(`Error stopping service ${serviceId}: ${error.message}`, 'error');
-            // Revert to "running" state on error
-            this.updateServiceButtonState(serviceId, 'running');
+            
+            // Revert button to "stop" state on error
+            if (button) {
+                button.disabled = false;
+                button.className = 'action-btn danger';
+                button.innerHTML = '<i class="fas fa-stop"></i>';
+                button.title = 'Stop Service';
+            }
         }
     },
 
     // Helper function to update service button state immediately
     updateServiceButtonState(serviceId, state) {
-        const resourceManager = document.querySelector('[data-app-id="resource-manager"]');
-        if (!resourceManager) return;
+        // Find ANY resource manager window (could be multiple instances)
+        const resourceManagers = document.querySelectorAll('[data-app-type="resource-manager"]');
+        
+        for (const resourceManager of resourceManagers) {
+            const servicesTable = resourceManager.querySelector('.services-table-body');
+            if (!servicesTable) continue;
 
-        const servicesTable = resourceManager.querySelector('.services-table-body');
-        if (!servicesTable) return;
-
-        // Find the service row
-        const rows = servicesTable.querySelectorAll('tr');
-        for (const row of rows) {
-            const serviceNameCell = row.querySelector('.app-name-cell span');
-            if (serviceNameCell && serviceNameCell.textContent === serviceId) {
-                // Update status badge
-                const statusBadge = row.querySelector('.status-badge');
-                const actionsCell = row.querySelector('.app-actions');
-                
-                if (statusBadge && actionsCell) {
-                    switch (state) {
-                        case 'starting':
-                            statusBadge.className = 'status-badge status-unknown';
-                            statusBadge.textContent = 'starting';
-                            actionsCell.innerHTML = `
-                                <button class="action-btn" disabled title="Starting...">
-                                    <i class="fas fa-spinner fa-spin"></i>
-                                </button>
-                            `;
-                            break;
-                        case 'stopping':
-                            statusBadge.className = 'status-badge status-unknown';
-                            statusBadge.textContent = 'stopping';
-                            actionsCell.innerHTML = `
-                                <button class="action-btn danger" disabled title="Stopping...">
-                                    <i class="fas fa-spinner fa-spin"></i>
-                                </button>
-                            `;
-                            break;
-                        case 'running':
-                            statusBadge.className = 'status-badge status-running';
-                            statusBadge.textContent = 'running';
-                            actionsCell.innerHTML = `
-                                <button class="action-btn danger" onclick="window.sypnexOS.stopService('${serviceId}')" title="Stop Service">
-                                    <i class="fas fa-stop"></i>
-                                </button>
-                            `;
-                            break;
-                        case 'stopped':
-                            statusBadge.className = 'status-badge status-stopped';
-                            statusBadge.textContent = 'stopped';
-                            actionsCell.innerHTML = `
-                                <button class="action-btn" onclick="window.sypnexOS.startService('${serviceId}')" title="Start Service">
-                                    <i class="fas fa-play"></i>
-                                </button>
-                            `;
-                            break;
+            // Find the service row
+            const rows = servicesTable.querySelectorAll('tr');
+            for (const row of rows) {
+                const serviceNameCell = row.querySelector('.app-name-cell span');
+                if (serviceNameCell && serviceNameCell.textContent === serviceId) {
+                    // Update status badge
+                    const statusBadge = row.querySelector('.status-badge');
+                    const actionsCell = row.querySelector('.app-actions');
+                    
+                    if (statusBadge && actionsCell) {
+                        switch (state) {
+                            case 'starting':
+                                statusBadge.className = 'status-badge status-unknown';
+                                statusBadge.textContent = 'starting';
+                                actionsCell.innerHTML = `
+                                    <button class="action-btn" disabled title="Starting...">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                    </button>
+                                `;
+                                break;
+                            case 'stopping':
+                                statusBadge.className = 'status-badge status-unknown';
+                                statusBadge.textContent = 'stopping';
+                                actionsCell.innerHTML = `
+                                    <button class="action-btn danger" disabled title="Stopping...">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                    </button>
+                                `;
+                                break;
+                            case 'running':
+                                statusBadge.className = 'status-badge status-running';
+                                statusBadge.textContent = 'running';
+                                actionsCell.innerHTML = `
+                                    <button class="action-btn danger" onclick="window.sypnexOS.stopService('${serviceId}', this)" title="Stop Service">
+                                        <i class="fas fa-stop"></i>
+                                    </button>
+                                `;
+                                break;
+                            case 'stopped':
+                                statusBadge.className = 'status-badge status-stopped';
+                                statusBadge.textContent = 'stopped';
+                                actionsCell.innerHTML = `
+                                    <button class="action-btn" onclick="window.sypnexOS.startService('${serviceId}', this)" title="Start Service">
+                                        <i class="fas fa-play"></i>
+                                    </button>
+                                `;
+                                break;
+                        }
                     }
+                    break;
                 }
-                break;
             }
         }
     },
@@ -668,17 +732,18 @@ Object.assign(SypnexOS.prototype, {
     // App management function with immediate UI feedback
     async terminateAppFromResourceManager(appId) {
         try {
-            // Get app data for better confirmation message from the Resource Manager cache
-            const resourceManager = document.querySelector('[data-app-id="resource-manager"]');
+            // Get app data for better confirmation message from ANY resource manager
             let appName = appId;
             
-            if (resourceManager) {
-                // Try to get the app name from the existing table row to avoid API call
+            // Look for ANY resource manager window to get the app name
+            const resourceManagers = document.querySelectorAll('[data-app-type="resource-manager"]');
+            for (const resourceManager of resourceManagers) {
                 const row = resourceManager.querySelector(`tr[data-app-id="${appId}"]`);
                 if (row) {
                     const nameSpan = row.querySelector('.app-name-cell span');
                     if (nameSpan) {
                         appName = nameSpan.textContent;
+                        break;
                     }
                 }
             }
@@ -715,40 +780,39 @@ Object.assign(SypnexOS.prototype, {
 
     // Helper function to update app button state immediately
     updateAppButtonState(appId, state) {
-        const resourceManager = document.querySelector('[data-app-id="resource-manager"]');
-        if (!resourceManager) return;
+        // Find ALL resource manager windows and update them
+        const resourceManagers = document.querySelectorAll('[data-app-type="resource-manager"]');
+        
+        for (const resourceManager of resourceManagers) {
+            const appsTable = resourceManager.querySelector('.resource-table-body');
+            if (!appsTable) continue;
 
-        const appsTable = resourceManager.querySelector('.resource-table-body');
-        if (!appsTable) return;
-
-        // Find the app row using data-app-id attribute
-        const row = appsTable.querySelector(`tr[data-app-id="${appId}"]`);
-        if (row) {
-            // Update status badge and actions
-            const statusBadge = row.querySelector('.status-badge');
-            const actionsCell = row.querySelector('.app-actions');
-            
-            if (statusBadge && actionsCell) {
-                switch (state) {
-                    case 'terminating':
-                        statusBadge.className = 'status-badge status-error';
-                        statusBadge.textContent = 'terminating';
-                        actionsCell.innerHTML = `
-                            <button class="action-btn" disabled title="Terminating...">
-                                <i class="fas fa-spinner fa-spin"></i>
-                            </button>
-                            <button class="action-btn danger" disabled title="Terminating...">
-                                <i class="fas fa-spinner fa-spin"></i>
-                            </button>
-                        `;
-                        
-                        // Remove the row after a short delay since the app will be closed
-                        setTimeout(() => {
-                            if (row.parentNode) {
-                                row.remove();
-                            }
-                        }, 500);
-                        break;
+            // Find the app row using data-app-id attribute
+            const row = appsTable.querySelector(`tr[data-app-id="${appId}"]`);
+            if (row) {
+                // Update status badge and actions
+                const statusBadge = row.querySelector('.status-badge');
+                const actionsCell = row.querySelector('.app-actions');
+                
+                if (statusBadge && actionsCell) {
+                    switch (state) {
+                        case 'terminating':
+                            statusBadge.className = 'status-badge status-error';
+                            statusBadge.textContent = 'terminating';
+                            actionsCell.innerHTML = `
+                                <button class="action-btn" disabled title="Terminating...">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                </button>
+                                <button class="action-btn danger" disabled title="Terminating...">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                </button>
+                            `;
+                            
+                            // No setTimeout needed! The app will be removed from window.sypnexOS.apps
+                            // immediately, and our next refresh cycle will detect the change and
+                            // remove the row automatically. No race conditions!
+                            break;
+                    }
                 }
             }
         }
