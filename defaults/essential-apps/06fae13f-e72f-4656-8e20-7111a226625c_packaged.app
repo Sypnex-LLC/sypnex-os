@@ -25,7 +25,7 @@
   },
   "package_info": {
     "format_version": "1.0",
-    "created_at": "2025-08-16T03:39:54.178532",
+    "created_at": "2025-08-18T05:33:40.863302",
     "packaged_by": "Sypnex OS App Packager",
     "source_directory": "C:\\Users\\bruce\\OneDrive\\Desktop\\AI Research\\sypnex-os-apps\\official\\media_player"
   }
