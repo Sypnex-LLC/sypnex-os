@@ -211,6 +211,9 @@ Object.assign(SypnexOS.prototype, {
             // Create and show the window using consolidated data
             const windowElement = await this.createAppWindow(appId, launchData.app.html, launchData);
             
+            // Store app as running in preferences for persistence
+            await this.storeRunningAppState(appId, true);
+            
         } catch (error) {
             console.error('Error opening app:', error);
             this.showNotification(`Failed to open ${appId}`, 'error');
@@ -799,6 +802,9 @@ Object.assign(SypnexOS.prototype, {
             // Save window state before closing
             this.saveWindowState(appId);
             
+            // Remove app from running state in preferences
+            this.storeRunningAppState(appId, false);
+            
             // Clean up timers and event listeners automatically
             if (window.sypnexApps && window.sypnexApps[appId] && window.sypnexApps[appId].cleanup) {
                 const cleanupResult = window.sypnexApps[appId].cleanup();
@@ -1160,5 +1166,24 @@ Object.assign(SypnexOS.prototype, {
             width: defaultWidth,
             height: defaultHeight
         };
+    },
+
+    // Store or remove app running state for persistence across browser refreshes
+    async storeRunningAppState(appId, isRunning) {
+        try {
+            const endpoint = `/api/preferences/running/${appId}`;
+            
+            if (isRunning) {
+                await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ value: 'true' })
+                });
+            } else {
+                await fetch(endpoint, { method: 'DELETE' });
+            }
+        } catch (error) {
+            console.error(`Failed to ${isRunning ? 'store' : 'remove'} running state for ${appId}:`, error);
+        }
     },
 });

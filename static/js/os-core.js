@@ -50,6 +50,9 @@ class SypnexOS {
         this.checkWelcomeScreen(); // Check if welcome screen should be shown
         this.loadWallpaper();
         
+        // Auto-launch previously running apps
+        this.autoLaunchRunningApps();
+        
         // Setup page unload cleanup
         this.setupPageUnloadCleanup();
         
@@ -492,4 +495,68 @@ class SypnexOS {
 
         this.showNotification(`Reset ${resetCount} windows to default positions`, 'success');
     }
+
+    // Auto-launch apps that were running when the OS was last closed
+    async autoLaunchRunningApps() {
+        const overlay = document.getElementById('app-restoration-overlay');
+        
+        // Add a delay to let the OS fully initialize (wallpaper, etc.)
+        setTimeout(async () => {
+            try {
+                const response = await fetch('/api/apps/running');
+                if (!response.ok) {
+                    console.error('Failed to get running apps list');
+                    // Hide overlay if we can't get running apps
+                    if (overlay) {
+                        overlay.classList.add('hidden');
+                    }
+                    return;
+                }
+                
+                const data = await response.json();
+                if (!data.success || !data.running_apps || data.running_apps.length === 0) {
+                    // No apps to restore, hide overlay immediately
+                    if (overlay) {
+                        overlay.classList.add('hidden');
+                    }
+                    return;
+                }
+                
+                // Launch each app that was previously running
+                // Use setTimeout to avoid launching all apps at once
+                let launchedCount = 0;
+                const totalApps = data.running_apps.length;
+                
+                data.running_apps.forEach((appId, index) => {
+                    setTimeout(async () => {
+                        try {
+                            await this.openApp(appId);
+                            launchedCount++;
+                        } catch (error) {
+                            console.error(`Failed to auto-launch app ${appId}:`, error);
+                            // Show error notification only for failures
+                            this.showNotification(`Failed to restore ${appId}`, 'error');
+                            
+                            // Clean up the invalid running state
+                            await this.storeRunningAppState(appId, false);
+                            launchedCount++;
+                        }
+                        
+                        // Hide overlay after all apps are processed
+                        if (launchedCount >= totalApps && overlay) {
+                            overlay.classList.add('hidden');
+                        }
+                    }, index * 200); // Stagger launches by 200ms
+                });
+                
+            } catch (error) {
+                console.error('Error during auto-launch:', error);
+                // Hide overlay on error
+                if (overlay) {
+                    overlay.classList.add('hidden');
+                }
+            }
+        }, 1000); // Wait 1 second for OS to fully initialize
+    }
+
 }
