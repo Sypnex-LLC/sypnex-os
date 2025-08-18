@@ -67,7 +67,7 @@ def get_validation_rules():
             "window.addeventlistener('keypress'",    # Global keypress listeners (single quotes)
             
             # Direct window access - must use sypnexAPI.getAppWindow() instead
-            'window.',              # Any direct window property access - use sypnexAPI.getAppWindow() instead
+            # Note: 'window.' is handled by special validation function to avoid false positives
         ],
         "enforced_server_side": True,
         "severity": "error",
@@ -144,6 +144,52 @@ def get_validation_rules():
         }
     }
 
+def is_actual_window_access(line):
+    """
+    Check if a line contains actual window object access (not variables like appWindow)
+    Args:
+        line: Line of code to check
+    Returns: Boolean indicating if this is actual window access
+    """
+    if 'window.' not in line:
+        return False
+    
+    # Skip comments
+    stripped = line.strip()
+    if stripped.startswith('//') or stripped.startswith('*') or '/*' in stripped:
+        return False
+    
+    # Find 'window.' and check what comes before it
+    idx = line.find('window.')
+    if idx > 0:
+        char_before = line[idx-1]
+        # If there's a letter/number/underscore before, it's probably a variable like appWindow
+        if char_before.isalnum() or char_before == '_':
+            return False
+    
+    return True
+
+def validate_window_access(content):
+    """
+    Validate for direct window object access with smart detection
+    Args:
+        content: JavaScript content to validate
+    Returns: tuple (is_valid, violations_found)
+    """
+    violations = []
+    lines = content.split('\n')
+    
+    for line_num, line in enumerate(lines, 1):
+        if is_actual_window_access(line):
+            violations.append({
+                'line': line_num,
+                'content': line.strip(),
+                'message': 'Direct window access detected. Use sypnexAPI.getAppWindow() instead for app isolation and automatic cleanup.',
+                'suggestion': 'Replace "window.property" with "const appWindow = sypnexAPI.getAppWindow(); appWindow.property"'
+            })
+    
+    return len(violations) == 0, violations
+
 def validate_javascript_content(content, app_id=None):
     """
     Validate JavaScript content against security policies
@@ -155,9 +201,28 @@ def validate_javascript_content(content, app_id=None):
     content_lower = content.lower()
     violations = []
     
+    # Check regular blacklisted methods
     for method in blacklisted:
         if method in content_lower:
-            violations.append(method)
+            violations.append({
+                'type': 'blacklisted_method',
+                'pattern': method,
+                'message': f"Blacklisted JavaScript method: {method}"
+            })
+    
+    # Special check for window access with smart detection
+    window_valid, window_violations = validate_window_access(content)
+    if not window_valid:
+        # Add window violations with detailed messages
+        for violation in window_violations:
+            violations.append({
+                'type': 'window_access',
+                'pattern': f"window. (line {violation['line']})",
+                'message': violation['message'],
+                'suggestion': violation['suggestion'],
+                'line': violation['line'],
+                'content': violation['content']
+            })
     
     return len(violations) == 0, violations
 
@@ -308,12 +373,28 @@ def validate_user_app_files(files_dict, enforce_server_side_only=False):
                 file_result["is_valid"] = False
                 results["is_valid"] = False
                 for violation in js_violations:
-                    file_result["issues"].append({
-                        "rule": "javascript_security",
-                        "severity": "error",
-                        "description": f"Blacklisted JavaScript method: {violation}",
-                        "found_pattern": violation
-                    })
+                    if isinstance(violation, dict):
+                        # New detailed violation format
+                        description = violation.get('message', f"Security violation: {violation.get('pattern', 'unknown')}")
+                        if violation.get('suggestion'):
+                            description += f" {violation['suggestion']}"
+                        
+                        file_result["issues"].append({
+                            "rule": "javascript_security",
+                            "severity": "error",
+                            "description": description,
+                            "found_pattern": violation.get('pattern', ''),
+                            "line": violation.get('line'),
+                            "content": violation.get('content')
+                        })
+                    else:
+                        # Legacy string format for backwards compatibility
+                        file_result["issues"].append({
+                            "rule": "javascript_security",
+                            "severity": "error",
+                            "description": f"Blacklisted JavaScript method: {violation}",
+                            "found_pattern": violation
+                        })
         
         # Validate JS files
         elif filename.endswith('.js'):
@@ -323,12 +404,28 @@ def validate_user_app_files(files_dict, enforce_server_side_only=False):
                 file_result["is_valid"] = False
                 results["is_valid"] = False
                 for violation in js_violations:
-                    file_result["issues"].append({
-                        "rule": "javascript_security",
-                        "severity": "error", 
-                        "description": f"Blacklisted JavaScript method: {violation}",
-                        "found_pattern": violation
-                    })
+                    if isinstance(violation, dict):
+                        # New detailed violation format
+                        description = violation.get('message', f"Security violation: {violation.get('pattern', 'unknown')}")
+                        if violation.get('suggestion'):
+                            description += f" {violation['suggestion']}"
+                        
+                        file_result["issues"].append({
+                            "rule": "javascript_security",
+                            "severity": "error",
+                            "description": description,
+                            "found_pattern": violation.get('pattern', ''),
+                            "line": violation.get('line'),
+                            "content": violation.get('content')
+                        })
+                    else:
+                        # Legacy string format for backwards compatibility
+                        file_result["issues"].append({
+                            "rule": "javascript_security",
+                            "severity": "error", 
+                            "description": f"Blacklisted JavaScript method: {violation}",
+                            "found_pattern": violation
+                        })
             
             # Check JavaScript structure (DOM ready pattern)
             js_struct_valid, js_struct_issues = validate_javascript_structure(content, enforce_server_side_only=enforce_server_side_only)

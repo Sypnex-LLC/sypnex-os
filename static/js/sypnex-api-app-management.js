@@ -6,6 +6,7 @@ Object.assign(SypnexAPI.prototype, {
     
     /**
      * Get available applications from the registry
+     * @memberof SypnexAPI.prototype
      * @async
      * @returns {Promise<object>} - Available applications data
      */
@@ -25,6 +26,7 @@ Object.assign(SypnexAPI.prototype, {
     
     /**
      * Get list of installed applications
+     * @memberof SypnexAPI.prototype
      * @async
      * @returns {Promise<Array>} - Array of installed applications
      */
@@ -44,6 +46,7 @@ Object.assign(SypnexAPI.prototype, {
     
     /**
      * Update a specific application to the latest version
+     * @memberof SypnexAPI.prototype
      * @async
      * @param {string} appId - Application ID to update
      * @param {string} downloadUrl - Download URL for the app update (required)
@@ -86,6 +89,7 @@ Object.assign(SypnexAPI.prototype, {
     /**
      * Refresh the application registry cache
      * @async
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<object>} - Refresh result
      */
     async refreshAppRegistry() {
@@ -116,6 +120,7 @@ Object.assign(SypnexAPI.prototype, {
      * @param {string} appId - Application ID to install
      * @param {object} [options={}] - Installation options
      * @param {string} [options.version] - Specific version to install (defaults to latest)
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<object>} - Installation result
      */
     async installApp(appId, options = {}) {
@@ -151,6 +156,7 @@ Object.assign(SypnexAPI.prototype, {
      * Uninstall an application
      * @async
      * @param {string} appId - Application ID to uninstall
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<object>} - Uninstallation result
      */
     async uninstallApp(appId) {

@@ -8,6 +8,7 @@ Object.assign(SypnexAPI.prototype, {
      * Load a library from CDN
      * @param {string} url - CDN URL of the library
      * @param {object} options - Loading options
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<any>} - Loaded library or true if successful
      */
     async loadLibrary(url, options = {}) {

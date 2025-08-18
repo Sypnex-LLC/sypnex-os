@@ -211,6 +211,9 @@ Object.assign(SypnexOS.prototype, {
             // Create and show the window using consolidated data
             const windowElement = await this.createAppWindow(appId, launchData.app.html, launchData);
             
+            // Store app as running in preferences for persistence
+            await this.storeRunningAppState(appId, true);
+            
         } catch (error) {
             console.error('Error opening app:', error);
             this.showNotification(`Failed to open ${appId}`, 'error');
@@ -412,11 +415,24 @@ Object.assign(SypnexOS.prototype, {
         this.apps.set(appId, windowElement);
         this.windowCounter++;
         
-        // Add app to status bar for quick switching
-        this.addAppToStatusBar(appId);
-        
-        // Focus the window
-        this.focusWindow(appId);
+        // Check if this is a background app
+        if (launchData.app.background) {
+            // Hide the window completely for background apps
+            windowElement.style.display = 'none';
+            windowElement.dataset.backgroundApp = 'true';
+            
+            // Hide window controls that don't make sense for background apps
+            windowElement.querySelector('.app-minimize').style.display = 'none';
+            windowElement.querySelector('.app-maximize').style.display = 'none';
+            
+            console.log(`Background app ${appId} launched successfully`);
+        } else {
+            // Add app to status bar for quick switching (only for regular apps)
+            this.addAppToStatusBar(appId);
+            
+            // Focus the window (only for regular apps)
+            this.focusWindow(appId);
+        }
         
         return windowElement;
     },
@@ -786,6 +802,9 @@ Object.assign(SypnexOS.prototype, {
             // Save window state before closing
             this.saveWindowState(appId);
             
+            // Remove app from running state in preferences
+            this.storeRunningAppState(appId, false);
+            
             // Clean up timers and event listeners automatically
             if (window.sypnexApps && window.sypnexApps[appId] && window.sypnexApps[appId].cleanup) {
                 const cleanupResult = window.sypnexApps[appId].cleanup();
@@ -1147,5 +1166,24 @@ Object.assign(SypnexOS.prototype, {
             width: defaultWidth,
             height: defaultHeight
         };
+    },
+
+    // Store or remove app running state for persistence across browser refreshes
+    async storeRunningAppState(appId, isRunning) {
+        try {
+            const endpoint = `/api/preferences/running/${appId}`;
+            
+            if (isRunning) {
+                await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ value: 'true' })
+                });
+            } else {
+                await fetch(endpoint, { method: 'DELETE' });
+            }
+        } catch (error) {
+            console.error(`Failed to ${isRunning ? 'store' : 'remove'} running state for ${appId}:`, error);
+        }
     },
 });

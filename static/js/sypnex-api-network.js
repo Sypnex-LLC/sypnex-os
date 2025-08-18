@@ -15,6 +15,7 @@ Object.assign(SypnexAPI.prototype, {
      * @param {number} [options.timeout=30] - Request timeout in seconds
      * @param {boolean} [options.followRedirects=true] - Whether to follow redirects
      * @param {boolean} [options.forceProxy=false] - Force use of backend proxy instead of direct CORS
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<object>} - Response data in proxy format for compatibility
      */
     async proxyHTTP(options) {
@@ -50,6 +51,7 @@ Object.assign(SypnexAPI.prototype, {
 
     /**
      * Make a direct CORS request
+     * @memberof SypnexAPI.prototype
      * @private
      */
     async _directCORSRequest(options) {
@@ -160,6 +162,7 @@ Object.assign(SypnexAPI.prototype, {
 
     /**
      * Make a request through the backend proxy
+     * @memberof SypnexAPI.prototype
      * @private
      */
     async _proxyThroughBackend(options) {
@@ -220,6 +223,7 @@ Object.assign(SypnexAPI.prototype, {
      * @param {object} [options={}] - Additional options
      * @param {object} [options.headers={}] - HTTP headers
      * @param {number} [options.timeout=30] - Request timeout in seconds
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<object>} - Response data
      */
     async proxyGET(url, options = {}) {
@@ -238,6 +242,7 @@ Object.assign(SypnexAPI.prototype, {
      * @param {object} [options={}] - Additional options
      * @param {object} [options.headers={}] - HTTP headers
      * @param {number} [options.timeout=30] - Request timeout in seconds
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<object>} - Response data
      */
     async proxyPOST(url, body, options = {}) {
@@ -257,6 +262,7 @@ Object.assign(SypnexAPI.prototype, {
      * @param {object} [options={}] - Additional options
      * @param {object} [options.headers={}] - HTTP headers
      * @param {number} [options.timeout=30] - Request timeout in seconds
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<object>} - Response data
      */
     async proxyPUT(url, body, options = {}) {
@@ -275,6 +281,7 @@ Object.assign(SypnexAPI.prototype, {
      * @param {object} [options={}] - Additional options
      * @param {object} [options.headers={}] - HTTP headers
      * @param {number} [options.timeout=30] - Request timeout in seconds
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<object>} - Response data
      */
     async proxyDELETE(url, options = {}) {
@@ -294,6 +301,7 @@ Object.assign(SypnexAPI.prototype, {
      * @param {object} [options.data] - JSON data to send
      * @param {object} [options.headers={}] - Additional headers
      * @param {number} [options.timeout=30] - Request timeout in seconds
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<object>} - Parsed JSON response
      */
     async proxyJSON(url, options = {}) {

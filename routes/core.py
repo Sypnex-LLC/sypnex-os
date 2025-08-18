@@ -196,6 +196,7 @@ def register_core_routes(app, managers, builtin_apps):
                     'description': app_data.get('description', ''),
                     'type': app_type,
                     'version': app_data.get('version', '1.0.0'),
+                    'background': app_data.get('background') == 'true',
                     'html': html_content
                 },
                 'metadata': {
@@ -305,3 +306,26 @@ def register_core_routes(app, managers, builtin_apps):
             import traceback
             traceback.print_exc()
             return jsonify({'error': 'Failed to get resource manager data'}), 500 
+
+    @app.route('/api/apps/running')
+    def get_running_apps():
+        """Get list of apps that should be auto-launched (were running when OS was last closed)"""
+        try:
+            # Get all preferences in the 'running' category
+            running_prefs = managers['user_preferences'].get_all_preferences('running')
+            
+            # Extract app IDs that are marked as running
+            running_app_ids = []
+            for key, value in running_prefs.items():
+                if value == 'true':
+                    running_app_ids.append(key)
+            
+            return jsonify({
+                'success': True,
+                'running_apps': running_app_ids
+            })
+        except Exception as e:
+            print(f"Error getting running apps: {e}")
+            import traceback
+            traceback.print_exc()
+            return jsonify({'error': 'Failed to get running apps'}), 500

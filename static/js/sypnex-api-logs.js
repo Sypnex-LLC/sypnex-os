@@ -12,6 +12,7 @@ Object.assign(SypnexAPI.prototype, {
      * @param {string} logData.component - Component type (core-os, user-apps, plugins, services)
      * @param {string} [logData.source] - Source identifier (app name, plugin name, etc.)
      * @param {object} [logData.details] - Additional details object
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<object>} - Write result
      */
     async writeLog(logData) {
@@ -50,6 +51,7 @@ Object.assign(SypnexAPI.prototype, {
      * Convenience method to write debug log
      * @param {string} message - Log message
      * @param {object} [details] - Additional details
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<object>} - Write result
      */
     async logDebug(message, details = {}) {
@@ -66,6 +68,7 @@ Object.assign(SypnexAPI.prototype, {
      * Convenience method to write info log
      * @param {string} message - Log message
      * @param {object} [details] - Additional details
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<object>} - Write result
      */
     async logInfo(message, details = {}) {
@@ -82,6 +85,7 @@ Object.assign(SypnexAPI.prototype, {
      * Convenience method to write warning log
      * @param {string} message - Log message
      * @param {object} [details] - Additional details
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<object>} - Write result
      */
     async logWarn(message, details = {}) {
@@ -98,6 +102,7 @@ Object.assign(SypnexAPI.prototype, {
      * Convenience method to write error log
      * @param {string} message - Log message
      * @param {object} [details] - Additional details
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<object>} - Write result
      */
     async logError(message, details = {}) {
@@ -114,6 +119,7 @@ Object.assign(SypnexAPI.prototype, {
      * Convenience method to write critical log
      * @param {string} message - Log message
      * @param {object} [details] - Additional details
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<object>} - Write result
      */
     async logCritical(message, details = {}) {
@@ -134,6 +140,7 @@ Object.assign(SypnexAPI.prototype, {
      * @param {string} [filters.date] - Date to filter by (YYYY-MM-DD format, defaults to today)
      * @param {number} [filters.limit] - Maximum number of logs to return (default: 100)
      * @param {string} [filters.source] - Source to filter by (app name, plugin name, etc.)
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<object>} - Log entries and metadata
      */
     async readLogs(filters = {}) {
@@ -162,6 +169,7 @@ Object.assign(SypnexAPI.prototype, {
     
     /**
      * Get available log dates for each component
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<object>} - Available dates by component
      */
     async getLogDates() {
@@ -185,6 +193,7 @@ Object.assign(SypnexAPI.prototype, {
      * @param {object} [filters] - Filter options
      * @param {string} [filters.component] - Component to clear (core-os, user-apps, plugins, services, all)
      * @param {string} [filters.date] - Specific date to clear (YYYY-MM-DD format) or 'all' for all dates
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<object>} - Clear operation result
      */
     async clearLogs(filters = {}) {
@@ -212,6 +221,7 @@ Object.assign(SypnexAPI.prototype, {
     
     /**
      * Get logging system statistics
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<object>} - Logging statistics
      */
     async getLogStats() {
@@ -233,6 +243,7 @@ Object.assign(SypnexAPI.prototype, {
     /**
      * Get logs for the current app (convenience method)
      * @param {object} [filters] - Additional filter options
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<object>} - Log entries for this app
      */
     async getMyLogs(filters = {}) {

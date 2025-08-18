@@ -154,6 +154,7 @@
     
     /**
      * Initialize the window management system
+     * @memberof SypnexAPI.prototype
      */
     function initializeWindowManager() {
         if (windowState.isInitialized) return;
@@ -189,6 +190,7 @@ Object.assign(SypnexAPI.prototype, {
      * All properties assigned to this window proxy will be automatically cleaned up
      * when the app is closed, preventing memory leaks and conflicts.
      * 
+     * @memberof SypnexAPI.prototype
      * @returns {Object} Window proxy object that tracks property assignments
      * 
      * @example
@@ -217,6 +219,7 @@ Object.assign(SypnexAPI.prototype, {
     
     /**
      * Manually clean up window properties for this app
+     * @memberof SypnexAPI.prototype
      * This is automatically called when the app closes, but can be called manually if needed
      */
     cleanupAppWindow() {

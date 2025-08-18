@@ -9,6 +9,7 @@ Object.assign(SypnexAPI.prototype, {
      * @async
      * @param {string} key - Setting key to retrieve
      * @param {*} [defaultValue=null] - Default value if setting not found
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<*>} The setting value or default value
      */
     async getSetting(key, defaultValue = null) {
@@ -25,6 +26,7 @@ Object.assign(SypnexAPI.prototype, {
      * @async
      * @param {string} key - Setting key to set
      * @param {*} value - Value to store
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<boolean>} True if saved successfully, false otherwise
      */
     async setSetting(key, value) {
@@ -52,6 +54,7 @@ Object.assign(SypnexAPI.prototype, {
     /**
      * Get all application settings
      * @async
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<object>} Object containing all app settings
      */
     async getAllSettings() {
@@ -67,6 +70,7 @@ Object.assign(SypnexAPI.prototype, {
      * Delete an application setting
      * @async
      * @param {string} key - Setting key to delete
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<boolean>} True if deleted successfully, false otherwise
      */
     async deleteSetting(key) {
@@ -93,6 +97,7 @@ Object.assign(SypnexAPI.prototype, {
      * @param {string} category - Preference category
      * @param {string} key - Preference key
      * @param {*} [defaultValue=null] - Default value if preference not found
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<*>} The preference value or default value
      */
     async getPreference(category, key, defaultValue = null) {
@@ -115,6 +120,7 @@ Object.assign(SypnexAPI.prototype, {
      * @param {string} category - Preference category
      * @param {string} key - Preference key
      * @param {*} value - Value to store
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<boolean>} True if saved successfully, false otherwise
      */
     async setPreference(category, key, value) {

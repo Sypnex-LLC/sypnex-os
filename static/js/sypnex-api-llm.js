@@ -16,6 +16,7 @@ Object.assign(SypnexAPI.prototype, {
      * @param {number} [options.temperature=0.7] - Temperature (0-1)
      * @param {number} [options.maxTokens=1000] - Maximum tokens to generate
      * @param {boolean} [options.stream=false] - Whether to stream response
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<object>} Normalized response: {content, usage, model, provider}
      */
     async llmComplete(options) {
@@ -91,6 +92,7 @@ Object.assign(SypnexAPI.prototype, {
 
     /**
      * Format request for specific provider (private method)
+     * @memberof SypnexAPI.prototype
      * @private
      */
     _formatLLMRequest(provider, options) {
@@ -191,6 +193,7 @@ Object.assign(SypnexAPI.prototype, {
 
     /**
      * Get headers for specific provider (private method)
+     * @memberof SypnexAPI.prototype
      * @private
      */
     _getLLMHeaders(provider, apiKey) {
@@ -228,6 +231,7 @@ Object.assign(SypnexAPI.prototype, {
 
     /**
      * Normalize response from provider to OpenAI format (private method)
+     * @memberof SypnexAPI.prototype
      * @private
      */
     _normalizeLLMResponse(provider, responseData) {
