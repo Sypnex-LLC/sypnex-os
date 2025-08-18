@@ -412,11 +412,24 @@ Object.assign(SypnexOS.prototype, {
         this.apps.set(appId, windowElement);
         this.windowCounter++;
         
-        // Add app to status bar for quick switching
-        this.addAppToStatusBar(appId);
-        
-        // Focus the window
-        this.focusWindow(appId);
+        // Check if this is a background app
+        if (launchData.app.background) {
+            // Hide the window completely for background apps
+            windowElement.style.display = 'none';
+            windowElement.dataset.backgroundApp = 'true';
+            
+            // Hide window controls that don't make sense for background apps
+            windowElement.querySelector('.app-minimize').style.display = 'none';
+            windowElement.querySelector('.app-maximize').style.display = 'none';
+            
+            console.log(`Background app ${appId} launched successfully`);
+        } else {
+            // Add app to status bar for quick switching (only for regular apps)
+            this.addAppToStatusBar(appId);
+            
+            // Focus the window (only for regular apps)
+            this.focusWindow(appId);
+        }
         
         return windowElement;
     },

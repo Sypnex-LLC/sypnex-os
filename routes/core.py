@@ -196,6 +196,7 @@ def register_core_routes(app, managers, builtin_apps):
                     'description': app_data.get('description', ''),
                     'type': app_type,
                     'version': app_data.get('version', '1.0.0'),
+                    'background': app_data.get('background') == 'true',
                     'html': html_content
                 },
                 'metadata': {
