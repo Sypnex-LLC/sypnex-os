@@ -293,7 +293,6 @@ class SypnexAPI {
             return;
         }
 
-        console.log(`SypnexAPI [${this.appId}]: Running ${this.cleanupHooks.length} cleanup hook(s)`);
         
         for (const hook of this.cleanupHooks) {
             try {

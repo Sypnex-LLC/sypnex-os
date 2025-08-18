@@ -30,7 +30,6 @@
                 const realId = originalSetInterval(callback, delay, ...args);
                 const managerId = this.nextId++;
                 this.timers.set(managerId, {appId, type: 'interval', realId});
-                console.log(`[Timer Manager] App ${appId} created interval ${managerId} (real: ${realId})`);
                 return managerId;
             },
             
@@ -38,7 +37,6 @@
                 const realId = originalSetTimeout(callback, delay, ...args);
                 const managerId = this.nextId++;
                 this.timers.set(managerId, {appId, type: 'timeout', realId});
-                console.log(`[Timer Manager] App ${appId} created timeout ${managerId} (real: ${realId})`);
                 return managerId;
             },
             
@@ -47,7 +45,6 @@
                 if (timer && timer.type === 'interval') {
                     originalClearInterval(timer.realId);
                     this.timers.delete(managerId);
-                    console.log(`[Timer Manager] Cleared interval ${managerId} (real: ${timer.realId})`);
                     return true;
                 }
                 return false;
@@ -58,7 +55,6 @@
                 if (timer && timer.type === 'timeout') {
                     originalClearTimeout(timer.realId);
                     this.timers.delete(managerId);
-                    console.log(`[Timer Manager] Cleared timeout ${managerId} (real: ${timer.realId})`);
                     return true;
                 }
                 return false;
@@ -77,7 +73,6 @@
                         cleaned++;
                     }
                 }
-                console.log(`[Timer Manager] Cleaned ${cleaned} timers for app ${appId}`);
                 return cleaned;
             }
         };
@@ -111,14 +106,12 @@
                              !appContainer || !appContainer.contains(target);
         
         if (isGlobalTarget) {
-            console.log(`[Sandbox Debug ${actualAppId}] Tracking global event listener: ${type} on`, target);
             appEventListeners.add({
                 target: target,
                 type: type,
                 listener: listener,
                 options: options
             });
-            console.log(`[Sandbox Debug ${actualAppId}] Total tracked listeners:`, appEventListeners.size);
         }
         
         return originalAddEventListener.call(target, type, listener, options);
@@ -136,7 +129,6 @@
     };
     
     // Provide tracked versions in local scope using centralized manager
-    console.log(`[Sandbox Debug ${actualAppId}] Setting up timer manager functions`);
     setInterval = function(callback, delay, ...args) {
         return window.sypnexTimerManager.setInterval(actualAppId, callback, delay, ...args);
     };
@@ -524,11 +516,9 @@
         },
         // Event listener cleanup function
         cleanupEventListeners: function() {
-            console.log(`[Sandbox Debug ${actualAppId}] cleanupEventListeners called, current listeners:`, appEventListeners.size);
             let cleanedCount = 0;
             appEventListeners.forEach(item => {
                 try {
-                    console.log(`[Sandbox Debug ${actualAppId}] Cleaning listener: ${item.type} on`, item.target);
                     originalRemoveEventListener.call(item.target, item.type, item.listener, item.options);
                     cleanedCount++;
                 } catch (error) {
@@ -536,21 +526,17 @@
                 }
             });
             appEventListeners.clear();
-            console.log(`[Sandbox Debug ${actualAppId}] Cleaned ${cleanedCount} event listeners`);
             if (cleanedCount > 0) {
             }
             return cleanedCount;
         },
         // Keyboard shortcuts cleanup function
         cleanupKeyboardShortcuts: function() {
-            console.log(`[Sandbox Debug ${actualAppId}] cleanupKeyboardShortcuts called, current shortcuts:`, appKeyboardShortcuts.size);
             let cleanedCount = appKeyboardShortcuts.size;
             if (window.sypnexKeyboardManager) {
-                console.log(`[Sandbox Debug ${actualAppId}] Unregistering keyboard shortcuts for app via sypnexKeyboardManager`);
                 window.sypnexKeyboardManager.unregisterApp(actualAppId);
             }
             appKeyboardShortcuts.clear();
-            console.log(`[Sandbox Debug ${actualAppId}] Cleaned ${cleanedCount} keyboard shortcuts`);
             if (cleanedCount > 0) {
             }
             return cleanedCount;
@@ -567,7 +553,6 @@
             }
             
             // Clean up timers using centralized manager instead
-            console.log(`[Sandbox Debug ${actualAppId}] Using centralized timer manager for cleanup`);
             window.sypnexTimerManager.cleanupApp(actualAppId);
             const timersCleanedUp = 1; // Mark as completed
             const listenersCleanedUp = this.cleanupEventListeners();
@@ -586,33 +571,25 @@
             
             
             // CRITICAL: Restore original global methods to prevent cross-contamination
-            console.log(`[Sandbox Debug ${actualAppId}] Restoring original global functions`);
             document.addEventListener = originalDocumentAddEventListener;
             document.removeEventListener = originalDocumentRemoveEventListener;
             window.addEventListener = originalWindowAddEventListener;
             window.removeEventListener = originalWindowRemoveEventListener;
             
             // Also restore timer functions to prevent lingering tracking
-            console.log(`[Sandbox Debug ${actualAppId}] Restoring original timer functions`);
             setInterval = originalSetInterval;
             setTimeout = originalSetTimeout;
             clearInterval = originalClearInterval;
             clearTimeout = originalClearTimeout;
-            console.log(`[Sandbox Debug ${actualAppId}] Timer functions restored`);
             
             
             // Clean up centralized tracking for this app
-            console.log(`[Sandbox Debug ${actualAppId}] Cleaning up centralized tracking`);
             // Timer cleanup now handled by centralized manager
             if (window.sypnexEventTracker) {
-                console.log(`[Sandbox Debug ${actualAppId}] Global event tracker before cleanup:`, Array.from(window.sypnexEventTracker.keys()));
                 window.sypnexEventTracker.delete(actualAppId);
-                console.log(`[Sandbox Debug ${actualAppId}] Global event tracker after cleanup:`, Array.from(window.sypnexEventTracker.keys()));
             }
             if (window.sypnexKeyboardTracker) {
-                console.log(`[Sandbox Debug ${actualAppId}] Global keyboard tracker before cleanup:`, Array.from(window.sypnexKeyboardTracker.keys()));
                 window.sypnexKeyboardTracker.delete(actualAppId);
-                console.log(`[Sandbox Debug ${actualAppId}] Global keyboard tracker after cleanup:`, Array.from(window.sypnexKeyboardTracker.keys()));
             }
             
             // TEMPORARILY DISABLED: Restore original DOM navigation methods
