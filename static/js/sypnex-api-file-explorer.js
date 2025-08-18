@@ -14,6 +14,7 @@ Object.assign(SypnexAPI.prototype, {
      * @param {string} options.fileExtension - Required file extension (e.g., '.txt')
      * @param {function} options.onSelect - Callback when file is selected
      * @param {function} options.onCancel - Callback when modal is cancelled
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<string>} - Selected file path or null if cancelled
      */
     async showFileExplorer(options = {}) {

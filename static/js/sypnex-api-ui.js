@@ -14,6 +14,7 @@ Object.assign(SypnexAPI.prototype, {
      * @param {string} [options.cancelText='No'] - Text for cancel button
      * @param {string} [options.type='warning'] - Dialog type: 'warning', 'danger', 'info'
      * @param {string} [options.icon='fas fa-exclamation-triangle'] - FontAwesome icon class
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<boolean>} True if confirmed, false if cancelled
      */
     async showConfirmation(title, message, options = {}) {
@@ -179,6 +180,7 @@ Object.assign(SypnexAPI.prototype, {
      * @param {string} [options.cancelText='Cancel'] - Text for cancel button
      * @param {string} [options.icon='fas fa-edit'] - FontAwesome icon class
      * @param {string} [options.inputType='text'] - Input type: 'text', 'textarea'
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<string|null>} Input value if confirmed, null if cancelled
      */
     async showInputModal(title, message, options = {}) {
@@ -427,6 +429,7 @@ Object.assign(SypnexAPI.prototype, {
      * @param {string} [options.cancelText='Cancel'] - Text for cancel button
      * @param {string} [options.icon='fas fa-upload'] - FontAwesome icon class
      * @param {string} [options.accept='*'] - File accept types
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<File|null>} Selected file if confirmed, null if cancelled
      */
     async showFileUploadModal(title, message, options = {}) {
@@ -833,6 +836,7 @@ Object.assign(SypnexAPI.prototype, {
      * @param {string} [options.position='right'] - Position of menu ('left' or 'right')
      * @param {string} [options.buttonClass=''] - Additional CSS classes for the button
      * @param {string} [options.menuId=''] - Custom ID for the menu (auto-generated if not provided)
+     * @memberof SypnexAPI.prototype
      * @returns {object} Object with methods to control the menu
      * 
      * @example

@@ -62,6 +62,7 @@
      * Convert keyboard event to standardized key string
      * @param {KeyboardEvent} event - The keyboard event
      * @returns {string} Standardized key string
+     * @memberof SypnexAPI.prototype
      */
     function eventToKeyString(event) {
         const parts = [];
@@ -109,6 +110,7 @@
         
         /**
          * Unregister all shortcuts for an application
+         * @memberof SypnexAPI.prototype
          * @param {string} appId - Application identifier
          */
         unregisterApp(appId) {
@@ -123,6 +125,7 @@
         
         /**
          * Get statistics about registered shortcuts
+         * @memberof SypnexAPI.prototype
          * @returns {object} Statistics object
          */
         getStats() {
@@ -152,6 +155,7 @@ Object.assign(SypnexAPI.prototype, {
      * @param {object} config - Configuration options
      * @param {boolean} config.preventDefault - Whether to prevent default behavior (default: true)
      * @param {boolean} config.stopPropagation - Whether to stop event propagation (default: false)
+     * @memberof SypnexAPI.prototype
      * @example
      * this.registerKeyboardShortcuts({
      *     'f': () => this.toggleFullscreen(),
@@ -187,6 +191,7 @@ Object.assign(SypnexAPI.prototype, {
     
     /**
      * Get keyboard shortcut statistics
+     * @memberof SypnexAPI.prototype
      * @returns {object} Statistics about registered shortcuts
      */
     getKeyboardStats() {

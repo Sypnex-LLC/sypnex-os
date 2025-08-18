@@ -29,6 +29,7 @@ Object.assign(SypnexAPI.prototype, {
      * Connect to Socket.IO server for this app instance
      * @param {string} url - Socket.IO server URL (defaults to current origin)
      * @param {object} options - Socket.IO connection options
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<boolean>} - Connection success status
      */
     async connectSocket(url = null, options = {}) {
@@ -149,6 +150,7 @@ Object.assign(SypnexAPI.prototype, {
     },
     
     /**
+@memberof SypnexAPI.prototype
      * Disconnect from Socket.IO server
      */
     disconnectSocket() {
@@ -164,6 +166,7 @@ Object.assign(SypnexAPI.prototype, {
     
     /**
      * Check if Socket.IO is connected
+     * @memberof SypnexAPI.prototype
      * @returns {boolean} - Connection status
      */
     isSocketConnected() {
@@ -175,6 +178,7 @@ Object.assign(SypnexAPI.prototype, {
      * @param {string} event - Event name
      * @param {any} data - Data to send
      * @param {string} room - Room to send to (optional)
+     * @memberof SypnexAPI.prototype
      * @returns {boolean} - Success status
      */
     sendMessage(event, data, room = null) {
@@ -218,6 +222,7 @@ Object.assign(SypnexAPI.prototype, {
     /**
      * Join a Socket.IO room
      * @param {string} roomName - Room to join
+     * @memberof SypnexAPI.prototype
      * @returns {boolean} - Success status
      */
     joinRoom(roomName) {
@@ -239,6 +244,7 @@ Object.assign(SypnexAPI.prototype, {
     /**
      * Leave a Socket.IO room
      * @param {string} roomName - Room to leave
+     * @memberof SypnexAPI.prototype
      * @returns {boolean} - Success status
      */
     leaveRoom(roomName) {
@@ -259,6 +265,7 @@ Object.assign(SypnexAPI.prototype, {
     
     /**
      * Send a ping to test connection
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<number>} - Ping time in milliseconds
      */
     async ping() {
@@ -278,6 +285,7 @@ Object.assign(SypnexAPI.prototype, {
     /**
      * Listen for Socket.IO events
      * @param {string} eventName - Event name to listen for
+     * @memberof SypnexAPI.prototype
      * @param {function} callback - Callback function
      */
     on(eventName, callback) {
@@ -301,6 +309,7 @@ Object.assign(SypnexAPI.prototype, {
     /**
      * Remove Socket.IO event listener
      * @param {string} eventName - Event name
+     * @memberof SypnexAPI.prototype
      * @param {function} callback - Callback function to remove
      */
     off(eventName, callback) {
@@ -324,6 +333,7 @@ Object.assign(SypnexAPI.prototype, {
     /**
      * Trigger internal events (for app communication)
      * @param {string} eventName - Event name
+     * @memberof SypnexAPI.prototype
      * @param {any} data - Event data
      */
     _triggerEvent(eventName, data) {
@@ -341,6 +351,7 @@ Object.assign(SypnexAPI.prototype, {
     
     /**
      * Get the Socket.IO instance
+     * @memberof SypnexAPI.prototype
      * @returns {object|null} - Socket.IO instance or null
      */
     getSocket() {
@@ -349,6 +360,7 @@ Object.assign(SypnexAPI.prototype, {
     
     /**
      * Get Socket.IO connection state
+     * @memberof SypnexAPI.prototype
      * @returns {object} - Connection state object
      */
     getSocketState() {
@@ -371,6 +383,7 @@ Object.assign(SypnexAPI.prototype, {
     // ===== CONNECTION HEALTH MONITORING =====
     
     /**
+@memberof SypnexAPI.prototype
      * Start periodic health checks
      */
     startHealthChecks() {
@@ -385,6 +398,7 @@ Object.assign(SypnexAPI.prototype, {
     },
     
     /**
+@memberof SypnexAPI.prototype
      * Stop periodic health checks
      */
     stopHealthChecks() {
@@ -395,6 +409,7 @@ Object.assign(SypnexAPI.prototype, {
     },
     
     /**
+@memberof SypnexAPI.prototype
      * Perform a health check ping
      */
     async performHealthCheck() {
@@ -413,6 +428,7 @@ Object.assign(SypnexAPI.prototype, {
     
     /**
      * Enable or disable health checks
+     * @memberof SypnexAPI.prototype
      * @param {boolean} enabled - Whether to enable health checks
      */
     setHealthChecks(enabled) {
@@ -426,6 +442,7 @@ Object.assign(SypnexAPI.prototype, {
     
     /**
      * Set health check interval
+     * @memberof SypnexAPI.prototype
      * @param {number} intervalMs - Interval in milliseconds
      */
     setHealthCheckInterval(intervalMs) {
@@ -440,6 +457,7 @@ Object.assign(SypnexAPI.prototype, {
     
     /**
      * Enable or disable auto-reconnect
+     * @memberof SypnexAPI.prototype
      * @param {boolean} enabled - Whether to enable auto-reconnect
      */
     setAutoReconnect(enabled) {
@@ -451,6 +469,7 @@ Object.assign(SypnexAPI.prototype, {
     
     /**
      * Set auto-reconnect configuration
+     * @memberof SypnexAPI.prototype
      * @param {object} config - Reconnect configuration
      */
     setReconnectConfig(config) {
@@ -473,6 +492,7 @@ Object.assign(SypnexAPI.prototype, {
     },
     
     /**
+@memberof SypnexAPI.prototype
      * Manually trigger reconnection
      */
     reconnect() {
@@ -484,6 +504,7 @@ Object.assign(SypnexAPI.prototype, {
     
     /**
      * Schedule a reconnection attempt
+     * @memberof SypnexAPI.prototype
      * @private
      */
     _scheduleReconnect() {
@@ -505,6 +526,7 @@ Object.assign(SypnexAPI.prototype, {
     
     /**
      * Rejoin rooms after reconnection
+     * @memberof SypnexAPI.prototype
      * @private
      */
     _rejoinRooms() {

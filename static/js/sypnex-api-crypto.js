@@ -5,6 +5,7 @@ Object.assign(SypnexAPI.prototype, {
     /**
      * Encrypt a value using the system's encryption service
      * @param {string|object} value - The value to encrypt (will be JSON.stringify'd if object)
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<string|null>} The encrypted value as a string, or null if encryption failed
      * @example
      * // Encrypt a simple string
@@ -44,6 +45,7 @@ Object.assign(SypnexAPI.prototype, {
     /**
      * Decrypt a value that was previously encrypted with the encrypt() method
      * @param {string} encryptedValue - The encrypted value to decrypt
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<string|null>} The decrypted value, or null if decryption failed
      * @example
      * // Decrypt a previously encrypted value

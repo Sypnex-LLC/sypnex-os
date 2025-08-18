@@ -6,6 +6,7 @@ Object.assign(SypnexAPI.prototype, {
     
     /**
      * Get virtual file system statistics
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<object>} - System statistics
      */
     async getVirtualFileStats() {
@@ -25,6 +26,7 @@ Object.assign(SypnexAPI.prototype, {
     /**
      * List files and directories in a path
      * @param {string} path - Directory path (defaults to '/')
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<object>} - Directory contents
      */
     async listVirtualFiles(path = '/') {
@@ -45,6 +47,7 @@ Object.assign(SypnexAPI.prototype, {
      * Create a new folder
      * @param {string} name - Folder name
      * @param {string} parentPath - Parent directory path (defaults to '/')
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<object>} - Creation result
      */
     async createVirtualFolder(name, parentPath = '/') {
@@ -74,6 +77,7 @@ Object.assign(SypnexAPI.prototype, {
      * @param {string} name - File name
      * @param {string} content - File content
      * @param {string} parentPath - Parent directory path (defaults to '/')
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<object>} - Creation result
      */
     async createVirtualFile(name, content = '', parentPath = '/') {
@@ -102,6 +106,7 @@ Object.assign(SypnexAPI.prototype, {
      * Upload a file from the host system
      * @param {File} file - File object from input element
      * @param {string} parentPath - Parent directory path (defaults to '/')
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<object>} - Upload result
      */
     async uploadVirtualFile(file, parentPath = '/') {
@@ -132,6 +137,7 @@ Object.assign(SypnexAPI.prototype, {
      * @param {File} file - File object from input element
      * @param {string} parentPath - Parent directory path (defaults to '/')
      * @param {Function} progressCallback - Callback for progress updates (percent)
+     * @memberof SypnexAPI.prototype
      * @returns {Object} - Object with promise and abort method { promise: Promise<object>, abort: Function }
      */
     uploadVirtualFileChunked(file, parentPath = '/', progressCallback = null) {
@@ -211,6 +217,7 @@ Object.assign(SypnexAPI.prototype, {
     /**
      * Read a file's content
      * @param {string} filePath - Path to the file
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<object>} - File data
      */
     async readVirtualFile(filePath) {
@@ -231,6 +238,7 @@ Object.assign(SypnexAPI.prototype, {
     /**
      * Get a file's content as text
      * @param {string} filePath - Path to the file
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<string>} - File content as text
      */
     async readVirtualFileText(filePath) {
@@ -246,6 +254,7 @@ Object.assign(SypnexAPI.prototype, {
     /**
      * Get a file's content as JSON
      * @param {string} filePath - Path to the file
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<object>} - Parsed JSON content
      */
     async readVirtualFileJSON(filePath) {
@@ -261,6 +270,7 @@ Object.assign(SypnexAPI.prototype, {
     /**
      * Get a file's content as Blob (for binary files, images, etc.)
      * @param {string} filePath - Path to the file
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<Blob>} - File content as Blob
      */
     async readVirtualFileBlob(filePath) {
@@ -280,6 +290,7 @@ Object.assign(SypnexAPI.prototype, {
     /**
      * Serve a file directly (for binary files, images, etc.)
      * @param {string} filePath - Path to the file
+     * @memberof SypnexAPI.prototype
      * @returns {string} - Direct URL to serve the file
      */
     getVirtualFileUrl(filePath) {
@@ -287,6 +298,7 @@ Object.assign(SypnexAPI.prototype, {
     },    /**
      * Delete a file or directory
      * @param {string} itemPath - Path to the item to delete
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<object>} - Deletion result
      */
     async deleteVirtualItem(itemPath) {
@@ -310,6 +322,7 @@ Object.assign(SypnexAPI.prototype, {
     /**
      * Get information about a file or directory
      * @param {string} itemPath - Path to the item
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<object>} - Item information
      */
     async getVirtualItemInfo(itemPath) {
@@ -343,6 +356,7 @@ Object.assign(SypnexAPI.prototype, {
     /**
      * Check if a file or directory exists
      * @param {string} itemPath - Path to the item
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<boolean>} - Whether the item exists
      */
     async virtualItemExists(itemPath) {
@@ -362,6 +376,7 @@ Object.assign(SypnexAPI.prototype, {
      * Write content to a file (creates or overwrites)
      * @param {string} filePath - Path to the file
      * @param {string} content - File content
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<object>} - Write result
      */
     async writeVirtualFile(filePath, content) {
@@ -390,6 +405,7 @@ Object.assign(SypnexAPI.prototype, {
      * Write JSON content to a file
      * @param {string} filePath - Path to the file
      * @param {object} data - JSON data to write
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<object>} - Write result
      */
     async writeVirtualFileJSON(filePath, data) {
@@ -406,6 +422,7 @@ Object.assign(SypnexAPI.prototype, {
      * Write binary content to a file using the upload endpoint
      * @param {string} filePath - Path to the file
      * @param {Uint8Array|Blob} binaryData - Binary data to write
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<object>} - Write result
      */
     async writeVirtualFileBinary(filePath, binaryData) {
@@ -457,6 +474,7 @@ Object.assign(SypnexAPI.prototype, {
     /**
      * Create a directory structure (creates parent directories if needed)
      * @param {string} dirPath - Directory path to create
+     * @memberof SypnexAPI.prototype
      * @returns {Promise<object>} - Creation result
      */
     async createVirtualDirectoryStructure(dirPath) {

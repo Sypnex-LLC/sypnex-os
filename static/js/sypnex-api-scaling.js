@@ -23,6 +23,7 @@
  * Scaling utilities for handling app scaling across all user applications
  * Provides methods to handle coordinate transformations, element positioning,
  * and mouse interactions when apps are scaled by the OS
+ * @namespace
  */
 const scalingUtils = {
     // Internal scale cache
@@ -215,6 +216,7 @@ Object.assign(SypnexAPI.prototype, {
     /**
      * Access to scaling utilities
      * @type {object}
+     * @memberof SypnexAPI.prototype
      */
     get scaling() {
         return scalingUtils;
@@ -222,6 +224,7 @@ Object.assign(SypnexAPI.prototype, {
 
     /**
      * Convenience method: Detect current app scale
+     * @memberof SypnexAPI.prototype
      * @returns {number} Scale factor
      */
     detectAppScale() {
@@ -231,6 +234,7 @@ Object.assign(SypnexAPI.prototype, {
     /**
      * Convenience method: Get scaled mouse coordinates
      * @param {Event} e - Mouse event
+     * @memberof SypnexAPI.prototype
      * @returns {object} Scaled coordinates
      */
     getScaledMouseCoords(e) {
@@ -240,6 +244,7 @@ Object.assign(SypnexAPI.prototype, {
     /**
      * Convenience method: Get scaled element bounds
      * @param {Element} element - DOM element
+     * @memberof SypnexAPI.prototype
      * @returns {object} Scaled bounding rectangle
      */
     getScaledBoundingClientRect(element) {
@@ -251,6 +256,7 @@ Object.assign(SypnexAPI.prototype, {
      * @param {number} screenX - Screen X coordinate
      * @param {number} screenY - Screen Y coordinate
      * @param {number} [zoomScale=1.0] - Optional zoom scale
+     * @memberof SypnexAPI.prototype
      * @returns {object} App coordinates
      */
     screenToAppCoords(screenX, screenY, zoomScale = 1.0) {
@@ -262,6 +268,7 @@ Object.assign(SypnexAPI.prototype, {
      * @param {number} appX - App X coordinate
      * @param {number} appY - App Y coordinate
      * @param {number} [zoomScale=1.0] - Optional zoom scale
+     * @memberof SypnexAPI.prototype
      * @returns {object} Screen coordinates
      */
     appToScreenCoords(appX, appY, zoomScale = 1.0) {
@@ -271,6 +278,7 @@ Object.assign(SypnexAPI.prototype, {
     /**
      * Convenience method: Initialize scale detection
      * @param {function} [onScaleChange] - Callback for scale changes
+     * @memberof SypnexAPI.prototype
      * @returns {MutationObserver} Observer instance
      */
     initScaleDetection(onScaleChange = null) {
