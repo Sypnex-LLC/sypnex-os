@@ -164,15 +164,15 @@ BUILTIN_APPS = {
         'description': 'Manage virtual files and folders stored in SQLite database',
         'keywords': ['file', 'folder', 'storage', 'database', 'virtual'],
         'template': 'apps/virtual-file-system.html'
-    },
-    'resource-manager': {
-        'id': 'resource-manager',
-        'name': 'Resource Manager',
-        'icon': 'fas fa-tachometer-alt',
-        'description': 'Monitor system resources and running applications in real-time',
-        'keywords': ['resource', 'task', 'manager', 'system', 'monitor'],
-        'template': 'apps/resource-manager.html'
     }
+    # 'resource-manager': {
+    #     'id': 'resource-manager',
+    #     'name': 'Resource Manager',
+    #     'icon': 'fas fa-tachometer-alt',
+    #     'description': 'Monitor system resources and running applications in real-time',
+    #     'keywords': ['resource', 'task', 'manager', 'system', 'monitor'],
+    #     'template': 'apps/resource-manager.html'
+    # }
 }
 
 def create_app():
