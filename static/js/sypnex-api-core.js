@@ -235,6 +235,94 @@ class SypnexAPI {
         }
     }
 
+    // ========================================
+    // SERVICE MANAGEMENT API METHODS
+    // ========================================
+
+    /**
+     * Get a list of all available services
+     * @async
+     * @returns {Promise<Array>} Array of service objects
+     * @throws {Error} If the request fails
+     * @example
+     * const services = await sypnexAPI.getServices();
+     * console.log(services); // [{ id: "service1", name: "Service 1", running: true }, ...]
+     */
+    async getServices() {
+        const response = await this.proxyHTTP({
+            url: '/api/services',
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response || response.status < 200 || response.status >= 300) {
+            throw new Error(`Request failed with status: ${response?.status || 'Unknown'}`);
+        }
+
+        if (response.error) {
+            throw new Error(response.error);
+        }
+
+        const data = response.content;
+        return data.services || [];
+    }
+
+    /**
+     * Start a specific service by ID
+     * @async
+     * @param {string} serviceId - The ID of the service to start
+     * @returns {Promise<void>}
+     * @throws {Error} If the request fails
+     * @example
+     * await sypnexAPI.startService("my-service-id");
+     */
+    async startService(serviceId) {
+        const response = await this.proxyHTTP({
+            url: `/api/services/${serviceId}/start`,
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response || response.status < 200 || response.status >= 300) {
+            throw new Error(`Request failed with status: ${response?.status || 'Unknown'}`);
+        }
+
+        if (response.error) {
+            throw new Error(response.error);
+        }
+    }
+
+    /**
+     * Stop a specific service by ID
+     * @async
+     * @param {string} serviceId - The ID of the service to stop
+     * @returns {Promise<void>}
+     * @throws {Error} If the request fails
+     * @example
+     * await sypnexAPI.stopService("my-service-id");
+     */
+    async stopService(serviceId) {
+        const response = await this.proxyHTTP({
+            url: `/api/services/${serviceId}/stop`,
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response || response.status < 200 || response.status >= 300) {
+            throw new Error(`Request failed with status: ${response?.status || 'Unknown'}`);
+        }
+
+        if (response.error) {
+            throw new Error(response.error);
+        }
+    }
+
     /**
      * Register a cleanup function to be called when the app is closed
      * Use this for custom cleanup like stopping game loops, disposing WebGL contexts, etc.
