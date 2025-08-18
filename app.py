@@ -111,7 +111,7 @@ def serve_bundled_os():
         "os-status.js",
         "os-dashboard.js",
         "os-vfs.js",
-        "os-resource-manager.js",
+        # "os-resource-manager.js",  # Disabled
         "os-app-manager.js",
         "os-system-settings.js",
         "os-lock.js",
@@ -257,7 +257,7 @@ def serve_bundled_css():
     
     # System Apps CSS with their app IDs for scoping
     system_app_css = [
-        ("os-resource-manager.css", "resource-manager"),
+        # ("os-resource-manager.css", "resource-manager"),  # Disabled
         ("os-virtual-file-system.css", "virtual-file-system"),
         ("os-user-app-manager.css", "user-app-manager"),
         ("os-system-settings.css", "system-settings")

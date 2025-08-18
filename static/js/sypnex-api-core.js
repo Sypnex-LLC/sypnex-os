@@ -104,6 +104,28 @@ class SypnexAPI {
     }
     
     /**
+     * Get access to the global SypnexOS apps registry
+     * @returns {Object} - The window.sypnexOS object containing apps Map and other OS functions
+     */
+    getSypnexOS() {
+        if (typeof window !== 'undefined' && window.sypnexOS) {
+            return window.sypnexOS;
+        }
+        return null;
+    }
+
+    /**
+     * Get access to the global SypnexApps tracker
+     * @returns {Object} - The window.sypnexApps object containing app tracking info
+     */
+    getSypnexApps() {
+        if (typeof window !== 'undefined' && window.sypnexApps) {
+            return window.sypnexApps;
+        }
+        return null;
+    }
+    
+    /**
      * Get metadata for this application
      * @async
      * @returns {Promise<object|null>} Application metadata or null if error
@@ -271,7 +293,6 @@ class SypnexAPI {
             return;
         }
 
-        console.log(`SypnexAPI [${this.appId}]: Running ${this.cleanupHooks.length} cleanup hook(s)`);
         
         for (const hook of this.cleanupHooks) {
             try {

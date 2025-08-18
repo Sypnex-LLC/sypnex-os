@@ -23,7 +23,7 @@
   },
   "package_info": {
     "format_version": "1.0",
-    "created_at": "2025-08-16T03:39:53.798142",
+    "created_at": "2025-08-18T05:33:40.395755",
     "packaged_by": "Sypnex OS App Packager",
     "source_directory": "C:\\Users\\bruce\\OneDrive\\Desktop\\AI Research\\sypnex-os-apps\\official\\image_viewer"
   }

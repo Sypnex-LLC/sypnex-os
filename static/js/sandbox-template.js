@@ -6,10 +6,7 @@
     // Determine the correct app ID for settings (extract original app ID from settings window ID)
     const actualAppId = '${appId}'.startsWith('settings-') ? '${appId}'.replace('settings-', '') : '${appId}';
     
-    // Create centralized tracking system (similar to built-in app tracker)
-    if (!window.sypnexTimerTracker) {
-        window.sypnexTimerTracker = new Map(); // appId -> Set of timers
-    }
+    // Create centralized tracking system (timer manager handles timers centrally)
     if (!window.sypnexEventTracker) {
         window.sypnexEventTracker = new Map(); // appId -> Set of event listeners
     }
@@ -17,11 +14,73 @@
         window.sypnexKeyboardTracker = new Map(); // appId -> keyboard shortcuts
     }
     
-    // Initialize tracking for this app
-    const appTimers = new Set();
+    // Create centralized timer manager (like keyboard manager)
+    if (!window.sypnexTimerManager) {
+        // Store original functions before any app overrides them
+        const originalSetInterval = window.setInterval;
+        const originalSetTimeout = window.setTimeout;
+        const originalClearInterval = window.clearInterval;
+        const originalClearTimeout = window.clearTimeout;
+        
+        window.sypnexTimerManager = {
+            timers: new Map(), // timerId -> {appId, type, id}
+            nextId: 1,
+            
+            setInterval: function(appId, callback, delay, ...args) {
+                const realId = originalSetInterval(callback, delay, ...args);
+                const managerId = this.nextId++;
+                this.timers.set(managerId, {appId, type: 'interval', realId});
+                return managerId;
+            },
+            
+            setTimeout: function(appId, callback, delay, ...args) {
+                const realId = originalSetTimeout(callback, delay, ...args);
+                const managerId = this.nextId++;
+                this.timers.set(managerId, {appId, type: 'timeout', realId});
+                return managerId;
+            },
+            
+            clearInterval: function(managerId) {
+                const timer = this.timers.get(managerId);
+                if (timer && timer.type === 'interval') {
+                    originalClearInterval(timer.realId);
+                    this.timers.delete(managerId);
+                    return true;
+                }
+                return false;
+            },
+            
+            clearTimeout: function(managerId) {
+                const timer = this.timers.get(managerId);
+                if (timer && timer.type === 'timeout') {
+                    originalClearTimeout(timer.realId);
+                    this.timers.delete(managerId);
+                    return true;
+                }
+                return false;
+            },
+            
+            cleanupApp: function(appId) {
+                let cleaned = 0;
+                for (const [managerId, timer] of this.timers.entries()) {
+                    if (timer.appId === appId) {
+                        if (timer.type === 'interval') {
+                            originalClearInterval(timer.realId);
+                        } else {
+                            originalClearTimeout(timer.realId);
+                        }
+                        this.timers.delete(managerId);
+                        cleaned++;
+                    }
+                }
+                return cleaned;
+            }
+        };
+    }
+    
+    // Initialize tracking for this app (timers now use centralized manager)
     const appEventListeners = new Set();
     const appKeyboardShortcuts = new Map(); // key -> handler function
-    window.sypnexTimerTracker.set(actualAppId, appTimers);
     window.sypnexEventTracker.set(actualAppId, appEventListeners);
     window.sypnexKeyboardTracker.set(actualAppId, appKeyboardShortcuts);
     
@@ -39,36 +98,7 @@
     const originalWindowAddEventListener = window.addEventListener;
     const originalWindowRemoveEventListener = window.removeEventListener;
     
-    // Create app-scoped tracking functions (no global override)
-    const trackingSetInterval = function(callback, delay, ...args) {
-        const id = originalSetInterval(callback, delay, ...args);
-        appTimers.add({type: 'interval', id: id});
-        return id;
-    };
-    
-    const trackingSetTimeout = function(callback, delay, ...args) {
-        const id = originalSetTimeout(callback, delay, ...args);
-        appTimers.add({type: 'timeout', id: id});
-        return id;
-    };
-    
-    const trackingClearInterval = function(id) {
-        originalClearInterval(id);
-        appTimers.forEach(timer => {
-            if (timer.id === id && timer.type === 'interval') {
-                appTimers.delete(timer);
-            }
-        });
-    };
-    
-    const trackingClearTimeout = function(id) {
-        originalClearTimeout(id);
-        appTimers.forEach(timer => {
-            if (timer.id === id && timer.type === 'timeout') {
-                appTimers.delete(timer);
-            }
-        });
-    };
+    // Note: Timer functions now use centralized manager, no local tracking needed
     
     const trackingAddEventListener = function(target, type, listener, options) {
         // Only track if this is a global target (document, window, or outside app container)
@@ -98,10 +128,19 @@
         return originalRemoveEventListener.call(target, type, listener, options);
     };
     
-    // Provide tracked versions in local scope (not global override)
-    setInterval = trackingSetInterval;
-    setTimeout = trackingSetTimeout;
-    clearInterval = trackingClearInterval;
+    // Provide tracked versions in local scope using centralized manager
+    setInterval = function(callback, delay, ...args) {
+        return window.sypnexTimerManager.setInterval(actualAppId, callback, delay, ...args);
+    };
+    setTimeout = function(callback, delay, ...args) {
+        return window.sypnexTimerManager.setTimeout(actualAppId, callback, delay, ...args);
+    };
+    clearInterval = function(id) {
+        return window.sypnexTimerManager.clearInterval(id);
+    };
+    clearTimeout = function(id) {
+        return window.sypnexTimerManager.clearTimeout(id);
+    };
     // Provide document/window event listener tracking in local scope
     document.addEventListener = function(type, listener, options) {
         return trackingAddEventListener(document, type, listener, options);
@@ -459,29 +498,21 @@
             return appEventListeners.size;
         },
         getTrackingStats: function() {
+            // Count timers from centralized manager
+            let timersCount = 0;
+            if (window.sypnexTimerManager) {
+                for (const timer of window.sypnexTimerManager.timers.values()) {
+                    if (timer.appId === actualAppId) {
+                        timersCount++;
+                    }
+                }
+            }
             return {
-                timers: appTimers.size,
+                timers: timersCount,
                 globalEventListeners: appEventListeners.size,
                 keyboardShortcuts: appKeyboardShortcuts.size,
                 domNodes: appContainer ? appContainer.querySelectorAll('*').length : 0
             };
-        },
-        // Timer cleanup function
-        cleanupTimers: function() {
-            let cleanedCount = 0;
-            appTimers.forEach(timer => {
-                if (timer.type === 'interval') {
-                    originalClearInterval(timer.id);
-                    cleanedCount++;
-                } else if (timer.type === 'timeout') {
-                    originalClearTimeout(timer.id);
-                    cleanedCount++;
-                }
-            });
-            appTimers.clear();
-            if (cleanedCount > 0) {
-            }
-            return cleanedCount;
         },
         // Event listener cleanup function
         cleanupEventListeners: function() {
@@ -521,7 +552,9 @@
                 }
             }
             
-            const timersCleanedUp = this.cleanupTimers();
+            // Clean up timers using centralized manager instead
+            window.sypnexTimerManager.cleanupApp(actualAppId);
+            const timersCleanedUp = 1; // Mark as completed
             const listenersCleanedUp = this.cleanupEventListeners();
             const keyboardCleanedUp = this.cleanupKeyboardShortcuts();
             
@@ -551,9 +584,7 @@
             
             
             // Clean up centralized tracking for this app
-            if (window.sypnexTimerTracker) {
-                window.sypnexTimerTracker.delete(actualAppId);
-            }
+            // Timer cleanup now handled by centralized manager
             if (window.sypnexEventTracker) {
                 window.sypnexEventTracker.delete(actualAppId);
             }
