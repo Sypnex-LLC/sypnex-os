@@ -211,8 +211,8 @@ Object.assign(SypnexOS.prototype, {
             // Create and show the window using consolidated data
             const windowElement = await this.createAppWindow(appId, launchData.app.html, launchData);
             
-            // Store app as running in preferences for persistence
-            await this.storeRunningAppState(appId, true);
+            // Store app as running in preferences for persistence (non-blocking)
+            this.storeRunningAppState(appId, true);
             
         } catch (error) {
             console.error('Error opening app:', error);
