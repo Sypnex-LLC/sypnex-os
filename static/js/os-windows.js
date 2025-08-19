@@ -339,8 +339,9 @@ Object.assign(SypnexOS.prototype, {
                     functionNames.push(match[1]);
                 }
                 
-                // Load SypnexAPI content from external file
-                const sypnexAPIContent = await this.loadSypnexAPI();
+                // Load SypnexAPI content from external file with version support
+                const apiVersion = launchData.apiVersion || 'live';
+                const sypnexAPIContent = await this.loadSypnexAPI(apiVersion);
                 
                 if (!sypnexAPIContent) {
                     console.error('Failed to load SypnexAPI - app cannot run');

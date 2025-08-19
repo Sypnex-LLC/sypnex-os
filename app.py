@@ -233,6 +233,51 @@ def serve_bundled_sypnex_api():
     
     return response
 
+@app.route('/static/js/api-versions/sypnex-api-v<version>.js')
+@monitor_performance(threshold=1.0)  # 1 second for versioned API bundle
+def serve_versioned_sypnex_api(version):
+    """
+    Serve pre-bundled versioned SypnexAPI snapshots
+    These are static files created when API versions are finalized
+    """
+    from flask import request
+    from config.app_config import validate_session_token
+    
+    # Get session token for bundle injection
+    token = (request.headers.get('X-Session-Token') or 
+            request.cookies.get('session_token'))
+    
+    # Validate session and get actual session token
+    username = validate_session_token(token) if token else None
+    session_token = token if username else 'INVALID_SESSION'
+    
+    # Look for the versioned API file
+    versioned_file = Path(app.static_folder) / 'js' / 'api-versions' / f'sypnex-api-v{version}.js'
+    
+    if not versioned_file.exists():
+        return Response(f"// API version {version} not found", mimetype='application/javascript', status=404)
+    
+    try:
+        with open(versioned_file, 'r', encoding='utf-8') as f:
+            bundle_content = f.read()
+        
+        # Replace template tokens with actual session token
+        bundle_content = bundle_content.replace('{{ACCESS_TOKEN}}', session_token)
+        
+        response = Response(bundle_content, mimetype='application/javascript')
+        
+        # Add aggressive no-cache headers (same as live API)
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        response.headers['Last-Modified'] = __import__('datetime').datetime.now().strftime('%a, %d %b %Y %H:%M:%S GMT')
+        
+        return response
+        
+    except Exception as e:
+        eprint(f"Error serving versioned API {version}: {e}")
+        return Response(f"// Error loading API version {version}", mimetype='application/javascript', status=500)
+
 @app.route('/static/css/os.css')
 @monitor_performance(threshold=0.5)  # 500ms for CSS bundle (smaller than JS)
 def serve_bundled_css():
