@@ -168,75 +168,65 @@ Object.assign(SypnexOS.prototype, {
     
     async loadSystemPreferences(windowElement) {
         try {
-            // Load developer mode setting
-            const response = await fetch('/api/preferences/system/developer_mode');
+            // Single consolidated request for all system settings data
+            const response = await fetch('/api/system-settings/bulk');
             const data = await response.json();
             
+            if (!data.success) {
+                throw new Error(data.error || 'Failed to load system settings');
+            }
+            
+            const { preferences, available_apps } = data;
+            
+            // Load developer mode setting
             const developerModeToggle = windowElement.querySelector('#developer-mode-toggle');
             if (developerModeToggle) {
-                developerModeToggle.checked = data.value === 'true';
+                developerModeToggle.checked = preferences.developer_mode === 'true';
                 
                 // Show/hide dev token section based on developer mode
-                this.showDevTokenSection(data.value === 'true');
+                this.showDevTokenSection(preferences.developer_mode === 'true');
                 
-                // If developer mode is enabled, load the current token
-                if (data.value === 'true') {
-                    await this.loadDevToken();
+                // If developer mode is enabled and we have a token, display it
+                if (preferences.developer_mode === 'true' && preferences.dev_jwt_token) {
+                    this.updateDevTokenDisplay(preferences.dev_jwt_token);
                 }
             }
 
             // Load show notifications setting
-            const notificationResponse = await fetch('/api/preferences/ui/show_notifications');
-            const notificationData = await notificationResponse.json();
-            
             const showNotificationsToggle = windowElement.querySelector('#show-notifications-toggle');
             if (showNotificationsToggle) {
-                showNotificationsToggle.checked = notificationData.value !== 'false'; // Default to true
+                showNotificationsToggle.checked = preferences.show_notifications !== 'false'; // Default to true
             }
             
             // Load app scale setting
-            const scaleResponse = await fetch('/api/preferences/ui/app_scale');
-            const scaleData = await scaleResponse.json();
-            
             const appScaleSelect = windowElement.querySelector('#app-scale-select');
             if (appScaleSelect) {
-                appScaleSelect.value = scaleData.value || '100';
+                appScaleSelect.value = preferences.app_scale || '100';
             }
 
             // Load wallpaper setting
-            const wallpaperResponse = await fetch('/api/preferences/ui/wallpaper');
-            const wallpaperData = await wallpaperResponse.json();
-            
-            this.updateWallpaperPreview(windowElement, wallpaperData.value);
+            this.updateWallpaperPreview(windowElement, preferences.wallpaper);
 
             // Load wallpaper sizing setting
-            const sizingResponse = await fetch('/api/preferences/ui/wallpaper_sizing');
-            const sizingData = await sizingResponse.json();
-            
             const wallpaperSizingSelect = windowElement.querySelector('#wallpaper-sizing-select');
             if (wallpaperSizingSelect) {
-                wallpaperSizingSelect.value = sizingData.value || 'cover';
+                wallpaperSizingSelect.value = preferences.wallpaper_sizing || 'cover';
             }
 
             // Load PIN code setting
-            const pinResponse = await fetch('/api/preferences/security/pin_code');
-            const pinData = await pinResponse.json();
-            
-            this.updatePinStatus(windowElement, pinData.value ? true : false);
+            this.updatePinStatus(windowElement, preferences.pin_code);
 
             // Load display name setting
-            const displayNameResponse = await fetch('/api/preferences/user/display_name');
-            const displayNameData = await displayNameResponse.json();
-            
-            this.loadDisplayName(windowElement, displayNameData.value || 'Not set');
+            this.loadDisplayName(windowElement, preferences.display_name || 'Not set');
 
-            // Load default app settings and available apps
-            await this.loadDefaultTextEditorSettings(windowElement);
-            await this.loadDefaultVideoPlayerSettings(windowElement);
-            await this.loadDefaultImageViewerSettings(windowElement);
+            // Load default app settings with available apps data
+            this.loadDefaultTextEditorSettingsFromData(windowElement, available_apps.text_editors, preferences.default_text_editor);
+            this.loadDefaultVideoPlayerSettingsFromData(windowElement, available_apps.media_players, preferences.default_media_player);
+            this.loadDefaultImageViewerSettingsFromData(windowElement, available_apps.image_viewers, preferences.default_image_viewer);
             
         } catch (error) {
             console.error('Error loading system preferences:', error);
+            this.showNotification('Failed to load system preferences', 'error');
         }
     },
     
@@ -1470,6 +1460,115 @@ Object.assign(SypnexOS.prototype, {
                 document.execCommand('copy');
                 this.showNotification('Development token copied to clipboard', 'success');
             }
+        }
+    },
+
+    // Helper methods for handling bulk data
+    loadDefaultTextEditorSettingsFromData(windowElement, textEditors, defaultTextEditor) {
+        const defaultTextEditorSelect = windowElement.querySelector('#default-text-editor-select');
+        if (!defaultTextEditorSelect) return;
+        
+        // Clear existing options
+        defaultTextEditorSelect.innerHTML = '';
+        
+        // Add default option
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = 'No default editor (system choice)';
+        defaultTextEditorSelect.appendChild(defaultOption);
+        
+        // Add available text editors
+        if (textEditors && textEditors.length > 0) {
+            textEditors.forEach(app => {
+                const option = document.createElement('option');
+                option.value = app.id;
+                option.textContent = `${app.name} (${app.type === 'builtin' ? 'Built-in' : 'User App'})`;
+                defaultTextEditorSelect.appendChild(option);
+            });
+        } else {
+            // No text editors found
+            const noEditorsOption = document.createElement('option');
+            noEditorsOption.value = '';
+            noEditorsOption.textContent = 'No text editors available';
+            noEditorsOption.disabled = true;
+            defaultTextEditorSelect.appendChild(noEditorsOption);
+        }
+        
+        // Set current default value
+        if (defaultTextEditor) {
+            defaultTextEditorSelect.value = defaultTextEditor;
+        }
+    },
+
+    loadDefaultVideoPlayerSettingsFromData(windowElement, mediaPlayers, defaultMediaPlayer) {
+        const defaultVideoPlayerSelect = windowElement.querySelector('#default-video-player-select');
+        if (!defaultVideoPlayerSelect) return;
+        
+        // Clear existing options
+        defaultVideoPlayerSelect.innerHTML = '';
+        
+        // Add default option
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = 'No default video player (system choice)';
+        defaultVideoPlayerSelect.appendChild(defaultOption);
+        
+        // Add available video players
+        if (mediaPlayers && mediaPlayers.length > 0) {
+            mediaPlayers.forEach(app => {
+                const option = document.createElement('option');
+                option.value = app.id;
+                option.textContent = `${app.name} (${app.type === 'builtin' ? 'Built-in' : 'User App'})`;
+                defaultVideoPlayerSelect.appendChild(option);
+            });
+        } else {
+            // No video players found
+            const noPlayersOption = document.createElement('option');
+            noPlayersOption.value = '';
+            noPlayersOption.textContent = 'No video players available';
+            noPlayersOption.disabled = true;
+            defaultVideoPlayerSelect.appendChild(noPlayersOption);
+        }
+        
+        // Set current default value
+        if (defaultMediaPlayer) {
+            defaultVideoPlayerSelect.value = defaultMediaPlayer;
+        }
+    },
+
+    loadDefaultImageViewerSettingsFromData(windowElement, imageViewers, defaultImageViewer) {
+        const defaultImageViewerSelect = windowElement.querySelector('#default-image-viewer-select');
+        if (!defaultImageViewerSelect) return;
+        
+        // Clear existing options
+        defaultImageViewerSelect.innerHTML = '';
+        
+        // Add default option
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = 'No default image viewer (system choice)';
+        defaultImageViewerSelect.appendChild(defaultOption);
+        
+        // Add available image viewers
+        if (imageViewers && imageViewers.length > 0) {
+            imageViewers.forEach(app => {
+                const option = document.createElement('option');
+                option.value = app.id;
+                option.textContent = `${app.name} (${app.type === 'builtin' ? 'Built-in' : 'User App'})`;
+                defaultImageViewerSelect.appendChild(option);
+            });
+        } else {
+            // No image viewers found
+            const noViewersOption = document.createElement('option');
+            noViewersOption.value = '';
+            noViewersOption.textContent = 'No image viewers available';
+            noViewersOption.disabled = true;
+            defaultImageViewerSelect.appendChild(noViewersOption);
+        }
+        
+        // Set current default value
+        if (defaultImageViewer) {
+            defaultImageViewerSelect.value = defaultImageViewer;
         }
     }
 });

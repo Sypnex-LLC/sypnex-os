@@ -302,6 +302,77 @@ class UserPreferences:
         except Exception as e:
             eprint(f"Error getting all preferences: {e}")
             return {}
+
+    def get_system_settings_bulk(self) -> Dict[str, Any]:
+        """Get all system settings preferences in a single optimized query"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                
+                # Define the specific preferences we need for system settings
+                required_prefs = [
+                    ('system', 'developer_mode'),
+                    ('ui', 'show_notifications'),
+                    ('ui', 'app_scale'),
+                    ('ui', 'wallpaper'),
+                    ('ui', 'wallpaper_sizing'),
+                    ('security', 'pin_code'),
+                    ('user', 'display_name'),
+                    ('system', 'default_text_editor'),
+                    ('system', 'default_media_player'),
+                    ('system', 'default_image_viewer'),
+                    ('system', 'dev_jwt_token')
+                ]
+                
+                # Build a single query using IN clause for efficiency
+                placeholders = ','.join(['(?,?)'] * len(required_prefs))
+                flat_params = []
+                for cat, key in required_prefs:
+                    flat_params.extend([cat, key])
+                
+                cursor.execute(f'''
+                    SELECT category, key, value 
+                    FROM preferences 
+                    WHERE (category, key) IN ({placeholders})
+                ''', flat_params)
+                
+                results = cursor.fetchall()
+                preferences = {}
+                
+                for cat, key, value in results:
+                    parsed_value = json.loads(value)
+                    
+                    # For security preferences, return boolean indicating if value exists
+                    if cat == 'security':
+                        preferences[key] = bool(parsed_value)
+                    else:
+                        preferences[key] = parsed_value
+                
+                # Set default values for missing preferences
+                defaults = {
+                    'developer_mode': 'false',
+                    'show_notifications': 'true',
+                    'app_scale': '100',
+                    'wallpaper': '',
+                    'wallpaper_sizing': 'cover',
+                    'pin_code': False,  # This will be boolean from security processing above
+                    'display_name': '',
+                    'default_text_editor': '',
+                    'default_media_player': '',
+                    'default_image_viewer': '',
+                    'dev_jwt_token': ''
+                }
+                
+                # Fill in any missing preferences with defaults
+                for key, default_value in defaults.items():
+                    if key not in preferences:
+                        preferences[key] = default_value
+                
+                return preferences
+                
+        except Exception as e:
+            eprint(f"Error getting system settings bulk data: {e}")
+            return {}
     
     # Developer JWT token management
     def generate_dev_jwt_token(self, username: str = None) -> str:

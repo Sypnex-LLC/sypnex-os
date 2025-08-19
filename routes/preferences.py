@@ -80,6 +80,87 @@ def register_preference_routes(app, managers):
         preferences = managers['user_preferences'].get_all_preferences(category)
         return jsonify({'success': True, 'preferences': preferences})
 
+    @app.route('/api/system-settings/bulk', methods=['GET'])
+    def get_system_settings_bulk():
+        """Get all system settings data in a single optimized request"""
+        try:
+            # Get all preferences in one database query
+            preferences = managers['user_preferences'].get_system_settings_bulk()
+            
+            # Get available apps by keywords in one query each
+            available_apps = {}
+            
+            try:
+                # Get all user apps once
+                user_apps = managers['user_app_manager'].get_all_apps()
+                text_editors = []
+                media_players = []
+                image_viewers = []
+                
+                # Filter user apps by keywords
+                for app_data in user_apps:
+                    app_keywords = app_data.get('keywords', [])
+                    app_info = {
+                        'id': app_data.get('id'),
+                        'name': app_data.get('name'),
+                        'description': app_data.get('description'),
+                        'icon': app_data.get('icon'),
+                        'type': app_data.get('type', 'user_app')
+                    }
+                    
+                    if any('text_editor' in keyword.lower() for keyword in app_keywords):
+                        text_editors.append(app_info)
+                    if any('media_player' in keyword.lower() for keyword in app_keywords):
+                        media_players.append(app_info)
+                    if any('image_viewer' in keyword.lower() for keyword in app_keywords):
+                        image_viewers.append(app_info)
+                
+                # Also check built-in apps once
+                from config.app_config import BUILTIN_APPS
+                for app_id, builtin_app in BUILTIN_APPS.items():
+                    app_keywords = builtin_app.get('keywords', [])
+                    app_info = {
+                        'id': builtin_app.get('id'),
+                        'name': builtin_app.get('name'),
+                        'description': builtin_app.get('description'),
+                        'icon': builtin_app.get('icon'),
+                        'type': 'builtin'
+                    }
+                    
+                    if any('text_editor' in keyword.lower() for keyword in app_keywords):
+                        text_editors.append(app_info)
+                    if any('media_player' in keyword.lower() for keyword in app_keywords):
+                        media_players.append(app_info)
+                    if any('image_viewer' in keyword.lower() for keyword in app_keywords):
+                        image_viewers.append(app_info)
+                
+                available_apps = {
+                    'text_editors': text_editors,
+                    'media_players': media_players,
+                    'image_viewers': image_viewers
+                }
+                
+            except Exception as e:
+                print(f"Error getting available apps: {e}")
+                available_apps = {
+                    'text_editors': [],
+                    'media_players': [],
+                    'image_viewers': []
+                }
+            
+            return jsonify({
+                'success': True,
+                'preferences': preferences,
+                'available_apps': available_apps
+            })
+            
+        except Exception as e:
+            print(f"Error getting system settings bulk data: {e}")
+            return jsonify({
+                'success': False, 
+                'error': 'Failed to get system settings data'
+            }), 500
+
     # Window state management
     @app.route('/api/window-state/<app_id>', methods=['GET'])
     def get_window_state(app_id):
