@@ -1068,61 +1068,6 @@ Object.assign(SypnexOS.prototype, {
             this.showNotification('Error showing confirmation dialog', 'error');
         }
     },
-
-    async loadDefaultTextEditorSettings(windowElement) {
-        try {
-            // Load available text editors (apps with 'editor' keyword)
-            const editorsResponse = await fetch('/api/apps/by-keyword/text_editor');
-            const editorsData = await editorsResponse.json();
-            
-            const defaultTextEditorSelect = windowElement.querySelector('#default-text-editor-select');
-            if (!defaultTextEditorSelect) return;
-            
-            // Clear existing options
-            defaultTextEditorSelect.innerHTML = '';
-            
-            // Add default option
-            const defaultOption = document.createElement('option');
-            defaultOption.value = '';
-            defaultOption.textContent = 'No default editor (system choice)';
-            defaultTextEditorSelect.appendChild(defaultOption);
-            
-            // Add available text editors
-            if (editorsData.success && editorsData.apps.length > 0) {
-                editorsData.apps.forEach(app => {
-                    const option = document.createElement('option');
-                    option.value = app.id;
-                    option.textContent = `${app.name} (${app.type === 'builtin' ? 'Built-in' : 'User App'})`;
-                    defaultTextEditorSelect.appendChild(option);
-                });
-            } else {
-                // No text editors found
-                const noEditorsOption = document.createElement('option');
-                noEditorsOption.value = '';
-                noEditorsOption.textContent = 'No text editors available';
-                noEditorsOption.disabled = true;
-                defaultTextEditorSelect.appendChild(noEditorsOption);
-            }
-            
-            // Load current default text editor setting
-            const defaultEditorResponse = await fetch('/api/preferences/system/default_text_editor');
-            const defaultEditorData = await defaultEditorResponse.json();
-            
-            if (defaultEditorData.success && defaultEditorData.value) {
-                defaultTextEditorSelect.value = defaultEditorData.value;
-            }
-            
-        } catch (error) {
-            console.error('Error loading default text editor settings:', error);
-            
-            // Show error in select
-            const defaultTextEditorSelect = windowElement.querySelector('#default-text-editor-select');
-            if (defaultTextEditorSelect) {
-                defaultTextEditorSelect.innerHTML = '<option value="">Error loading editors</option>';
-            }
-        }
-    },
-
     async saveDefaultTextEditor(editorId) {
         try {
             const response = await fetch('/api/preferences/system/default_text_editor', {
@@ -1167,61 +1112,6 @@ Object.assign(SypnexOS.prototype, {
             }
         }
     },
-    // Video Player Settings
-    async loadDefaultVideoPlayerSettings(windowElement) {
-        try {
-            // Load available video players (apps with 'media_player' keyword)
-            const videoPlayersResponse = await fetch('/api/apps/by-keyword/media_player');
-            const videoPlayersData = await videoPlayersResponse.json();
-            
-            const defaultVideoPlayerSelect = windowElement.querySelector('#default-video-player-select');
-            if (!defaultVideoPlayerSelect) return;
-            
-            // Clear existing options
-            defaultVideoPlayerSelect.innerHTML = '';
-            
-            // Add default option
-            const defaultOption = document.createElement('option');
-            defaultOption.value = '';
-            defaultOption.textContent = 'No default video player (system choice)';
-            defaultVideoPlayerSelect.appendChild(defaultOption);
-            
-            // Add available video players
-            if (videoPlayersData.success && videoPlayersData.apps.length > 0) {
-                videoPlayersData.apps.forEach(app => {
-                    const option = document.createElement('option');
-                    option.value = app.id;
-                    option.textContent = `${app.name} (${app.type === 'builtin' ? 'Built-in' : 'User App'})`;
-                    defaultVideoPlayerSelect.appendChild(option);
-                });
-            } else {
-                // No video players found
-                const noPlayersOption = document.createElement('option');
-                noPlayersOption.value = '';
-                noPlayersOption.textContent = 'No video players available';
-                noPlayersOption.disabled = true;
-                defaultVideoPlayerSelect.appendChild(noPlayersOption);
-            }
-            
-            // Load current default video player setting
-            const defaultPlayerResponse = await fetch('/api/preferences/system/default_media_player');
-            const defaultPlayerData = await defaultPlayerResponse.json();
-            
-            if (defaultPlayerData.success && defaultPlayerData.value) {
-                defaultVideoPlayerSelect.value = defaultPlayerData.value;
-            }
-            
-        } catch (error) {
-            console.error('Error loading default video player settings:', error);
-            
-            // Show error in select
-            const defaultVideoPlayerSelect = windowElement.querySelector('#default-video-player-select');
-            if (defaultVideoPlayerSelect) {
-                defaultVideoPlayerSelect.innerHTML = '<option value="">Error loading video players</option>';
-            }
-        }
-    },
-
     async saveDefaultVideoPlayer(playerId) {
         try {
             const response = await fetch('/api/preferences/system/default_media_player', {
@@ -1266,62 +1156,6 @@ Object.assign(SypnexOS.prototype, {
             }
         }
     },
-
-    // Image Viewer Settings
-    async loadDefaultImageViewerSettings(windowElement) {
-        try {
-            // Load available image viewers (apps with 'image_viewer' keyword)
-            const imageViewersResponse = await fetch('/api/apps/by-keyword/image_viewer');
-            const imageViewersData = await imageViewersResponse.json();
-            
-            const defaultImageViewerSelect = windowElement.querySelector('#default-image-viewer-select');
-            if (!defaultImageViewerSelect) return;
-            
-            // Clear existing options
-            defaultImageViewerSelect.innerHTML = '';
-            
-            // Add default option
-            const defaultOption = document.createElement('option');
-            defaultOption.value = '';
-            defaultOption.textContent = 'No default image viewer (system choice)';
-            defaultImageViewerSelect.appendChild(defaultOption);
-            
-            // Add available image viewers
-            if (imageViewersData.success && imageViewersData.apps.length > 0) {
-                imageViewersData.apps.forEach(app => {
-                    const option = document.createElement('option');
-                    option.value = app.id;
-                    option.textContent = `${app.name} (${app.type === 'builtin' ? 'Built-in' : 'User App'})`;
-                    defaultImageViewerSelect.appendChild(option);
-                });
-            } else {
-                // No image viewers found
-                const noViewersOption = document.createElement('option');
-                noViewersOption.value = '';
-                noViewersOption.textContent = 'No image viewers available';
-                noViewersOption.disabled = true;
-                defaultImageViewerSelect.appendChild(noViewersOption);
-            }
-            
-            // Load current default image viewer setting
-            const defaultViewerResponse = await fetch('/api/preferences/system/default_image_viewer');
-            const defaultViewerData = await defaultViewerResponse.json();
-            
-            if (defaultViewerData.success && defaultViewerData.value) {
-                defaultImageViewerSelect.value = defaultViewerData.value;
-            }
-            
-        } catch (error) {
-            console.error('Error loading default image viewer settings:', error);
-            
-            // Show error in select
-            const defaultImageViewerSelect = windowElement.querySelector('#default-image-viewer-select');
-            if (defaultImageViewerSelect) {
-                defaultImageViewerSelect.innerHTML = '<option value="">Error loading image viewers</option>';
-            }
-        }
-    },
-
     async saveDefaultImageViewer(viewerId) {
         try {
             const response = await fetch('/api/preferences/system/default_image_viewer', {
