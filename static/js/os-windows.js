@@ -428,7 +428,7 @@ Object.assign(SypnexOS.prototype, {
             console.log(`Background app ${appId} launched successfully`);
         } else {
             // Add app to status bar for quick switching (only for regular apps)
-            this.addAppToStatusBar(appId);
+            this.addAppToStatusBar(appId, launchData.app);
             
             // Focus the window (only for regular apps)
             this.focusWindow(appId);

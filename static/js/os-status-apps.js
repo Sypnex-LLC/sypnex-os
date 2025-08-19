@@ -3,7 +3,7 @@
 
 // Extend SypnexOS class with status bar app management methods
 Object.assign(SypnexOS.prototype, {
-    async addAppToStatusBar(appId) {
+    async addAppToStatusBar(appId, appData = null) {
         const statusApps = document.getElementById('status-open-apps');
         if (!statusApps) return;
 
@@ -14,15 +14,15 @@ Object.assign(SypnexOS.prototype, {
         }
 
         try {
-            // Get app data
-            const appData = await this.getAppData(appId);
+            // Use provided app data or fallback to getAppData only if needed
+            const finalAppData = appData || await this.getAppData(appId);
             
             
             const appIcon = document.createElement('button');
             appIcon.className = 'status-app-icon';
             appIcon.dataset.appId = appId;
-            appIcon.title = appData.name;
-            appIcon.innerHTML = `<i class="${appData.icon}"></i>`;
+            appIcon.title = finalAppData.name;
+            appIcon.innerHTML = `<i class="${finalAppData.icon}"></i>`;
 
             // Add click event to switch to app
             appIcon.addEventListener('click', (e) => {
