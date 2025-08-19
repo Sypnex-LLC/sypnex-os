@@ -186,6 +186,13 @@ def register_core_routes(app, managers, builtin_apps):
                 # No saved window state, will use defaults
                 window_state = None
             
+            # Get API version requirement from app metadata
+            api_version = 'live'  # Default to live version
+            if app_data and 'api_requirements' in app_data:
+                target_version = app_data['api_requirements'].get('target_version')
+                if target_version:
+                    api_version = target_version
+            
             # Build response with all data needed for launch
             launch_data = {
                 'success': True,
@@ -205,7 +212,8 @@ def register_core_routes(app, managers, builtin_apps):
                     'canReload': app_type == 'user_app' and preferences['developerMode']
                 },
                 'preferences': preferences,
-                'windowState': window_state
+                'windowState': window_state,
+                'apiVersion': api_version
             }
             
             return jsonify(launch_data)

@@ -343,25 +343,37 @@ class SypnexOS {
         // - Store errors for later analysis
     }
 
-    async loadSypnexAPI() {
-        if (this.sypnexAPIContent) {
-            return this.sypnexAPIContent;
-        }
-        
+    async loadSypnexAPI(version = 'live') {
         try {
-            // Load bundled SypnexAPI from single endpoint
-            const response = await fetch('/static/js/sypnex-api.js');
+            // Determine URL based on version
+            let url;
+            if (version === 'live') {
+                url = '/static/js/sypnex-api.js';  // Live bundle
+            } else {
+                url = `/static/js/api-versions/sypnex-api-v${version}.js`;  // Versioned snapshot
+            }
+            
+            const response = await fetch(url);
             
             if (response.ok) {
-                this.sypnexAPIContent = await response.text();
-                return this.sypnexAPIContent;
+                return await response.text();
             } else {
-                console.error('Failed to load SypnexAPI bundle');
+                console.error(`Failed to load SypnexAPI ${version} from ${url}`);
+                // Fallback to live version if versioned API fails
+                if (version !== 'live') {
+                    console.warn(`Falling back to live API for version ${version}`);
+                    return this.loadSypnexAPI('live');
+                }
                 return null;
             }
             
         } catch (error) {
-            console.error('Error loading SypnexAPI bundle:', error);
+            console.error(`Error loading SypnexAPI ${version}:`, error);
+            // Fallback to live version if versioned API fails
+            if (version !== 'live') {
+                console.warn(`Falling back to live API for version ${version}`);
+                return this.loadSypnexAPI('live');
+            }
             return null;
         }
     }
