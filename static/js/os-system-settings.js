@@ -50,14 +50,6 @@ Object.assign(SypnexOS.prototype, {
             });
         }
 
-        // Reset OS button
-        const resetOsBtn = windowElement.querySelector('#reset-os-btn');
-        if (resetOsBtn) {
-            resetOsBtn.addEventListener('click', () => {
-                this.handleResetOS();
-            });
-        }
-
         // Repair Installation button
         const repairInstallationBtn = windowElement.querySelector('#repair-installation-btn');
         if (repairInstallationBtn) {
@@ -1002,72 +994,7 @@ Object.assign(SypnexOS.prototype, {
             this.showNotification('Failed to start repair process. Please try again.', 'error');
         }
     },
-
-    async handleResetOS() {
-        try {
-            // Create a temporary SypnexAPI instance to use the confirmation dialog
-            const tempAPI = new window.SypnexAPI('system-settings');
-            
-            const confirmed = await tempAPI.showConfirmation(
-                'Reset Operating System',
-                'This will reset the entire operating system to its default state. All user data, settings, and installed apps will be lost.',
-                {
-                    type: 'danger',
-                    confirmText: 'Reset OS',
-                    cancelText: 'Cancel',
-                    icon: 'fas fa-exclamation-triangle'
-                }
-            );
-
-            if (confirmed) {
-                this.showNotification('Resetting system...', 'info');
-                
-                try {
-                    // Call the reset endpoint
-                    const response = await fetch('/api/system/reset', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        }
-                    });
-                    
-                    const result = await response.json();
-                    
-                    if (result.success) {
-                        this.showNotification('System reset complete - reloading...', 'success');
-                        
-                        // Wait a moment for the user to see the success message
-                        setTimeout(async () => {
-                            // Refresh apps and cache before reloading
-                            try {
-                                // Refresh backend registry
-                                await fetch('/api/user-apps/refresh', { method: 'POST' });
-                                
-                                // Also refresh the latest versions cache
-                                if (this.refreshLatestVersionsCache) {
-                                    await this.refreshLatestVersionsCache();
-                                }
-                            } catch (error) {
-                                console.error('Error refreshing apps before reload:', error);
-                            }
-                            
-                            window.location.reload();
-                        }, 1500);
-                    } else {
-                        this.showNotification(`Reset failed: ${result.error}`, 'error');
-                        console.error('Reset failed:', result.error);
-                    }
-                } catch (error) {
-                    this.showNotification('Network error during reset', 'error');
-                    console.error('Reset network error:', error);
-                }
-            } else {
-            }
-        } catch (error) {
-            console.error('Error showing reset confirmation:', error);
-            this.showNotification('Error showing confirmation dialog', 'error');
-        }
-    },
+    
     async saveDefaultTextEditor(editorId) {
         try {
             const response = await fetch('/api/preferences/system/default_text_editor', {
