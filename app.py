@@ -213,8 +213,9 @@ def serve_bundled_sypnex_api():
         else:
             bundle_content += f"// MISSING: {js_file}\n\n"
     
-    # Replace template tokens with actual session token
-    bundle_content = bundle_content.replace('{{ACCESS_TOKEN}}', session_token)
+    # Replace template tokens with actual session token only if bundle is True
+    if bundle:
+        bundle_content = bundle_content.replace('{{ACCESS_TOKEN}}', session_token)
     
     # Minify the bundle if jsmin is available AND bundle is True
     if JSMIN_AVAILABLE and bundle:
@@ -233,7 +234,7 @@ def serve_bundled_sypnex_api():
     
     return response
 
-@app.route('/static/js/api-versions/sypnex-api-v<version>.js')
+@app.route('/static/js/sypnex-api-v<version>.js')
 @monitor_performance(threshold=1.0)  # 1 second for versioned API bundle
 def serve_versioned_sypnex_api(version):
     """
@@ -242,6 +243,9 @@ def serve_versioned_sypnex_api(version):
     """
     from flask import request
     from config.app_config import validate_session_token
+    
+    # Get bundle parameter, defaults to True
+    bundle = request.args.get('bundle', 'true').lower() == 'true'
     
     # Get session token for bundle injection
     token = (request.headers.get('X-Session-Token') or 
@@ -261,8 +265,22 @@ def serve_versioned_sypnex_api(version):
         with open(versioned_file, 'r', encoding='utf-8') as f:
             bundle_content = f.read()
         
-        # Replace template tokens with actual session token
-        bundle_content = bundle_content.replace('{{ACCESS_TOKEN}}', session_token)
+        print(f"DEBUG: bundle={bundle}, JSMIN_AVAILABLE={JSMIN_AVAILABLE}")
+        print(f"DEBUG: Original content length: {len(bundle_content)}")
+        
+        # Replace template tokens with actual session token only if bundle is True
+        if bundle:
+            bundle_content = bundle_content.replace('{{ACCESS_TOKEN}}', session_token)
+        
+        # Minify the bundle if jsmin is available AND bundle is True
+        if JSMIN_AVAILABLE and bundle:
+            try:
+                original_length = len(bundle_content)
+                bundle_content = jsmin(bundle_content, quote_chars="'\"`")
+                print(f"DEBUG: After minification: {original_length} -> {len(bundle_content)}")
+            except Exception as e:
+                print(f"DEBUG: Minification failed: {e}")
+                eprint(f"Warning: Minification failed: {e}")
         
         response = Response(bundle_content, mimetype='application/javascript')
         
