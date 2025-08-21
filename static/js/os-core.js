@@ -350,7 +350,7 @@ class SypnexOS {
             if (version === 'live') {
                 url = '/static/js/sypnex-api.js';  // Live bundle
             } else {
-                url = `/static/js/api-versions/sypnex-api-v${version}.js`;  // Versioned snapshot
+                url = `/static/js/sypnex-api-v${version}.js`;  // Versioned snapshot
             }
             
             const response = await fetch(url);

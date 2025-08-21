@@ -1010,6 +1010,244 @@ Object.assign(SypnexAPI.prototype, {
                 dropdownMenu.remove();
             }
         };
+    },
+
+    /**
+     * Show a generic modal with custom HTML content
+     * @async
+     * @param {object} options - Configuration options
+     * @param {string} options.title - Modal title
+     * @param {string} options.html - HTML content for modal body
+     * @param {string} [options.icon='fas fa-window-maximize'] - FontAwesome icon class
+     * @param {string} [options.size='medium'] - Modal size: 'small', 'medium', 'large'
+     * @param {Array} [options.buttons=[]] - Array of button objects with text, style, and onClick
+     * @param {boolean} [options.closeOnOverlay=true] - Close modal when clicking overlay
+     * @param {function} [options.onClose=null] - Callback when modal is closed
+     * @memberof SypnexAPI.prototype
+     * @returns {Promise<string|null>} Button text that was clicked, or null if closed
+     */
+    async showModal(options = {}) {
+        const {
+            title = 'Modal',
+            html = '',
+            icon = 'fas fa-window-maximize',
+            size = 'medium',
+            buttons = [],
+            closeOnOverlay = true,
+            onClose = null
+        } = options;
+
+        return new Promise((resolve) => {
+            // Remove any existing generic modal
+            const existingModal = document.getElementById('sypnex-generic-modal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+
+            // Create the modal
+            const modal = document.createElement('div');
+            modal.id = 'sypnex-generic-modal';
+            modal.className = 'sypnex-modal';
+            
+            // Add appId as data attribute if available
+            if (this.appId) {
+                modal.setAttribute('data-appid', this.appId);
+            }
+            
+            modal.style.cssText = `
+                display: block;
+                position: fixed;
+                z-index: 11000;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.5);
+                backdrop-filter: blur(4px);
+            `;
+
+            // Determine modal size
+            let modalWidth = '90%';
+            let maxWidth = '500px';
+            
+            switch (size) {
+                case 'small':
+                    maxWidth = '400px';
+                    break;
+                case 'medium':
+                    maxWidth = '600px';
+                    break;
+                case 'large':
+                    maxWidth = '800px';
+                    break;
+                case 'xlarge':
+                    maxWidth = '1000px';
+                    break;
+            }
+
+            // Create modal content
+            const modalContent = document.createElement('div');
+            modalContent.style.cssText = `
+                background: var(--glass-bg);
+                margin: 5% auto;
+                padding: 0;
+                border: 1px solid var(--glass-border);
+                border-radius: 12px;
+                width: ${modalWidth};
+                max-width: ${maxWidth};
+                max-height: 90vh;
+                backdrop-filter: blur(10px);
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+                display: flex;
+                flex-direction: column;
+            `;
+
+            // Modal header
+            const modalHeader = document.createElement('div');
+            modalHeader.style.cssText = `
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 20px;
+                border-bottom: 1px solid var(--glass-border);
+                background: var(--glass-bg);
+                border-radius: 12px 12px 0 0;
+                flex-shrink: 0;
+            `;
+
+            const headerTitle = document.createElement('h3');
+            headerTitle.style.cssText = `
+                margin: 0;
+                color: var(--text-primary);
+                font-size: 1.2em;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            `;
+            headerTitle.innerHTML = `<i class="${icon}" style="color: var(--accent-color);"></i> ${title}`;
+
+            const closeBtn = document.createElement('button');
+            closeBtn.innerHTML = '&times;';
+            closeBtn.style.cssText = `
+                background: none;
+                border: none;
+                font-size: 1.5em;
+                color: var(--text-secondary);
+                cursor: pointer;
+                padding: 0;
+                width: 30px;
+                height: 30px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 4px;
+                transition: all 0.2s ease;
+            `;
+            closeBtn.onmouseover = () => {
+                closeBtn.style.background = 'rgba(255, 71, 87, 0.1)';
+                closeBtn.style.color = '#ff4757';
+                closeBtn.style.transform = 'scale(1.1)';
+            };
+            closeBtn.onmouseout = () => {
+                closeBtn.style.background = 'none';
+                closeBtn.style.color = 'var(--text-secondary)';
+                closeBtn.style.transform = 'scale(1)';
+            };
+
+            modalHeader.appendChild(headerTitle);
+            modalHeader.appendChild(closeBtn);
+
+            // Modal body
+            const modalBody = document.createElement('div');
+            modalBody.style.cssText = `
+                padding: 20px;
+                background: var(--glass-bg);
+                flex: 1;
+                overflow-y: auto;
+            `;
+            modalBody.innerHTML = html;
+
+            // Modal footer (only if buttons are provided)
+            let modalFooter = null;
+            if (buttons.length > 0) {
+                modalFooter = document.createElement('div');
+                modalFooter.style.cssText = `
+                    padding: 20px;
+                    border-top: 1px solid var(--glass-border);
+                    display: flex;
+                    justify-content: flex-end;
+                    gap: 10px;
+                    background: var(--glass-bg);
+                    border-radius: 0 0 12px 12px;
+                    flex-shrink: 0;
+                `;
+
+                // Create buttons
+                buttons.forEach(buttonConfig => {
+                    const btn = document.createElement('button');
+                    btn.textContent = buttonConfig.text || 'Button';
+                    btn.className = `app-btn ${buttonConfig.style || 'secondary'}`;
+                    
+                    btn.addEventListener('click', () => {
+                        if (buttonConfig.onClick) {
+                            buttonConfig.onClick();
+                        }
+                        closeModal(buttonConfig.text);
+                    });
+                    
+                    modalFooter.appendChild(btn);
+                });
+            }
+
+            // Assemble modal
+            modalContent.appendChild(modalHeader);
+            modalContent.appendChild(modalBody);
+            if (modalFooter) {
+                modalContent.appendChild(modalFooter);
+            }
+            modal.appendChild(modalContent);
+
+            // Add to document body (bypasses app sandbox)
+            document.body.appendChild(modal);
+
+            // Return modal reference immediately so it can be used in button callbacks
+            // Also resolve the promise when modal closes
+            const modalRef = {
+                modal: modal,
+                close: (result = null) => closeModal(result)
+            };
+
+            // Setup event handlers
+            const closeModal = (result) => {
+                modal.remove();
+                if (onClose) onClose(result);
+                resolve({ modal: modal, result: result });
+                document.removeEventListener('keydown', escapeHandler);
+            };
+
+            // Resolve immediately with modal reference
+            resolve(modalRef);
+
+            // Close button event
+            closeBtn.addEventListener('click', () => closeModal(null));
+
+            // Overlay click to close (if enabled)
+            if (closeOnOverlay) {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        closeModal(null);
+                    }
+                });
+            }
+
+            // Escape key to close
+            const escapeHandler = (e) => {
+                if (e.key === 'Escape') {
+                    closeModal(null);
+                }
+            };
+            document.addEventListener('keydown', escapeHandler);
+        });
     }
 
 
